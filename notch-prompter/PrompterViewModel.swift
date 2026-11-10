@@ -49,6 +49,9 @@ final class PrompterViewModel: ObservableObject {
     @Published var prompterWidth: CGFloat = 184
     @Published var prompterHeight: CGFloat = 150
     @Published var voiceActivation: Bool = false
+    /// With voice activation on, whether the mic is running. Play starts it,
+    /// Pause, hiding the prompter, Reset, or reaching the end stops it.
+    @Published private(set) var isListening: Bool = false
     @Published var autoGain: Bool = false
     @Published var isPrompterVisible: Bool = true
     @Published var fontDesign: Font.Design = .monospaced
@@ -130,13 +133,19 @@ final class PrompterViewModel: ObservableObject {
             .removeDuplicates()
             .sink { [weak self] enabled in
                 guard let self = self else { return }
+                // Ask for access now so a denial shows while Settings is open,
+                // but the mic only turns on when the user presses Play.
+                self.stopListening()
                 if enabled {
-                    self.requestMicrophoneAccessAndStart()
-                } else {
-                    self.audioLevelCancellable = nil
-                    self.audioMonitor?.stopMonitoring()
-                    self.pause()
+                    self.withMicrophoneAccess { }
                 }
+            }
+            .store(in: &cancellables)
+
+        $isPrompterVisible
+            .removeDuplicates()
+            .sink { [weak self] visible in
+                if !visible { self?.stopListening() }
             }
             .store(in: &cancellables)
         
@@ -155,16 +164,15 @@ final class PrompterViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    private func requestMicrophoneAccessAndStart() {
+    private func withMicrophoneAccess(_ action: @escaping () -> Void) {
         switch AVCaptureDevice.authorizationStatus(for: .audio) {
         case .authorized:
-            monitorAudio()
+            action()
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
                 DispatchQueue.main.async {
                     if granted {
-                        self?.monitorAudio()
-                        
+                        action()
                     } else {
                         self?.voiceActivation = false
                         self?.showMicrophoneAlert = true
@@ -182,7 +190,40 @@ final class PrompterViewModel: ObservableObject {
     }
 
     
-    func monitorAudio(){
+    func startListening() {
+        guard voiceActivation, isPrompterVisible, !isListening else { return }
+        withMicrophoneAccess { [weak self] in
+            guard let self, self.voiceActivation, self.isPrompterVisible, !self.isListening else { return }
+            self.monitorAudio()
+            self.isListening = true
+        }
+    }
+
+    func stopListening() {
+        guard isListening else { return }
+        audioLevelCancellable = nil
+        audioMonitor?.stopMonitoring()
+        isListening = false
+        isPlaying = false
+    }
+
+    /// Play/Pause from the menu, hotkey, Settings, or hover controls. With voice
+    /// activation this starts or stops listening, and speech drives the scrolling.
+    func togglePlayback() {
+        if voiceActivation {
+            isListening ? stopListening() : startListening()
+        } else {
+            isPlaying ? pause() : play()
+        }
+    }
+
+    /// Called when the text has scrolled past its end.
+    func finishScript() {
+        stopListening()
+        pause()
+    }
+
+    private func monitorAudio() {
         if(audioMonitor == nil){
             audioMonitor = AudioMonitor()
         }
@@ -234,6 +275,7 @@ final class PrompterViewModel: ObservableObject {
     }
     
     func reset() {
+        stopListening()
         isPlaying = false
         offset = 0
         lastTick = nil
@@ -275,14 +317,7 @@ final class PrompterViewModel: ObservableObject {
         // Control + Option + P: Play/Pause
         playPauseHotKey = HotKey(key: .p, modifiers: [.control, .option])
         playPauseHotKey?.keyDownHandler = { [weak self] in
-            guard let self = self else { return }
-            if !self.voiceActivation {
-                if self.isPlaying {
-                    self.pause()
-                } else {
-                    self.play()
-                }
-            }
+            self?.togglePlayback()
         }
         
         // Control + Option + H: Show/Hide

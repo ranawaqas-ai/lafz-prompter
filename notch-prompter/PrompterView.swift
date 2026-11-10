@@ -181,7 +181,7 @@ struct PrompterContentView: View {
                     if contentHeight > 0, newValue >= contentHeight {
                         // We've scrolled past the end - stop at the end
                         viewModel.offset = contentHeight
-                        viewModel.pause()
+                        viewModel.finishScript()
                     }
                 }
                 .onChange(of: viewModel.text) { _, _ in
@@ -236,22 +236,18 @@ struct PrompterContentView: View {
                         // Play
                         if viewModel.voiceActivation {
                             Button(action: {
-                                openSettingsWindow() // TODO: open voice settings
+                                viewModel.togglePlayback()
                             }) {
-                                Image(systemName: "microphone.circle.fill")
+                                Image(systemName: viewModel.isListening ? "microphone.circle.fill" : "microphone.slash.circle.fill")
                                     .font(.system(size: 22))
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(viewModel.isListening ? .orange : .white)
                                     .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
                             }
-                            .disabled(true)
                             .buttonStyle(.plain)
+                            .help(viewModel.isListening ? "Stop listening" : "Start listening")
                         } else {
                             Button(action: {
-                                if viewModel.isPlaying {
-                                    viewModel.pause()
-                                } else {
-                                    viewModel.play()
-                                }
+                                viewModel.togglePlayback()
                             }) {
                                 Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                                     .font(.system(size: 22))

@@ -68,17 +68,17 @@ struct MenuContent: View {
         Divider()
         
         Button {
-            if viewModel.isPlaying {
-                viewModel.pause()
-            } else {
-                viewModel.play()
-            }
+            viewModel.togglePlayback()
         }
         label: {
-            Label(viewModel.isPlaying ? "Pause" : "Play",
-                  systemImage: viewModel.isPlaying ? "pause.fill" : "play.fill")
+            if viewModel.voiceActivation {
+                Label(viewModel.isListening ? "Stop Listening" : "Start Listening",
+                      systemImage: viewModel.isListening ? "mic.slash" : "mic")
+            } else {
+                Label(viewModel.isPlaying ? "Pause" : "Play",
+                      systemImage: viewModel.isPlaying ? "pause.fill" : "play.fill")
+            }
         }
-        .disabled(viewModel.voiceActivation)
         .keyboardShortcut("p", modifiers: [.control, .option])
 
         Button {

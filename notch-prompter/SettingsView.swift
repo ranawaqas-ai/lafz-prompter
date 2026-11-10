@@ -138,21 +138,23 @@ struct SettingsView: View {
                 HStack {
 
                     Button {
-                        if viewModel.isPlaying {
-                            viewModel.pause()
-                        } else {
-                            viewModel.play()
-                        }
+                        viewModel.togglePlayback()
                     } label: {
                         HStack(spacing: 4) {
-                            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 10))
-                            Text(viewModel.isPlaying ? "Pause" : "Play")
-                                .font(.system(size: 12, weight: .medium))
+                            if viewModel.voiceActivation {
+                                Image(systemName: viewModel.isListening ? "mic.slash.fill" : "mic.fill")
+                                    .font(.system(size: 10))
+                                Text(viewModel.isListening ? "Stop listening" : "Listen")
+                                    .font(.system(size: 12, weight: .medium))
+                            } else {
+                                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                                    .font(.system(size: 10))
+                                Text(viewModel.isPlaying ? "Pause" : "Play")
+                                    .font(.system(size: 12, weight: .medium))
+                            }
                         }
                     }
                     .buttonStyle(.automatic)
-                    .disabled(viewModel.voiceActivation)
                     
                     Button {
                         showResetConfirmation = true
@@ -548,7 +550,7 @@ struct VoiceTabView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Voice activation")
                             .font(.system(size: 13, weight: .medium))
-                        Text("Automatically scroll when speaking is detected")
+                        Text("Scroll while you speak. The mic is only on after you press Play (⌃⌥P), and turns off on Pause, Hide, or at the end of the script.")
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     }
@@ -598,7 +600,7 @@ struct VoiceTabView: View {
                         }
                     }
                     
-                    Text("Speak to test your microphone levels")
+                    Text(viewModel.isListening ? "Speak to test your microphone levels" : "Press Listen below to see your microphone level")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
