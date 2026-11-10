@@ -307,7 +307,9 @@ struct PrompterContentView: View {
  
         // Try to find existing settings window first
         for window in NSApp.windows {
-            if window.title == "NotchPrompter" {
+            // SwiftUI's identifier for the Settings scene window; unlike the
+            // title, it does not change with the app name.
+            if window.identifier?.rawValue == "com_apple_SwiftUI_Settings_window" {
                 window.makeKeyAndOrderFront(nil)
                 return
             }

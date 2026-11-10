@@ -3,7 +3,7 @@ import AppKit
 import HotKey
 
 @main
-struct NotchPrompterApp: App {
+struct LafzPrompterApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
@@ -98,18 +98,6 @@ struct MenuContent: View {
 
         Divider()
 
-        Button("Feedback") {
-            if let url = URL(string: "mailto:jakub@jpomykala.com?subject=NotchPrompter%20feedback") {
-                NSWorkspace.shared.open(url)
-            }
-        }
-        
-        Button("Project page") {
-            if let url = URL(string: "https://notchprompter.com") {
-                NSWorkspace.shared.open(url)
-            }
-        }
-        
 //        Button("Help translate") {
 //            if let url = URL(string: "https://simplelocalize.io/suggestions/?id=f1f11f9305dc44a2872b6a154dea6edc") {
 //                NSWorkspace.shared.open(url)

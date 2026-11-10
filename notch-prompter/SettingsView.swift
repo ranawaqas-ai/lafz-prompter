@@ -73,7 +73,7 @@ struct SettingsView: View {
             // Sidebar
             VStack(alignment: .leading, spacing: 2) {
                 Text("Settings")
-                // TODO: It would be cool to put here NotchPrompter + version instead of having this in the footer, but I have to also get rid of the window handler with "NotchPrompter Settings" to make it look good.
+                // TODO: It would be cool to put here Lafz Prompter + version instead of having this in the footer, but I have to also get rid of the window handler with "Lafz Prompter Settings" to make it look good.
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.tertiary)
                     .textCase(.uppercase)
@@ -102,7 +102,7 @@ struct SettingsView: View {
 
                 Spacer()
                 
-                Text("NotchPrompter \(appVersion)")
+                Text("Lafz Prompter \(appVersion)")
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .opacity(0.6)

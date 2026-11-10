@@ -10,7 +10,7 @@ final class PrompterViewModel: ObservableObject {
     
     // MARK: User settings
     @Published var text: String = """
-    This is a scrolling text test for NotchPrompter for macOS.
+    This is a scrolling text test for Lafz Prompter for macOS.
     The purpose of this demo is to check speed, readability, and smoothness. [pause]
     Adjust the font size, scroll speed, and window opacity to your preference.  
     Keep your eyes on the notch and follow the moving line.

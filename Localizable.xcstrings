@@ -2192,50 +2192,50 @@
         }
       }
     },
-    "NotchPrompter %@" : {
+    "Lafz Prompter %@" : {
       "comment" : "A footer label at the bottom of the settings view showing the current version of the app. The argument is the string “%arg”.",
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "NotchPrompter %@"
+            "value" : "Lafz Prompter %@"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NotchPrompter %@"
+            "value" : "Lafz Prompter %@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "NotchPrompter %@"
+            "value" : "Lafz Prompter %@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "NotchPrompter %@"
+            "value" : "Lafz Prompter %@"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "NotchPrompter %@"
+            "value" : "Lafz Prompter %@"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NotchPrompter %@"
+            "value" : "Lafz Prompter %@"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "NotchPrompter %@"
+            "value" : "Lafz Prompter %@"
           }
         }
       }
