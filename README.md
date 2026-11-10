@@ -20,6 +20,21 @@ license changed to personal, non-commercial use only. Lafz Prompter continues
 from the last MIT-licensed version (commit `3602155`), so it stays free and open
 source for everyone, including for commercial use.
 
+## Install
+Download the zip from [Releases](https://github.com/waqaskhan137/lafz-prompter/releases/latest)
+or [lafz.waqasrana.space](https://lafz.waqasrana.space) and drag the app into Applications.
+It is not signed with an Apple Developer ID, so the first time, right-click it and choose
+Open (or allow it in System Settings, Privacy & Security).
+
+## Build
+Needs Xcode or the Xcode command line tools.
+
+```sh
+scripts/build-app.sh   # writes build/Lafz Prompter.app and build/LafzPrompter.zip
+```
+
+The website lives in `website/` and builds into `docs/` for GitHub Pages.
+
 ## Credits
 Lafz Prompter is based on [NotchPrompter](https://github.com/jpomykala/NotchPrompter)
 by Jakub Pomykala, from the version released under the MIT License. It is not

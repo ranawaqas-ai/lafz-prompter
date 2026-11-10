@@ -40,3 +40,35 @@ details summary::-webkit-details-marker {
 details summary {
   list-style: none;
 }
+
+.urdu,
+.logo-mark {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+}
+
+.urdu {
+  line-height: 2.2;
+}
+
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22%;
+  background: #18181b;
+  color: #fafaf9;
+  line-height: 1;
+  padding-bottom: 0.25em;
+}
+
+.feature {
+  @apply bg-white rounded-xl border border-zinc-200 p-6;
+}
+
+.feature h3 {
+  @apply text-sm font-semibold text-zinc-900 mb-1;
+}
+
+.feature p {
+  @apply text-xs text-zinc-500 leading-relaxed;
+}

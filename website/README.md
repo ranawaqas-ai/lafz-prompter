@@ -1,27 +1,10 @@
-# NotchPrompter Website
+# Lafz Prompter website
 
-This is the promotional website for NotchPrompter built with Vite and Tailwind CSS.
-
-## Setup
+The site at https://lafz.waqasrana.space, built with Vite and Tailwind CSS.
+`npm run build` writes it to `../docs`, which GitHub Pages serves.
 
 ```bash
 npm install
-```
-
-## Development
-
-```bash
-npm run dev
-```
-
-## Build
-
-```bash
-npm run build
-```
-
-## Preview Production Build
-
-```bash
-npm run preview
+npm run dev     # local preview
+npm run build   # rebuild ../docs before committing
 ```
