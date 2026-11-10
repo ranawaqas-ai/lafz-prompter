@@ -21,7 +21,7 @@ from the last MIT-licensed version (commit `3602155`), so it stays free and open
 source for everyone, including for commercial use.
 
 ## Install
-Download the zip from [Releases](https://github.com/waqaskhan137/lafz-prompter/releases/latest)
+Download the zip from [Releases](https://github.com/ranawaqas-ai/lafz-prompter/releases/latest)
 or [lafz.waqasrana.space](https://lafz.waqasrana.space) and drag the app into Applications.
 It is not signed with an Apple Developer ID, so the first time, right-click it and choose
 Open (or allow it in System Settings, Privacy & Security).
