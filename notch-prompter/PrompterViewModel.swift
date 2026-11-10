@@ -46,6 +46,8 @@ final class PrompterViewModel: ObservableObject {
     @Published var autoGain: Bool = false
     @Published var isPrompterVisible: Bool = true
     @Published var fontDesign: Font.Design = .monospaced
+    // Empty means "use the system font in the selected style".
+    @Published var customFontFamily: String = ""
     @Published var selectedScreenIndex: Int = 0
     @Published var enableTopFade: Bool = true
     @Published var enableBottomFade: Bool = true
@@ -94,6 +96,7 @@ final class PrompterViewModel: ObservableObject {
         static let voiceActivation = "VoiceActivation"
         static let audioThreshold = "AudioThreshold"
         static let fontDesign = "FontDesign"
+        static let customFontFamily = "CustomFontFamily"
         static let selectedScreenIndex = "SelectedScreenIndex"
         static let opacity = "PrompterOpacity"
         static let enableTopFade = "EnableTopFade"
@@ -197,6 +200,19 @@ final class PrompterViewModel: ObservableObject {
 
     
     // MARK: Play/Pause
+    var prompterFont: Font {
+        guard !customFontFamily.isEmpty else {
+            return .system(size: fontSize, weight: .regular, design: fontDesign)
+        }
+        return .custom(customFontFamily, fixedSize: fontSize)
+    }
+
+    // Italic on a family without an italic face makes the system substitute
+    // another font, which breaks Nastaliq, so custom fonts stay upright.
+    var annotationFont: Font {
+        customFontFamily.isEmpty ? prompterFont.italic() : prompterFont
+    }
+
     func play() {
         lastTick = nil
         isPlaying = true
@@ -333,6 +349,7 @@ final class PrompterViewModel: ObservableObject {
         $voiceActivation.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
         $audioThreshold.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
         $fontDesign.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
+        $customFontFamily.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
         $selectedScreenIndex.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
         $enableTopFade.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
         $enableBottomFade.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
@@ -371,6 +388,9 @@ final class PrompterViewModel: ObservableObject {
         if let fontDesignRaw = defaults.string(forKey: Keys.fontDesign) {
             fontDesign = Font.Design(rawValue: fontDesignRaw) ?? .default
         }
+        // A saved font can be uninstalled later; fall back to the system font then.
+        let savedFontFamily = defaults.string(forKey: Keys.customFontFamily) ?? ""
+        customFontFamily = NSFontManager.shared.availableFontFamilies.contains(savedFontFamily) ? savedFontFamily : ""
         
         selectedScreenIndex = defaults.integer(forKey: Keys.selectedScreenIndex)
         
@@ -416,6 +436,7 @@ final class PrompterViewModel: ObservableObject {
         defaults.set(voiceActivation, forKey: Keys.voiceActivation)
         defaults.set(Double(audioThreshold), forKey: Keys.audioThreshold)
         defaults.set(fontDesign.rawValue, forKey: Keys.fontDesign)
+        defaults.set(customFontFamily, forKey: Keys.customFontFamily)
         defaults.set(selectedScreenIndex, forKey: Keys.selectedScreenIndex)
         defaults.set(enableTopFade, forKey: Keys.enableTopFade)
         defaults.set(enableBottomFade, forKey: Keys.enableBottomFade)

@@ -357,7 +357,7 @@ struct PrompterContentView: View {
         var attributedString = AttributedString(text)
         
         // Default font and color
-        let defaultFont = Font.system(size: viewModel.fontSize, weight: .regular, design: viewModel.fontDesign)
+        let defaultFont = viewModel.prompterFont
         let defaultColor = viewModel.prompterTheme.textColor
         
         // Apply default attributes to entire string
@@ -376,7 +376,7 @@ struct PrompterContentView: View {
                     let attributedRange = Range(stringRange, in: attributedString)
                     if let attributedRange = attributedRange {
                         // Make annotation text italic and dimmed
-                        attributedString[attributedRange].font = Font.system(size: viewModel.fontSize, weight: .regular, design: viewModel.fontDesign).italic()
+                        attributedString[attributedRange].font = viewModel.annotationFont
                         attributedString[attributedRange].foregroundColor = viewModel.prompterTheme.textColor.opacity(0.4)
                     }
                 }

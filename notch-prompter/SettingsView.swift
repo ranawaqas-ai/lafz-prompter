@@ -265,6 +265,13 @@ struct ScriptTabView: View {
 // MARK: - Appearance Tab
 struct AppearanceTabView: View {
     @ObservedObject var viewModel: PrompterViewModel
+
+    private let installedFontFamilies = NSFontManager.shared.availableFontFamilies
+
+    // The style buttons only apply to the system font.
+    private func isSelected(_ design: Font.Design) -> Bool {
+        viewModel.customFontFamily.isEmpty && viewModel.fontDesign == design
+    }
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -281,6 +288,7 @@ struct AppearanceTabView: View {
                         ForEach([Font.Design.default, .serif, .rounded, .monospaced], id: \.self) { design in
                             Button {
                                 viewModel.fontDesign = design
+                                viewModel.customFontFamily = ""
                             } label: {
                                 VStack(spacing: 4) {
                                     Text(design.icon)
@@ -291,12 +299,12 @@ struct AppearanceTabView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                                 .background(
-                                    viewModel.fontDesign == design 
+                                    isSelected(design) 
                                         ? Color.accentColor.opacity(0.15) 
                                         : Color(NSColor.controlBackgroundColor)
                                 )
                                 .foregroundStyle(
-                                    viewModel.fontDesign == design 
+                                    isSelected(design) 
                                         ? Color.accentColor 
                                         : .primary
                                 )
@@ -305,7 +313,7 @@ struct AppearanceTabView: View {
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
                                         .strokeBorder(
-                                            viewModel.fontDesign == design 
+                                            isSelected(design) 
                                                 ? Color.accentColor 
                                                 : Color.primary.opacity(0.2),
                                             lineWidth: 1
@@ -315,6 +323,15 @@ struct AppearanceTabView: View {
                             .buttonStyle(.plain)
                         }
                     }
+
+                    Picker("Font", selection: $viewModel.customFontFamily) {
+                        Text("System").tag("")
+                        Divider()
+                        ForEach(installedFontFamilies, id: \.self) { family in
+                            Text(family).tag(family)
+                        }
+                    }
+                    .font(.system(size: 12))
                 }
                 
                 SettingSlider(
