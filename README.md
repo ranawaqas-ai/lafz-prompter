@@ -14,6 +14,12 @@ Urdu support.
 - Customizable speed, size, alignment, fades, and position
 - Multi-monitor support
 
+## Why this exists
+NotchPrompter was released under the MIT License until May 2026, when its
+license changed to personal, non-commercial use only. Lafz Prompter continues
+from the last MIT-licensed version (commit `3602155`), so it stays free and open
+source for everyone, including for commercial use.
+
 ## Credits
 Lafz Prompter is based on [NotchPrompter](https://github.com/jpomykala/NotchPrompter)
 by Jakub Pomykala, from the version released under the MIT License. It is not
