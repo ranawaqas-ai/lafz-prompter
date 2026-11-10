@@ -357,7 +357,9 @@ struct PrompterContentView: View {
         var attributedString = AttributedString(text)
         
         // Default font and color
-        let defaultFont = viewModel.prompterFont
+        // Latin words keep the system font when the script itself is set in another family.
+        let fontFamily = viewModel.fontFamily(for: text)
+        let defaultFont = fontFamily.map { Font.custom($0, fixedSize: viewModel.fontSize) } ?? viewModel.systemFont
         let defaultColor = viewModel.prompterTheme.textColor
         
         // Apply default attributes to entire string
@@ -376,14 +378,30 @@ struct PrompterContentView: View {
                     let attributedRange = Range(stringRange, in: attributedString)
                     if let attributedRange = attributedRange {
                         // Make annotation text italic and dimmed
-                        attributedString[attributedRange].font = viewModel.annotationFont
+                        // Italic on a family without an italic face makes the system
+                        // substitute another font, which breaks Nastaliq.
+                        attributedString[attributedRange].font = fontFamily == nil ? defaultFont.italic() : defaultFont
                         attributedString[attributedRange].foregroundColor = viewModel.prompterTheme.textColor.opacity(0.4)
                     }
                 }
             }
         }
         
+        if fontFamily != nil, viewModel.fontChoice == .automatic {
+            applySystemFontToLatinWords(in: &attributedString, source: text)
+        }
+
         return attributedString
+    }
+
+    private func applySystemFontToLatinWords(in attributedString: inout AttributedString, source text: String) {
+        guard let regex = try? NSRegularExpression(pattern: "\\p{Latin}[\\p{Latin}\\p{N}'-]*") else { return }
+        let matches = regex.matches(in: text, range: NSRange(location: 0, length: (text as NSString).length))
+        for match in matches {
+            guard let stringRange = Range(match.range, in: text),
+                  let attributedRange = Range(stringRange, in: attributedString) else { continue }
+            attributedString[attributedRange].font = viewModel.systemFont
+        }
     }
 }
 

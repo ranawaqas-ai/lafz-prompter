@@ -270,7 +270,7 @@ struct AppearanceTabView: View {
 
     // The style buttons only apply to the system font.
     private func isSelected(_ design: Font.Design) -> Bool {
-        viewModel.customFontFamily.isEmpty && viewModel.fontDesign == design
+        !viewModel.fontChoice.isCustom && viewModel.fontDesign == design
     }
     
     var body: some View {
@@ -288,7 +288,9 @@ struct AppearanceTabView: View {
                         ForEach([Font.Design.default, .serif, .rounded, .monospaced], id: \.self) { design in
                             Button {
                                 viewModel.fontDesign = design
-                                viewModel.customFontFamily = ""
+                                if viewModel.fontChoice.isCustom {
+                                    viewModel.fontChoice = .automatic
+                                }
                             } label: {
                                 VStack(spacing: 4) {
                                     Text(design.icon)
@@ -324,14 +326,19 @@ struct AppearanceTabView: View {
                         }
                     }
 
-                    Picker("Font", selection: $viewModel.customFontFamily) {
-                        Text("System").tag("")
+                    Picker("Font", selection: $viewModel.fontChoice) {
+                        Text("Automatic").tag(PrompterFontChoice.automatic)
+                        Text("System").tag(PrompterFontChoice.system)
                         Divider()
                         ForEach(installedFontFamilies, id: \.self) { family in
-                            Text(family).tag(family)
+                            Text(family).tag(PrompterFontChoice.custom(family))
                         }
                     }
                     .font(.system(size: 12))
+
+                    Text("Automatic uses a Nastaliq font for Urdu and the style above for everything else.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
                 }
                 
                 SettingSlider(
