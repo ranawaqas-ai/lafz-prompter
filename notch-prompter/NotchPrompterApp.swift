@@ -44,6 +44,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)
     }
+
+    // Covers a quit inside the save debounce window.
+    func applicationWillTerminate(_ notification: Notification) {
+        viewModel.saveSettings()
+    }
 }
 
 struct MenuContent: View {

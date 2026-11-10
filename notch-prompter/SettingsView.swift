@@ -38,8 +38,6 @@ struct SettingsView: View {
     @ObservedObject var viewModel: PrompterViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: SettingsTab = .script
-    @State private var contentVisible = false
-    @State private var isClosing = false
     @State private var showResetConfirmation = false
 
     private var appVersion: String {
@@ -48,12 +46,10 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        ZStack {
-            if contentVisible {
-                settingsContent
-                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
-            }
-        }
+        // Always rendered: SwiftUI reuses this window after Done hides it, and
+        // onAppear does not run again, so content gated on an onAppear
+        // animation stayed hidden and the reopened window was blank.
+        settingsContent
         .frame(width: 680)
         .frame(minHeight: 560, maxHeight: 760)
         .background(.ultraThinMaterial)
@@ -69,12 +65,6 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("This will stop playback and reset the scroll position to the beginning.")
-        }
-        .onAppear {
-            // Animate in with spring animation
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.85).delay(0.05)) {
-                contentVisible = true
-            }
         }
     }
     
@@ -192,7 +182,7 @@ struct SettingsView: View {
                     Spacer()
                     
                     Button("Done") {
-                        closeWithAnimation()
+                        dismiss()
                     }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
@@ -202,15 +192,6 @@ struct SettingsView: View {
                 .padding(.horizontal, 16)
             }
             .frame(maxWidth: .infinity)
-        }
-    }
-    
-    private func closeWithAnimation() {
-        withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
-            contentVisible = false
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            dismiss()
         }
     }
 }

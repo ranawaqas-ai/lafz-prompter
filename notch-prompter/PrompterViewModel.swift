@@ -350,31 +350,14 @@ final class PrompterViewModel: ObservableObject {
     
     // MARK: Settings persistence
     private func observeSettingsChanges() {
-        $text.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $speed.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $fontSize.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $lineHeight.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $pauseOnHover.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $prompterWidth.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $prompterHeight.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $voiceActivation.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $audioThreshold.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $fontDesign.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $fontChoice.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $selectedScreenIndex.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $enableTopFade.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $enableBottomFade.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $topFadeHeight.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $bottomFadeHeight.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $showHoverControls.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $hideFromScreenRecording.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $prompterTheme.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $horizontalAlignment.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $textAlignment.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $showProgressBar.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $enableGlobalKeyboardShortcuts.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $speedIncrement.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $manualScrollAmount.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
+        // A @Published sink runs before the new value is stored, so saving from
+        // one wrote the previous value: a pasted script was saved as the text
+        // from before the paste. objectWillChange is debounced so the save runs
+        // after the change has landed, once per burst of typing.
+        objectWillChange
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .sink { [weak self] _ in self?.saveSettings() }
+            .store(in: &cancellables)
     }
     
     private func loadSettings() {
@@ -433,7 +416,7 @@ final class PrompterViewModel: ObservableObject {
         if manualScrollAmount == 0 { manualScrollAmount = 50.0 }
     }
     
-    private func saveSettings() {
+    func saveSettings() {
         let defaults = UserDefaults.standard
         defaults.set(text, forKey: Keys.text)
         defaults.set(speed, forKey: Keys.speed)
