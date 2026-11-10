@@ -63,6 +63,7 @@ class PrompterHostingView: NSView {
         
         let contentView = PrompterContentView(
             viewModel: viewModel,
+            scrollPosition: viewModel.scrollPosition,
             contentHeight: contentHeight
         )
         hostingView = NSHostingView(rootView: contentView)
@@ -84,6 +85,7 @@ class PrompterHostingView: NSView {
     func updateContent() {
         let contentView = PrompterContentView(
             viewModel: viewModel,
+            scrollPosition: viewModel.scrollPosition,
             contentHeight: $contentHeight
         )
         hostingView.rootView = contentView
@@ -158,6 +160,7 @@ class PrompterHostingView: NSView {
 // MARK: - Content View (SwiftUI)
 struct PrompterContentView: View {
     @ObservedObject var viewModel: PrompterViewModel
+    @ObservedObject var scrollPosition: ScrollPosition
     @Binding var contentHeight: CGFloat
     @State private var showControls = false
 
@@ -167,7 +170,7 @@ struct PrompterContentView: View {
             GeometryReader { geo in
                 VStack(spacing: 0) {
                     Spacer(minLength: 0)
-                    movingText
+                    PrompterTextView(viewModel: viewModel)
                         .frame(width: geo.size.width, alignment: .center)
                         .offset(y: -viewModel.offset)
                         .background(HeightReader(height: $contentHeight))
@@ -332,7 +335,17 @@ struct PrompterContentView: View {
             NSApp.postEvent(event, atStart: true)
         }
     }
-    
+}
+
+// Separate view so scrolling, which only changes the offset, does not rebuild
+// the attributed text on every frame.
+struct PrompterTextView: View {
+    @ObservedObject var viewModel: PrompterViewModel
+
+    var body: some View {
+        movingText
+    }
+
     private var movingText: some View {
         return VStack(spacing: viewModel.lineHeight) {
             textBlock

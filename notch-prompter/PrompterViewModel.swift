@@ -35,7 +35,13 @@ final class PrompterViewModel: ObservableObject {
     Let’s continue pushing boundaries and striving for excellence.
     """
     @Published var isPlaying: Bool = false
-    @Published var offset: CGFloat = 0
+    // Kept in its own object: publishing it here would re-render every view
+    // observing the view model, including Settings, on every frame of scrolling.
+    let scrollPosition = ScrollPosition()
+    var offset: CGFloat {
+        get { scrollPosition.offset }
+        set { scrollPosition.offset = newValue }
+    }
     @Published var speed: Double = 12.0
     @Published var fontSize: Double = 10.0
     @Published var lineHeight: Double = 8.0
@@ -78,6 +84,7 @@ final class PrompterViewModel: ObservableObject {
     private var scrollDownHotKey: HotKey?
     
     var audioMonitor: AudioMonitor?
+    private var audioLevelCancellable: AnyCancellable?
     @Published var showMicrophoneAlert: Bool = false
     @Published var audioThreshold: Float = 0.01
     @Published var targetLevel: Double = 0.05  // default 5%
@@ -126,7 +133,9 @@ final class PrompterViewModel: ObservableObject {
                 if enabled {
                     self.requestMicrophoneAccessAndStart()
                 } else {
+                    self.audioLevelCancellable = nil
                     self.audioMonitor?.stopMonitoring()
+                    self.pause()
                 }
             }
             .store(in: &cancellables)
@@ -178,21 +187,21 @@ final class PrompterViewModel: ObservableObject {
             audioMonitor = AudioMonitor()
         }
         
-        audioMonitor!.$rmsLevel
+        // Replace rather than add: each extra subscriber also wrote isPlaying on
+        // every audio buffer, so toggling voice activation multiplied UI updates.
+        audioLevelCancellable = audioMonitor!.$rmsLevel
             .receive(on: DispatchQueue.main)
             .sink { [weak self] rmsLevel in
                 guard let self = self else { return }
                 let detected = rmsLevel > self.audioThreshold
-//                print("Audio monitor - activation: \(detected) rms: \(rmsLevel) threshold: \(self.audioThreshold)")
+                // @Published notifies on every assignment, even of the same value,
+                // and each notification re-renders the prompter and Settings.
+                guard detected != self.isPlaying else { return }
                 if detected {
                     self.lastTick = nil
-                    self.isPlaying = true
-                } else {
-                    self.isPlaying = false
                 }
-
+                self.isPlaying = detected
             }
-            .store(in: &cancellables)
 
         audioMonitor!.startMonitoring()
     }
@@ -658,4 +667,8 @@ enum PrompterTextAlignment: String, CaseIterable {
         case .trailing: return .trailing
         }
     }
+}
+
+final class ScrollPosition: ObservableObject {
+    @Published var offset: CGFloat = 0
 }
