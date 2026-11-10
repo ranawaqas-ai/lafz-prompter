@@ -58,7 +58,7 @@ final class PrompterViewModel: ObservableObject {
     @Published var horizontalAlignment: PrompterHorizontalAlignment = .center
     @Published var textAlignment: PrompterTextAlignment = .center
     @Published var showProgressBar: Bool = true
-    @Published var enableGlobalKeyboardShortcuts: Bool = false
+    @Published var enableGlobalKeyboardShortcuts: Bool = true
     @Published var speedIncrement: Double = 2.0
     @Published var manualScrollAmount: Double = 50.0
     
@@ -417,7 +417,7 @@ final class PrompterViewModel: ObservableObject {
         
         showProgressBar = defaults.object(forKey: Keys.showProgressBar) as? Bool ?? true
         
-        enableGlobalKeyboardShortcuts = defaults.object(forKey: Keys.enableGlobalKeyboardShortcuts) as? Bool ?? false
+        enableGlobalKeyboardShortcuts = defaults.object(forKey: Keys.enableGlobalKeyboardShortcuts) as? Bool ?? true
         speedIncrement = defaults.double(forKey: Keys.speedIncrement)
         if speedIncrement == 0 { speedIncrement = 2.0 }
         manualScrollAmount = defaults.double(forKey: Keys.manualScrollAmount)

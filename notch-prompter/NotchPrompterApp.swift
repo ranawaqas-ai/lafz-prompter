@@ -58,7 +58,7 @@ struct MenuContent: View {
             Label(viewModel.isPrompterVisible ? "Hide Prompter" : "Show Prompter",
                   systemImage: viewModel.isPrompterVisible ? "eye.slash" : "eye")
         }
-        .keyboardShortcut("h", modifiers: [.command, .option])
+        .keyboardShortcut("h", modifiers: [.control, .option])
         
         Divider()
         
@@ -74,7 +74,7 @@ struct MenuContent: View {
                   systemImage: viewModel.isPlaying ? "pause.fill" : "play.fill")
         }
         .disabled(viewModel.voiceActivation)
-        .keyboardShortcut("p", modifiers: [.command, .option])
+        .keyboardShortcut("p", modifiers: [.control, .option])
 
         Button {
             viewModel.reset()
