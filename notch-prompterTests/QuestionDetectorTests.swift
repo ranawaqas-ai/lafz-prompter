@@ -10,6 +10,11 @@ struct QuestionDetectorTests {
         "Tell me about a time you disagreed with your manager.",
         "We use Postgres today. How would you scale it?",
         "It's slow, right? Why do you think that is?",
+        "Take an example array, step through your code line by line to show how it finds the duplicate, and state its time and space complexity.",
+        "Write a function that returns the first non-repeating character.",
+        "Now, explain how your solution scales to a billion rows.",
+        "Okay. Walk through the edge cases for an empty input.",
+        "Please implement the LRU cache using a hash map.",
     ])
     func questionsAreDetected(text: String) {
         #expect(QuestionDetector.isQuestion(text))
@@ -21,6 +26,9 @@ struct QuestionDetectorTests {
         "Right?",
         "Okay.",
         "Do that tomorrow.",
+        "Take your time.",
+        "Give me a second.",
+        "That looks good to me.",
         "",
     ])
     func statementsAndTagsAreNot(text: String) {

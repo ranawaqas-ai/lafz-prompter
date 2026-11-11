@@ -12,6 +12,19 @@ enum QuestionDetector {
         "tell me about", "walk me through", "talk me through", "can you", "could you",
         "would you", "i'd like to hear", "i would like to hear",
     ]
+    /// Verbs interviewers open a task with, e.g. "Take an example array and
+    /// step through your code." A sentence starting with one is a prompt to
+    /// answer when it is long enough to be a task, not "Take your time".
+    private static let promptVerbs: Set<String> = [
+        "explain", "describe", "walk", "step", "state", "write", "implement", "show",
+        "design", "take", "give", "tell", "talk", "trace", "compare", "analyze", "analyse",
+        "optimize", "optimise", "solve", "code", "list", "define", "discuss", "consider",
+        "suppose", "imagine", "estimate", "calculate", "find", "return", "modify", "extend",
+        "refactor", "debug", "fix", "add", "handle", "test", "prove", "derive", "outline",
+        "summarize", "summarise", "share", "elaborate", "justify", "rewrite", "convert",
+    ]
+    private static let minimumPromptWords = 5
+
     /// Tags that turn a statement into a rhetorical check, not a question.
     private static let tags: Set<String> = ["right", "yeah", "okay", "ok", "you know", "correct", "no", "huh"]
 
@@ -20,7 +33,23 @@ enum QuestionDetector {
     static func isQuestion(_ text: String) -> Bool {
         if questionSentences(in: text).contains(where: { !isTag($0) }) { return true }
         let lower = text.lowercased()
-        return askingPhrases.contains(where: lower.contains)
+        if askingPhrases.contains(where: lower.contains) { return true }
+        return sentences(in: text).contains(where: isPrompt)
+    }
+
+    /// "Step through your code line by line." opens with a task verb and is
+    /// long enough to be a task.
+    private static func isPrompt(_ sentence: String) -> Bool {
+        let words = sentence.lowercased().split(whereSeparator: { !$0.isLetter && $0 != "'" })
+        guard words.count >= minimumPromptWords, let first = words.first else { return false }
+        // "Let's" and "now" often lead the verb: "Now, explain how it scales."
+        let verb = ["now", "so", "okay", "ok", "next", "please", "and", "then", "let's", "lets"].contains(String(first))
+            ? words.dropFirst().first.map(String.init) ?? "" : String(first)
+        return promptVerbs.contains(verb)
+    }
+
+    private static func sentences(in text: String) -> [String] {
+        text.split(whereSeparator: { ".!?".contains($0) }).map(String.init)
     }
 
     /// The question to answer when `latest` has just arrived, or nil. The text
