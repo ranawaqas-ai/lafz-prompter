@@ -281,16 +281,23 @@ final class PrompterViewModel: ObservableObject {
         lastTick = nil
     }
     
+    /// While set, the scroll controls move this instead of the script; Call
+    /// Assist uses it for its answer. Takes the distance, negative is up.
+    var scrollRedirect: ((CGFloat) -> Void)?
+
     func scrollBack() {
+        if let scrollRedirect { return scrollRedirect(-backScrollAmount) }
         offset = max(0, offset - backScrollAmount)
     }
     
     // MARK: Manual Scroll Control
     func scrollUp() {
+        if let scrollRedirect { return scrollRedirect(-manualScrollAmount) }
         offset = max(0, offset - manualScrollAmount)
     }
     
     func scrollDown() {
+        if let scrollRedirect { return scrollRedirect(manualScrollAmount) }
         offset += manualScrollAmount
     }
     

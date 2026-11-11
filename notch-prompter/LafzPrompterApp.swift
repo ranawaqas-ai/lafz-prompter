@@ -44,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
     private var prompterWindow: PrompterWindow!
     private var hideObserver: AnyCancellable?
+    private var assistStateObserver: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         prompterWindow = PrompterWindow(viewModel: viewModel, callAssist: callAssistController)
@@ -51,6 +52,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hideObserver = viewModel.$isPrompterVisible
             .filter { !$0 }
             .sink { [weak self] _ in self?.callAssistController.stop() }
+        // Starting Call Assist brings the prompter back, so answers are never
+        // fetched with nothing on screen, and the scroll shortcuts move the
+        // answer instead of the script while it runs.
+        assistStateObserver = callAssistController.$state
+            .removeDuplicates()
+            .sink { [weak self] state in
+                guard let self else { return }
+                if state == .starting { self.viewModel.isPrompterVisible = true }
+                let controller = self.callAssistController
+                self.viewModel.scrollRedirect = state == .idle ? nil : { controller.nudgeScroll(by: $0) }
+            }
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)
     }

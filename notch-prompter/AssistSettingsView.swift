@@ -136,12 +136,16 @@ private struct ProviderSection: View {
         testTask = Task { @MainActor in
             let start = Date()
             do {
+                var firstText: TimeInterval?
                 for try await text in client.stream(request) {
+                    guard !Task.isCancelled else { return }
+                    if firstText == nil { firstText = Date().timeIntervalSince(start) }
                     testOutput += text
                 }
-                testOutput += String(format: "  (%.1f s)", Date().timeIntervalSince(start))
-            } catch is CancellationError {
+                guard !Task.isCancelled else { return }
+                testOutput += String(format: "  (first text after %.1f s)", firstText ?? 0)
             } catch {
+                guard !Task.isCancelled else { return }
                 testOutput = "Error: \(error.localizedDescription)"
             }
             testTask = nil

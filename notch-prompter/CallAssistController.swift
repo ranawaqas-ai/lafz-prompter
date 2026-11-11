@@ -1,4 +1,5 @@
 import AVFoundation
+import CoreGraphics
 import Combine
 import HotKey
 import os
@@ -22,12 +23,24 @@ final class CallAssistController: ObservableObject {
     /// Seconds from the end of their question to the first answer word, for
     /// the latest answer. The plan's target is a median of 3 s or less.
     @Published private(set) var lastLatency: TimeInterval?
+    /// A short message shown in the prompter, e.g. why a start failed.
+    @Published private(set) var notice: String?
+    /// Requests from the scroll shortcuts to move the answer.
+    @Published private(set) var scrollNudge = ScrollNudge(delta: 0, sequence: 0)
+
+    struct ScrollNudge: Equatable {
+        let delta: CGFloat
+        let sequence: Int
+    }
 
     var isActive: Bool { state != .idle }
 
     private let settings: CallAssistSettings
     private var listener: CallListener?
     private var knowledge = ""
+    /// Made once per session, so the Keychain is read at start and never mid-call.
+    private var client: AnswerProvider?
+    private var noticeTask: Task<Void, Never>?
     private var listenTask: Task<Void, Never>?
     private var answerTask: Task<Void, Never>?
     private var toggleHotKey: HotKey?
@@ -55,6 +68,7 @@ final class CallAssistController: ObservableObject {
         question = ""
         answer = ""
         lastLatency = nil
+        clearNotice()
 
         listenTask = Task {
             do {
@@ -68,6 +82,10 @@ final class CallAssistController: ObservableObject {
                         ?? "The knowledge base is larger than the model's context window.")
                 }
                 knowledge = loaded.text
+                guard let client = settings.makeClient() else {
+                    throw CaptureError("No API key saved for \(settings.provider.displayName).")
+                }
+                self.client = client
 
                 let listener = CallListener()
                 self.listener = listener
@@ -82,6 +100,7 @@ final class CallAssistController: ObservableObject {
             } catch {
                 self.error = error.localizedDescription
                 stop()
+                show(notice: "Call Assist could not start: \(error.localizedDescription)")
             }
         }
     }
@@ -96,6 +115,7 @@ final class CallAssistController: ObservableObject {
         }
         listener = nil
         knowledge = ""
+        client = nil
         state = .idle
     }
 
@@ -120,9 +140,28 @@ final class CallAssistController: ObservableObject {
         }
     }
 
+    func nudgeScroll(by delta: CGFloat) {
+        scrollNudge = ScrollNudge(delta: delta, sequence: scrollNudge.sequence + 1)
+    }
+
+    private func show(notice: String) {
+        self.notice = notice
+        noticeTask?.cancel()
+        noticeTask = Task {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            self.notice = nil
+        }
+    }
+
+    private func clearNotice() {
+        noticeTask?.cancel()
+        notice = nil
+    }
+
     private func answer(_ question: String, endedAt: Date) {
         answerTask?.cancel()
-        guard let client = settings.makeClient() else { return }
+        guard let client else { return }
         self.question = question
         answer = ""
         state = .answering
@@ -136,6 +175,9 @@ final class CallAssistController: ObservableObject {
             var firstWord = true
             do {
                 for try await text in client.stream(request) {
+                    // A cancelled stream ends quietly instead of throwing, so a
+                    // superseded answer has to check before touching state.
+                    guard !Task.isCancelled else { return }
                     if firstWord {
                         firstWord = false
                         let latency = Date().timeIntervalSince(endedAt)
@@ -144,11 +186,11 @@ final class CallAssistController: ObservableObject {
                     }
                     answer += text
                 }
-            } catch is CancellationError {
-                return
             } catch {
+                guard !Task.isCancelled else { return }
                 answer = "Could not get an answer: \(error.localizedDescription)"
             }
+            guard !Task.isCancelled else { return }
             if state == .answering { state = .listening }
         }
     }
@@ -160,7 +202,7 @@ final class CallAssistController: ObservableObject {
     /// Sends the knowledge base once at the start so the first real question
     /// reads it from the provider's cache.
     private func warmCache() {
-        guard !knowledge.isEmpty, let client = settings.makeClient() else { return }
+        guard !knowledge.isEmpty, let client else { return }
         let request = AnswerRequest(instructions: settings.instructions, knowledge: knowledge,
                                     transcript: "", question: "Reply with OK.")
         Task {
