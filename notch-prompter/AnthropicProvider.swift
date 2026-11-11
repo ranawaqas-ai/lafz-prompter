@@ -41,6 +41,11 @@ struct AnthropicProvider: AnswerProvider {
             "system": system,
             "messages": [["role": "user", "content": Self.userContent(for: request)]],
         ]
+        if Self.canDisableThinking(model) {
+            // On a live call the answer must start fast; thinking before the
+            // first word cost about 1.5 s per answer with Haiku in testing.
+            body["thinking"] = ["type": "disabled"]
+        }
         if Self.hasServerFallback(model) {
             // If a safety classifier declines, the API reruns the request on a
             // suitable model inside the same call instead of stopping.
@@ -58,6 +63,12 @@ struct AnthropicProvider: AnswerProvider {
             ]],
             ["type": "text", "text": request.userMessage],
         ]
+    }
+
+    /// Haiku 5.5 accepts disabled thinking at low effort; Sonnet 5.5, Opus 5.5
+    /// and Fable 5.2 reject it, so they keep low-effort adaptive thinking.
+    static func canDisableThinking(_ model: String) -> Bool {
+        model == "claude-haiku-5-5"
     }
 
     /// Sonnet 5.5, Opus 5.5 and Fable 5.2 support server-side fallback;

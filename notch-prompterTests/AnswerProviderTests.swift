@@ -50,6 +50,15 @@ struct AnthropicProviderTests {
         #expect(AnthropicProvider(apiKey: "k", model: "claude-haiku-5-5").body(for: request)["fallbacks"] == nil)
     }
 
+    @Test func thinkingIsOffOnlyForHaiku() {
+        let request = AnswerRequest(instructions: "i", knowledge: "", transcript: "", question: "q")
+        let haiku = AnthropicProvider(apiKey: "k", model: "claude-haiku-5-5").body(for: request)
+        #expect((haiku["thinking"] as? [String: String])?["type"] == "disabled")
+        for model in ["claude-sonnet-5-5", "claude-opus-5-5", "claude-fable-5-2"] {
+            #expect(AnthropicProvider(apiKey: "k", model: model).body(for: request)["thinking"] == nil)
+        }
+    }
+
     @Test func everyListedModelHasAContextWindow() {
         for provider in AssistProvider.allCases {
             #expect(!provider.models.isEmpty)
