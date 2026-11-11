@@ -176,9 +176,14 @@ summary {
   height: 1117px;
   overflow: hidden;
   border-radius: 12px 12px 0 0;
+  /* An original take on the flowing blue of recent macOS wallpapers. */
   background:
-    radial-gradient(45% 55% at 20% 75%, rgb(255 255 255 / 0.5), transparent 70%),
-    linear-gradient(160deg, #f1e6c8 0%, #cfe3c4 45%, #8fbf9f 75%, #5f9c7f 100%);
+    radial-gradient(60% 38% at 78% 30%, rgb(186 230 255 / 0.85), transparent 70%),
+    radial-gradient(70% 30% at 30% 58%, rgb(125 200 255 / 0.7), transparent 70%),
+    radial-gradient(55% 45% at 85% 88%, rgb(56 132 255 / 0.75), transparent 70%),
+    radial-gradient(50% 40% at 10% 20%, rgb(20 60 160 / 0.9), transparent 75%),
+    radial-gradient(120% 60% at 50% 110%, #06205e, transparent 70%),
+    linear-gradient(165deg, #0b2f7a 0%, #1758c7 40%, #2b86e8 62%, #0d3a8f 100%);
 }
 
 .demo-menubar {
@@ -189,8 +194,9 @@ summary {
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background: rgb(255 255 255 / 0.4);
-  color: #1c1917;
+  background: rgb(0 0 0 / 0.08);
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
   font-size: 13px;
 }
 
