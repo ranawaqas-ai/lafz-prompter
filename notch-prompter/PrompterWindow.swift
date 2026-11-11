@@ -1,14 +1,14 @@
 import AppKit
 import SwiftUI
-import Combine
 
 @MainActor
 final class PrompterWindow {
     private var window: NSWindow!
     private let viewModel: PrompterViewModel
     private let callAssist: CallAssistController
+    private var layoutTask: Task<Void, Never>?
+    private var visibilityTask: Task<Void, Never>?
     private var sharingTask: Task<Void, Never>?
-    private var cancellables: Set<AnyCancellable> = []
 
     @MainActor
     init(viewModel: PrompterViewModel, callAssist: CallAssistController, scripts: ScriptLibrary) {
@@ -60,54 +60,27 @@ final class PrompterWindow {
         window.isMovableByWindowBackground = false
         window.contentView = hosting
 
-        viewModel.$prompterWidth
-            .combineLatest(viewModel.$prompterHeight)
-            .receive(on: RunLoop.main)
-            .sink { [weak self] width, height in
-                self?.resizeWindow(width: width, height: height)
+        // Size and place the panel when any of its layout settings change.
+        layoutTask = Task { [weak self, viewModel] in
+            for await _ in Observations({
+                _ = (viewModel.prompterWidth, viewModel.prompterHeight,
+                     viewModel.selectedScreenIndex, viewModel.horizontalAlignment)
+            }) {
+                self?.resizeWindow(width: viewModel.prompterWidth, height: viewModel.prompterHeight)
             }
-            .store(in: &cancellables)
-        
-        viewModel.$selectedScreenIndex
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.resizeWindow(width: self.viewModel.prompterWidth, height: self.viewModel.prompterHeight)
+        }
+        visibilityTask = Task { [weak self, viewModel] in
+            for await visible in Observations({ viewModel.isPrompterVisible }) {
+                visible ? self?.animateShow() : self?.animateHide()
             }
-            .store(in: &cancellables)
-        
-        viewModel.$horizontalAlignment
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.resizeWindow(width: self.viewModel.prompterWidth, height: self.viewModel.prompterHeight)
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$isPrompterVisible
-            .receive(on: RunLoop.main)
-            .sink { [weak self] isVisible in
-                if isVisible {
-                    self?.animateShow()
-                } else {
-                    self?.animateHide()
-                }
-            }
-            .store(in: &cancellables)
-        
+        }
         // A Call Assist answer is always hidden from screen sharing, whatever
         // the setting says: the other side of the call must not see it.
-        viewModel.$hideFromScreenRecording
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.updateSharing() }
-            .store(in: &cancellables)
-        sharingTask = Task { [weak self, callAssist] in
-            for await _ in Observations({ callAssist.isActive }) { self?.updateSharing() }
+        sharingTask = Task { [weak self, viewModel, callAssist] in
+            for await hide in Observations({ viewModel.hideFromScreenRecording || callAssist.isActive }) {
+                self?.updateScreenRecordingVisibility(hide)
+            }
         }
-    }
-
-    private func updateSharing() {
-        updateScreenRecordingVisibility(viewModel.hideFromScreenRecording || callAssist.isActive)
     }
 
     func show() {

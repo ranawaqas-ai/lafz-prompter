@@ -1,6 +1,5 @@
 import SwiftUI
 import AppKit
-import Combine
 
 @main
 struct LafzPrompterApp: App {
@@ -46,17 +45,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let scripts = ScriptLibrary()
     private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
     private var prompterWindow: PrompterWindow!
-    private var hideObserver: AnyCancellable?
+    private var hideTask: Task<Void, Never>?
     private var assistStateTask: Task<Void, Never>?
-    private var shortcutsSettingObserver: AnyCancellable?
+    private var shortcutsSettingTask: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         scripts.attach(to: viewModel)
         prompterWindow = PrompterWindow(viewModel: viewModel, callAssist: callAssistController, scripts: scripts)
         // Hiding the prompter ends a Call Assist session, as it stops voice activation.
-        hideObserver = viewModel.$isPrompterVisible
-            .filter { !$0 }
-            .sink { [weak self] _ in self?.callAssistController.stop() }
+        let viewModel = viewModel
+        hideTask = Task { [callAssistController] in
+            for await visible in Observations({ viewModel.isPrompterVisible }) where !visible {
+                callAssistController.stop()
+            }
+        }
         // Starting Call Assist brings the prompter back, so answers are never
         // fetched with nothing on screen, and the scroll shortcuts move the
         // answer instead of the script while it runs.
@@ -69,8 +71,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         // One setting turns off every global shortcut, Call Assist's too.
-        shortcutsSettingObserver = viewModel.$enableGlobalKeyboardShortcuts
-            .sink { [weak self] enabled in self?.callAssistController.shortcutsEnabled = enabled }
+        shortcutsSettingTask = Task { [callAssistController] in
+            for await enabled in Observations({ viewModel.enableGlobalKeyboardShortcuts }) {
+                callAssistController.shortcutsEnabled = enabled
+            }
+        }
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)
     }
@@ -84,7 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 struct MenuContent: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     @Environment(ScriptLibrary.self) private var library
 
     var body: some View {

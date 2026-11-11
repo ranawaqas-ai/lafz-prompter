@@ -38,7 +38,7 @@ enum SettingsTab: CaseIterable, Identifiable {
 }
 
 struct SettingsView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: SettingsTab = .script
     @State private var showResetConfirmation = false
@@ -205,7 +205,7 @@ struct SettingsView: View {
 
 // MARK: - Appearance Tab
 struct AppearanceTabView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
 
     private let installedFontFamilies = NSFontManager.shared.availableFontFamilies
 
@@ -432,7 +432,7 @@ struct AppearanceTabView: View {
 
 // MARK: - Behavior Tab
 struct BehaviorTabView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -506,7 +506,7 @@ struct BehaviorTabView: View {
 
 // MARK: - Voice Tab
 struct VoiceTabView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -582,7 +582,7 @@ struct VoiceTabView: View {
 
 // MARK: - Layout Tab
 struct LayoutTabView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -697,7 +697,7 @@ struct LayoutTabView: View {
 // TODO: add option to change shortcuts
 // MARK: - Keyboard Tab
 struct KeyboardTabView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {

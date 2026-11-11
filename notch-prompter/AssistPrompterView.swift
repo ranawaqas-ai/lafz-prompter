@@ -3,7 +3,7 @@ import SwiftUI
 /// The prompter's content: the script normally, the Call Assist answer while
 /// a session is running. The script keeps its place underneath.
 struct PrompterRootView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     @Environment(CallAssistController.self) private var callAssist
 
     var body: some View {
@@ -24,7 +24,7 @@ struct PrompterRootView: View {
 /// The detected question in a dim line, the answer streaming beneath it, in
 /// the prompter's own font and theme.
 private struct AssistPrompterView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     @Environment(CallAssistController.self) private var callAssist
     @State private var position = SwiftUI.ScrollPosition(edge: .top)
     @State private var offsetY: CGFloat = 0

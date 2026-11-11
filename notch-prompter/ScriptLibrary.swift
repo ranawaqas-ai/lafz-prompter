@@ -1,5 +1,4 @@
 import AppKit
-import Combine
 import Observation
 import Dependencies
 
@@ -23,7 +22,7 @@ final class ScriptLibrary {
 
     @ObservationIgnored @Dependency(\.scriptFiles) private var files
     @ObservationIgnored private weak var viewModel: PrompterViewModel?
-    @ObservationIgnored private var textObserver: AnyCancellable?
+    @ObservationIgnored private var textTask: Task<Void, Never>?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
 
     init() {
@@ -44,11 +43,18 @@ final class ScriptLibrary {
             }
         }
         if let current, current.text != viewModel.text { viewModel.text = current.text }
-        textObserver = viewModel.$text
-            .dropFirst()
-            .removeDuplicates()
-            .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
-            .sink { [weak self] text in self?.updateCurrent(text: text) }
+        // Saves edits into the current script, once typing pauses.
+        textTask = Task { [weak self, viewModel] in
+            var pending: Task<Void, Never>?
+            for await text in Observations({ viewModel.text }).dropFirst() {
+                pending?.cancel()
+                pending = Task { [weak self] in
+                    try? await Task.sleep(for: .milliseconds(400))
+                    guard !Task.isCancelled else { return }
+                    self?.updateCurrent(text: text)
+                }
+            }
+        }
     }
 
     // MARK: Loading scripts

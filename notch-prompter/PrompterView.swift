@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PrompterView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
 
     // Measure content height to stop appropriately
     @State private var contentHeight: CGFloat = 0
@@ -22,7 +22,7 @@ struct PrompterView: View {
 
 // MARK: Scrollable Prompter View with NSView for scroll events
 struct ScrollablePrompterView: NSViewRepresentable {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     @Binding var contentHeight: CGFloat
     @Binding var isHovering: Bool
     @Binding var wasPlayingBeforeHover: Bool
@@ -63,7 +63,6 @@ class PrompterHostingView: NSView {
         
         let contentView = PrompterContentView(
             viewModel: viewModel,
-            scrollPosition: viewModel.scrollPosition,
             contentHeight: contentHeight
         )
         hostingView = NSHostingView(rootView: contentView)
@@ -85,7 +84,6 @@ class PrompterHostingView: NSView {
     func updateContent() {
         let contentView = PrompterContentView(
             viewModel: viewModel,
-            scrollPosition: viewModel.scrollPosition,
             contentHeight: $contentHeight
         )
         hostingView.rootView = contentView
@@ -159,8 +157,7 @@ class PrompterHostingView: NSView {
 
 // MARK: - Content View (SwiftUI)
 struct PrompterContentView: View {
-    @ObservedObject var viewModel: PrompterViewModel
-    @ObservedObject var scrollPosition: ScrollPosition
+    @Bindable var viewModel: PrompterViewModel
     @Binding var contentHeight: CGFloat
     @State private var showControls = false
 
@@ -339,7 +336,7 @@ struct PrompterContentView: View {
 // Separate view so scrolling, which only changes the offset, does not rebuild
 // the attributed text on every frame.
 struct PrompterTextView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
 
     var body: some View {
         movingText

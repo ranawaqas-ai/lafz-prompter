@@ -4,7 +4,7 @@ import SwiftUI
 /// editor on the right. Scripts come in by typing, by Paste, by Open, or by
 /// dropping a file anywhere on the tab.
 struct ScriptTabView: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     @Environment(ScriptLibrary.self) private var library
     @FocusState private var isTextEditorFocused: Bool
     @State private var renaming: Script?

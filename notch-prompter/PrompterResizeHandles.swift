@@ -9,7 +9,7 @@ import SwiftUI
 /// pointer over a handle, the handle's grip lit in the accent colour on hover
 /// and while dragging, and the size shown live during the drag.
 struct PrompterResizeHandles: View {
-    @ObservedObject var viewModel: PrompterViewModel
+    @Bindable var viewModel: PrompterViewModel
     @State private var pointerInside = false
     @State private var hovered: Handle?
     @State private var dragging: Handle?

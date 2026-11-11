@@ -35,9 +35,9 @@ struct PrompterViewModelCharacterisationTests {
         }
     }
 
-    /// Lets debounced Combine work on the main run loop happen.
-    private func runMainLoop(for seconds: TimeInterval) {
-        RunLoop.main.run(until: Date().addingTimeInterval(seconds))
+    /// Lets debounced work on the main actor happen.
+    private func wait(_ seconds: Double) async {
+        try? await Task.sleep(for: .seconds(seconds))
     }
 
     // MARK: Playback
@@ -184,13 +184,13 @@ struct PrompterViewModelCharacterisationTests {
         #expect(Self.describe(makeViewModel(suite)) == Self.describe(vm))
     }
 
-    @Test func currentlyPlayAndPauseRewriteEverySetting() {
+    @Test func currentlyPlayAndPauseRewriteEverySetting() async {
         let suite = Suite()
         let vm = makeViewModel(suite)
         vm.saveSettings()
         suite.defaults.removeObject(forKey: "PrompterText")
         vm.play()
-        runMainLoop(for: 0.5)       // the save is debounced by 300 ms
+        await wait(0.5)             // the save is debounced by 300 ms
         #expect(suite.stored["PrompterText"] as? String == vm.text)
     }
 

@@ -1,15 +1,17 @@
 import Foundation
 import Combine
+import Observation
 import CoreVideo
 import AVFoundation
 import Accelerate
 import SwiftUI
 import Dependencies
 
-final class PrompterViewModel: ObservableObject {
+@MainActor @Observable
+final class PrompterViewModel {
     
     // MARK: User settings
-    @Published var text: String = """
+    var text: String = """
     This is a scrolling text test for Lafz Prompter for macOS.
     The purpose of this demo is to check speed, readability, and smoothness. [pause]
     Adjust the font size, scroll speed, and window opacity to your preference.  
@@ -34,20 +36,16 @@ final class PrompterViewModel: ObservableObject {
     By aligning our goals and maintaining a clear vision, we can build products that not only solve real problems but also inspire and empower the people who use them.
     Let’s continue pushing boundaries and striving for excellence.
     """
-    @Published var isPlaying: Bool = false
-    // Kept in its own object: publishing it here would re-render every view
-    // observing the view model, including Settings, on every frame of scrolling.
-    let scrollPosition = ScrollPosition()
-    var offset: CGFloat {
-        get { scrollPosition.offset }
-        set { scrollPosition.offset = newValue }
-    }
-    @Published var speed: Double = 12.0
-    @Published var fontSize: Double = 10.0
-    @Published var lineHeight: Double = 8.0
-    @Published var pauseOnHover: Bool = true
-    @Published var prompterWidth: CGFloat = 184
-    @Published var prompterHeight: CGFloat = 150
+    var isPlaying: Bool = false
+    /// How far the script has scrolled. Changes every frame while playing;
+    /// Observation redraws only the views that read it.
+    var offset: CGFloat = 0
+    var speed: Double = 12.0
+    var fontSize: Double = 10.0
+    var lineHeight: Double = 8.0
+    var pauseOnHover: Bool = true
+    var prompterWidth: CGFloat = 184
+    var prompterHeight: CGFloat = 150
     /// The screen the prompter sits on: the chosen one, or the main screen.
     var prompterScreen: NSScreen? {
         let screens = NSScreen.screens
@@ -68,44 +66,49 @@ final class PrompterViewModel: ObservableObject {
     /// True while the user drags the prompter's bottom edge; the window then
     /// follows the pointer without animating.
     var isResizing = false
-    @Published var voiceActivation: Bool = false
+    var voiceActivation: Bool = false {
+        didSet { if isLoaded, voiceActivation != oldValue { voiceActivationChanged() } }
+    }
     /// With voice activation on, whether the mic is running. Play starts it,
     /// Pause, hiding the prompter, Reset, or reaching the end stops it.
-    @Published private(set) var isListening: Bool = false
-    @Published var autoGain: Bool = false
-    @Published var isPrompterVisible: Bool = true
-    @Published var fontDesign: Font.Design = .monospaced
-    @Published var fontChoice: PrompterFontChoice = .automatic
-    @Published var selectedScreenIndex: Int = 0
-    @Published var enableTopFade: Bool = true
-    @Published var enableBottomFade: Bool = true
-    @Published var topFadeHeight: Double = 40.0
-    @Published var bottomFadeHeight: Double = 40.0
-    @Published var showHoverControls: Bool = true
-    @Published var hideFromScreenRecording: Bool = true
-    @Published var prompterTheme: PrompterTheme = .dark
+    private(set) var isListening: Bool = false
+    var autoGain: Bool = false
+    var isPrompterVisible: Bool = true {
+        didSet { if isLoaded, !isPrompterVisible, oldValue { stopListening() } }
+    }
+    var fontDesign: Font.Design = .monospaced
+    var fontChoice: PrompterFontChoice = .automatic
+    var selectedScreenIndex: Int = 0
+    var enableTopFade: Bool = true
+    var enableBottomFade: Bool = true
+    var topFadeHeight: Double = 40.0
+    var bottomFadeHeight: Double = 40.0
+    var showHoverControls: Bool = true
+    var hideFromScreenRecording: Bool = true
+    var prompterTheme: PrompterTheme = .dark
     /// How solid the prompter's background is, from 0.2 to 1. The text stays
     /// fully opaque so it reads over whatever is behind.
-    @Published var backgroundOpacity: Double = 1.0
-    @Published var horizontalAlignment: PrompterHorizontalAlignment = .center
-    @Published var textAlignment: PrompterTextAlignment = .center
-    @Published var showProgressBar: Bool = true
-    @Published var enableGlobalKeyboardShortcuts: Bool = true
-    @Published var speedIncrement: Double = 2.0
-    @Published var manualScrollAmount: Double = 50.0
+    var backgroundOpacity: Double = 1.0
+    var horizontalAlignment: PrompterHorizontalAlignment = .center
+    var textAlignment: PrompterTextAlignment = .center
+    var showProgressBar: Bool = true
+    var enableGlobalKeyboardShortcuts: Bool = true {
+        didSet { if isLoaded, enableGlobalKeyboardShortcuts != oldValue { applyShortcutsSetting() } }
+    }
+    var speedIncrement: Double = 2.0
+    var manualScrollAmount: Double = 50.0
     
-    var backScrollAmount: Double = 20.0 // pixels to scroll back
+    @ObservationIgnored var backScrollAmount: Double = 20.0 // pixels to scroll back
     
     
-    private var timerCancellable: AnyCancellable?
-    private var lastTick: CFTimeInterval?
-    private var cancellables: Set<AnyCancellable> = []
+    @ObservationIgnored private var timerCancellable: AnyCancellable?
+    @ObservationIgnored private var lastTick: CFTimeInterval?
     
-    var audioMonitor: AudioMonitor?
-    private var audioLevelCancellable: AnyCancellable?
-    @Published var showMicrophoneAlert: Bool = false
-    @Published var audioThreshold: Float = 0.01
-    @Published var targetLevel: Double = 0.05  // default 5%
+    @ObservationIgnored var audioMonitor: AudioMonitor?
+    @ObservationIgnored private var audioLevelCancellable: AnyCancellable?
+    var showMicrophoneAlert: Bool = false
+    var audioThreshold: Float = 0.01
+    var targetLevel: Double = 0.05  // default 5%
 
     
     // MARK: UserDefaults keys
@@ -139,46 +142,38 @@ final class PrompterViewModel: ObservableObject {
     }
     
     // MARK: Services
-    @Dependency(\.settingsStorage) private var defaults
-    @Dependency(\.globalShortcuts) private var shortcuts
-    @Dependency(\.frameClock) private var frameClock
-    @Dependency(\.micPermission) private var micPermission
-    @Dependency(\.audioLevels) private var audioLevels
+    @ObservationIgnored @Dependency(\.settingsStorage) private var defaults
+    @ObservationIgnored @Dependency(\.globalShortcuts) private var shortcuts
+    @ObservationIgnored @Dependency(\.frameClock) private var frameClock
+    @ObservationIgnored @Dependency(\.micPermission) private var micPermission
+    @ObservationIgnored @Dependency(\.audioLevels) private var audioLevels
 
     // MARK: Init
     init() {
         loadSettings()
         startTimer()
         observeSettingsChanges()
-        $voiceActivation
-            .removeDuplicates()
-            .sink { [weak self] enabled in
-                guard let self = self else { return }
-                // Ask for access now so a denial shows while Settings is open,
-                // but the mic only turns on when the user presses Play.
-                self.stopListening()
-                if enabled {
-                    self.withMicrophoneAccess { }
-                }
-            }
-            .store(in: &cancellables)
-
-        $isPrompterVisible
-            .removeDuplicates()
-            .sink { [weak self] visible in
-                if !visible { self?.stopListening() }
-            }
-            .store(in: &cancellables)
-        
-        $enableGlobalKeyboardShortcuts
-            .removeDuplicates()
-            .sink { [weak self] enabled in
-                guard let self else { return }
-                self.shortcuts.set(self.prompterShortcuts, on: enabled)
-            }
-            .store(in: &cancellables)
+        isLoaded = true
+        // What the property observers do on a change, once for the loaded values.
+        if voiceActivation { voiceActivationChanged() }
+        applyShortcutsSetting()
     }
-    
+
+    /// False while the stored settings load, so the property observers act
+    /// only on changes made after launch.
+    @ObservationIgnored private var isLoaded = false
+
+    private func voiceActivationChanged() {
+        // Ask for access now so a denial shows while Settings is open,
+        // but the mic only turns on when the user presses Play.
+        stopListening()
+        if voiceActivation { withMicrophoneAccess { } }
+    }
+
+    private func applyShortcutsSetting() {
+        shortcuts.set(prompterShortcuts, on: enableGlobalKeyboardShortcuts)
+    }
+
     private func withMicrophoneAccess(_ action: @escaping () -> Void) {
         switch micPermission.status() {
         case .authorized:
@@ -249,8 +244,8 @@ final class PrompterViewModel: ObservableObject {
             .sink { [weak self] rmsLevel in
                 guard let self = self else { return }
                 let detected = rmsLevel > self.audioThreshold
-                // @Published notifies on every assignment, even of the same value,
-                // and each notification re-renders the prompter and Settings.
+                // Assigning the same value still notifies observers, so only
+                // write when the state actually flips.
                 guard detected != self.isPlaying else { return }
                 if detected {
                     self.lastTick = nil
@@ -360,14 +355,31 @@ final class PrompterViewModel: ObservableObject {
     
     // MARK: Settings persistence
     private func observeSettingsChanges() {
-        // A @Published sink runs before the new value is stored, so saving from
-        // one wrote the previous value: a pasted script was saved as the text
-        // from before the paste. objectWillChange is debounced so the save runs
-        // after the change has landed, once per burst of typing.
-        objectWillChange
-            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
-            .sink { [weak self] _ in self?.saveSettings() }
-            .store(in: &cancellables)
+        // Observation reports a change before the new value is stored, so the
+        // save runs on a later turn, debounced to once per burst of typing.
+        withObservationTracking { readSavedState() } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.scheduleSave()
+                self?.observeSettingsChanges()
+            }
+        }
+    }
+
+    @ObservationIgnored private var saveTask: Task<Void, Never>?
+
+    private func scheduleSave() {
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
+            self?.saveSettings()
+        }
+    }
+
+    /// Every property whose change triggers a save. Play and pause count, as
+    /// they did before Observation; the split of this type stops that.
+    private func readSavedState() {
+        _ = (text, isPlaying, speed, fontSize, lineHeight, pauseOnHover, prompterWidth, prompterHeight, voiceActivation, isListening, autoGain, isPrompterVisible, fontDesign, fontChoice, selectedScreenIndex, enableTopFade, enableBottomFade, topFadeHeight, bottomFadeHeight, showHoverControls, hideFromScreenRecording, prompterTheme, backgroundOpacity, horizontalAlignment, textAlignment, showProgressBar, enableGlobalKeyboardShortcuts, speedIncrement, manualScrollAmount, showMicrophoneAlert, audioThreshold, targetLevel)
     }
     
     private func loadSettings() {
@@ -594,8 +606,4 @@ enum PrompterTextAlignment: String, CaseIterable {
         case .trailing: return .trailing
         }
     }
-}
-
-final class ScrollPosition: ObservableObject {
-    @Published var offset: CGFloat = 0
 }
