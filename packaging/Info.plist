@@ -22,6 +22,10 @@
     <string>26.0</string>
     <key>LSUIElement</key>
     <true/>
+    <key>NSAudioCaptureUsageDescription</key>
+    <string>Call Assist listens to the other side of your call to suggest answers. Audio stays on this Mac.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Call Assist transcribes your call on this Mac to suggest answers.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Voice activation scrolls the prompter while you speak.</string>
 </dict>
