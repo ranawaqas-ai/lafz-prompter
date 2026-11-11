@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Charter ships with macOS and iOS; the rest are its closest system matches. */
+  font-family: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -81,6 +82,29 @@ summary {
   @apply text-sm text-muted leading-relaxed;
 }
 
+/* The hero text and the animation share the first screen. Stacked on narrow
+   windows, where 33rem is the text above the animation plus its caption; side
+   by side from 1024px, where 10rem is the nav, the caption and the margins.
+   The animation is sized from the window height as well as its width. */
+.demo-fit {
+  width: min(100%, max(22rem, calc((100svh - 33rem) * 2000 / 1260)));
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: center;
+    gap: 3rem;
+    min-height: 100svh;
+  }
+
+  .demo-fit {
+    width: min(100%, calc((100svh - 12rem) * 2000 / 1260));
+  }
+}
+
 /* How-it-works animation.
    The stage is drawn in the logical points of a 16-inch MacBook Pro at its
    default scale (1728 x 1117 screen, 185 x 32 notch), and the prompter uses
@@ -94,6 +118,7 @@ summary {
 }
 
 .demo {
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --k: 0.36;
   --s: 5;
   --wide: translate(100px, 63px) scale(0.9);
@@ -151,9 +176,7 @@ summary {
   height: 1117px;
   overflow: hidden;
   border-radius: 12px 12px 0 0;
-  background:
-    radial-gradient(45% 55% at 20% 75%, rgb(255 255 255 / 0.5), transparent 70%),
-    linear-gradient(160deg, #f1e6c8 0%, #cfe3c4 45%, #8fbf9f 75%, #5f9c7f 100%);
+  background: #4b6cf0 url('/wallpaper.jpg') center / cover no-repeat;
 }
 
 .demo-menubar {
@@ -164,8 +187,9 @@ summary {
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background: rgb(255 255 255 / 0.4);
-  color: #1c1917;
+  background: rgb(0 0 0 / 0.08);
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
   font-size: 13px;
 }
 
@@ -298,7 +322,7 @@ summary {
   right: 0;
   padding: 0 14px;
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-size: 10px;
   line-height: 20px;
   text-align: center;
