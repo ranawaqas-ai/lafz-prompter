@@ -1,0 +1,9 @@
+== scrolled down with Call Assist off
+prompter shown: true, playing: false, offset: 50
+call assist: idle, scroll nudges: 0 (last 0)
+== scrolled down and up with Call Assist running
+prompter shown: true, playing: false, offset: 50
+call assist: listening, scroll nudges: 2 (last -50)
+== scrolled down after Call Assist stopped
+prompter shown: true, playing: false, offset: 100
+call assist: idle, scroll nudges: 2 (last -50)

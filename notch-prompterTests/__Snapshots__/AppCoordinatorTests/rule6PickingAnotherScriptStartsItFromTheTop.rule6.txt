@@ -1,0 +1,9 @@
+== first script playing
+prompter shown: true, playing: true, offset: 120
+call assist: idle, scroll nudges: 0 (last 0)
+== second script added, which picks it
+prompter shown: true, playing: false, offset: 0
+call assist: idle, scroll nudges: 0 (last 0)
+== current script edited while playing
+prompter shown: true, playing: true, offset: 40
+call assist: idle, scroll nudges: 0 (last 0)

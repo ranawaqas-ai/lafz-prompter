@@ -1,0 +1,6 @@
+== Call Assist running
+prompter shown: true, playing: false, offset: 0
+call assist: listening, scroll nudges: 0 (last 0)
+== prompter hidden
+prompter shown: false, playing: false, offset: 0
+call assist: idle, scroll nudges: 0 (last 0)

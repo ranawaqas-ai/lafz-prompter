@@ -50,44 +50,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let scripts = ScriptLibrary()
     private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
     private var prompterWindow: PrompterWindow!
-    private var hideTask: Task<Void, Never>?
-    private var assistStateTask: Task<Void, Never>?
     private var shortcutsSettingTask: Task<Void, Never>?
-    private var scriptChangeTask: Task<Void, Never>?
+    private var coordinator: AppCoordinator!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         scripts.ensureCurrentScript()
         prompterWindow = PrompterWindow(preferences: preferences, playback: playback,
                                         callAssist: callAssistController, scripts: scripts)
-        // Hiding the prompter ends a Call Assist session, as it stops voice activation.
-        let playback = playback
         let preferences = preferences
-        hideTask = Task { [callAssistController] in
-            for await visible in Observations({ playback.isPrompterVisible }) where !visible {
-                callAssistController.stop()
-            }
-        }
-        // Starting Call Assist brings the prompter back, so answers are never
-        // fetched with nothing on screen, and the scroll shortcuts move the
-        // answer instead of the script while it runs.
-        let controller = callAssistController
-        assistStateTask = Task { [weak self] in
-            for await active in Observations({ controller.isActive }) {
-                guard let self else { return }
-                if active { self.playback.isPrompterVisible = true }
-                self.playback.scrollRedirect = active ? { controller.nudgeScroll(by: $0) } : nil
-            }
-        }
+        coordinator = AppCoordinator(preferences: preferences, playback: playback,
+                                     scripts: scripts, callAssist: callAssistController)
+        coordinator.start()
         // One setting turns off every global shortcut, Call Assist's too.
         shortcutsSettingTask = Task { [callAssistController] in
             for await enabled in Observations({ preferences.enableGlobalKeyboardShortcuts }) {
                 callAssistController.shortcutsEnabled = enabled
-            }
-        }
-        // Another script picked: start it from the top.
-        scriptChangeTask = Task { [scripts] in
-            for await _ in Observations({ scripts.currentID }).dropFirst() {
-                playback.reset()
             }
         }
         prompterWindow.show()
