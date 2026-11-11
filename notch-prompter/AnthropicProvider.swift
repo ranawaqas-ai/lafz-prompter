@@ -11,6 +11,9 @@ struct AnthropicProvider: AnswerProvider {
         urlRequest.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         urlRequest.setValue("2026-10-21", forHTTPHeaderField: "anthropic-version")
         urlRequest.setValue("application/json", forHTTPHeaderField: "content-type")
+        if Self.hasServerFallback(model) {
+            urlRequest.setValue("server-side-fallback-2026-07-01", forHTTPHeaderField: "anthropic-beta")
+        }
         urlRequest.httpBody = try? JSONSerialization.data(withJSONObject: body(for: request))
         return StreamingRequest.run(urlRequest, parse: Self.text(fromEvent:))
     }
@@ -28,7 +31,7 @@ struct AnthropicProvider: AnswerProvider {
                 "cache_control": ["type": "ephemeral", "ttl": "1h"],
             ])
         }
-        return [
+        var body: [String: Any] = [
             "model": model,
             // Thinking spends from the same budget as the answer.
             "max_tokens": 4096,
@@ -38,6 +41,18 @@ struct AnthropicProvider: AnswerProvider {
             "system": system,
             "messages": [["role": "user", "content": request.userMessage]],
         ]
+        if Self.hasServerFallback(model) {
+            // If a safety classifier declines, the API reruns the request on a
+            // suitable model inside the same call instead of stopping.
+            body["fallbacks"] = "default"
+        }
+        return body
+    }
+
+    /// Sonnet 5.5, Opus 5.5 and Fable 5.2 support server-side fallback;
+    /// Haiku 5.5 does not.
+    static func hasServerFallback(_ model: String) -> Bool {
+        ["claude-sonnet-5-5", "claude-opus-5-5", "claude-fable-5-2"].contains(model)
     }
 
     /// Text from a `content_block_delta` event; throws on an `error` event.
@@ -55,6 +70,12 @@ struct AnthropicProvider: AnswerProvider {
             let delta = event["delta"] as? [String: Any]
             guard delta?["type"] as? String == "text_delta" else { return nil }
             return delta?["text"] as? String
+        case "message_delta":
+            let delta = event["delta"] as? [String: Any]
+            if delta?["stop_reason"] as? String == "refusal" {
+                throw ProviderError(message: "The model declined to answer this one.")
+            }
+            return nil
         case "error":
             let error = event["error"] as? [String: Any]
             throw ProviderError(message: error?["message"] as? String ?? "Anthropic stream error")

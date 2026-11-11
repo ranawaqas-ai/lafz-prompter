@@ -38,6 +38,26 @@ struct AnthropicProviderTests {
         #expect(throws: ProviderError.self) { try parse(event) }
     }
 
+    @Test func refusalStopsTheAnswerWithAMessage() throws {
+        let event = #"{"type":"message_delta","delta":{"stop_reason":"refusal"},"usage":{}}"#
+        #expect(throws: ProviderError.self) { try parse(event) }
+        #expect(try parse(#"{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{}}"#) == nil)
+    }
+
+    @Test func fallbackIsRequestedOnlyWhereSupported() {
+        let request = AnswerRequest(instructions: "i", knowledge: "", transcript: "", question: "q")
+        #expect(AnthropicProvider(apiKey: "k", model: "claude-opus-5-5").body(for: request)["fallbacks"] as? String == "default")
+        #expect(AnthropicProvider(apiKey: "k", model: "claude-haiku-5-5").body(for: request)["fallbacks"] == nil)
+    }
+
+    @Test func everyListedModelHasAContextWindow() {
+        for provider in AssistProvider.allCases {
+            #expect(!provider.models.isEmpty)
+            #expect(provider.models.allSatisfy { $0.contextWindow > 0 })
+            #expect(provider.model(withID: "no-such-model") == provider.defaultModel)
+        }
+    }
+
     @Test func knowledgeBaseIsCachedAndOmittedWhenEmpty() {
         let provider = AnthropicProvider(apiKey: "k", model: "m")
         let withKnowledge = provider.body(for: AnswerRequest(instructions: "i", knowledge: "kb", transcript: "", question: "q"))
