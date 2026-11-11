@@ -7,9 +7,13 @@ struct PrompterRootView: View {
     @ObservedObject var callAssist: CallAssistController
 
     var body: some View {
+        let showingAssist = callAssist.isActive || callAssist.notice != nil
         ZStack {
+            // Hidden rather than covered: with a see-through background the
+            // script would show through the answer.
             PrompterView(viewModel: viewModel)
-            if callAssist.isActive || callAssist.notice != nil {
+                .opacity(showingAssist ? 0 : 1)
+            if showingAssist {
                 AssistPrompterView(viewModel: viewModel, callAssist: callAssist)
             }
             PrompterResizeHandles(viewModel: viewModel)
@@ -28,7 +32,7 @@ private struct AssistPrompterView: View {
     var body: some View {
         let theme = viewModel.prompterTheme
         ZStack {
-            theme.backgroundColor
+            theme.backgroundColor.opacity(viewModel.backgroundOpacity)
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: viewModel.lineHeight) {
                     if !callAssist.question.isEmpty {

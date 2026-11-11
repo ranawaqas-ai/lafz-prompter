@@ -404,6 +404,18 @@ struct AppearanceTabView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
+
+                SettingSlider(
+                    label: "Background opacity",
+                    value: $viewModel.backgroundOpacity,
+                    range: 0.2...1.0,
+                    step: 0.05,
+                    unit: "",
+                    isPercentage: true
+                )
+                Text("Lower it to see what is behind the prompter. The text stays solid.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
                 
                 Divider()
                 

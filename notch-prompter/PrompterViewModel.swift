@@ -67,6 +67,9 @@ final class PrompterViewModel: ObservableObject {
     @Published var showHoverControls: Bool = true
     @Published var hideFromScreenRecording: Bool = true
     @Published var prompterTheme: PrompterTheme = .dark
+    /// How solid the prompter's background is, from 0.2 to 1. The text stays
+    /// fully opaque so it reads over whatever is behind.
+    @Published var backgroundOpacity: Double = 1.0
     @Published var horizontalAlignment: PrompterHorizontalAlignment = .center
     @Published var textAlignment: PrompterTextAlignment = .center
     @Published var showProgressBar: Bool = true
@@ -110,7 +113,6 @@ final class PrompterViewModel: ObservableObject {
         static let fontDesign = "FontDesign"
         static let fontChoice = "FontChoice"
         static let selectedScreenIndex = "SelectedScreenIndex"
-        static let opacity = "PrompterOpacity"
         static let enableTopFade = "EnableTopFade"
         static let enableBottomFade = "EnableBottomFade"
         static let topFadeHeight = "TopFadeHeight"
@@ -118,6 +120,7 @@ final class PrompterViewModel: ObservableObject {
         static let showHoverControls = "ShowHoverControls"
         static let hideFromScreenRecording = "HideFromScreenRecording"
         static let prompterTheme = "PrompterTheme"
+        static let backgroundOpacity = "PrompterBackgroundOpacity"
         static let horizontalAlignment = "HorizontalAlignment"
         static let textAlignment = "TextAlignment"
         static let showProgressBar = "ShowProgressBar"
@@ -443,6 +446,7 @@ final class PrompterViewModel: ObservableObject {
         if let themeRaw = defaults.string(forKey: Keys.prompterTheme) {
             prompterTheme = PrompterTheme(rawValue: themeRaw) ?? .dark
         }
+        backgroundOpacity = defaults.object(forKey: Keys.backgroundOpacity) as? Double ?? 1.0
         
         if let horizontalAlignRaw = defaults.string(forKey: Keys.horizontalAlignment) {
             horizontalAlignment = PrompterHorizontalAlignment(rawValue: horizontalAlignRaw) ?? .center
@@ -482,6 +486,7 @@ final class PrompterViewModel: ObservableObject {
         defaults.set(showHoverControls, forKey: Keys.showHoverControls)
         defaults.set(hideFromScreenRecording, forKey: Keys.hideFromScreenRecording)
         defaults.set(prompterTheme.rawValue, forKey: Keys.prompterTheme)
+        defaults.set(backgroundOpacity, forKey: Keys.backgroundOpacity)
         defaults.set(horizontalAlignment.rawValue, forKey: Keys.horizontalAlignment)
         defaults.set(textAlignment.rawValue, forKey: Keys.textAlignment)
         defaults.set(showProgressBar, forKey: Keys.showProgressBar)

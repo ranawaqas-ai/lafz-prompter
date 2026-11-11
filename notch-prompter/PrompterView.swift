@@ -166,7 +166,7 @@ struct PrompterContentView: View {
 
     var body: some View {
         ZStack {
-            viewModel.prompterTheme.backgroundColor
+            viewModel.prompterTheme.backgroundColor.opacity(viewModel.backgroundOpacity)
             GeometryReader { geo in
                 VStack(spacing: 0) {
                     Spacer(minLength: 0)
@@ -194,7 +194,7 @@ struct PrompterContentView: View {
             VStack(spacing: 0) {
                 if viewModel.enableTopFade {
                     LinearGradient(
-                        gradient: Gradient(colors: [viewModel.prompterTheme.fadeColor, .clear]),
+                        gradient: Gradient(colors: [viewModel.prompterTheme.fadeColor.opacity(viewModel.backgroundOpacity), .clear]),
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -206,7 +206,7 @@ struct PrompterContentView: View {
                 
                 if viewModel.enableBottomFade {
                     LinearGradient(
-                        gradient: Gradient(colors: [.clear, viewModel.prompterTheme.fadeColor]),
+                        gradient: Gradient(colors: [.clear, viewModel.prompterTheme.fadeColor.opacity(viewModel.backgroundOpacity)]),
                         startPoint: .top,
                         endPoint: .bottom
                     )
