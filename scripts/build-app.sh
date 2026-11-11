@@ -19,9 +19,30 @@ xcrun actool notch-prompter/Assets.xcassets \
     --app-icon AppIcon \
     --output-partial-info-plist build/assets-info.plist >/dev/null
 
-# Ad-hoc signature: runs locally, but downloaded copies need
-# right-click > Open the first time (no Apple Developer ID).
-codesign --force --deep --sign - "$APP"
+# With SIGN_IDENTITY set (a "Developer ID Application" certificate), the app is
+# signed with the hardened runtime. With NOTARY_PROFILE also set (a profile saved
+# by `xcrun notarytool store-credentials`), it is notarized and stapled, so that
+# downloaded copies open without a Gatekeeper warning. Otherwise it is signed
+# ad hoc, which runs locally but needs right-click > Open after a download.
+if [ -n "${SIGN_IDENTITY:-}" ]; then
+    codesign --force --options runtime --timestamp \
+        --entitlements packaging/LafzPrompter.entitlements \
+        --sign "$SIGN_IDENTITY" "$APP"
+    codesign --verify --strict --verbose=2 "$APP"
+else
+    codesign --force --deep --sign - "$APP"
+fi
 
-(cd build && rm -f LafzPrompter.zip && ditto -c -k --keepParent "Lafz Prompter.app" LafzPrompter.zip)
+zip_app() {
+    (cd build && rm -f LafzPrompter.zip && ditto -c -k --keepParent "Lafz Prompter.app" LafzPrompter.zip)
+}
+zip_app
+
+if [ -n "${SIGN_IDENTITY:-}" ] && [ -n "${NOTARY_PROFILE:-}" ]; then
+    xcrun notarytool submit build/LafzPrompter.zip --keychain-profile "$NOTARY_PROFILE" --wait
+    xcrun stapler staple "$APP"
+    spctl --assess --type execute --verbose=2 "$APP"
+    zip_app
+fi
+
 echo "Built $APP and build/LafzPrompter.zip"
