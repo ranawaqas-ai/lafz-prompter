@@ -1,3 +1,4 @@
+import Dependencies
 import Foundation
 import SnapshotTesting
 import Testing
@@ -13,8 +14,11 @@ struct CallAssistControllerCharacterisationTests {
 
     // MARK: Fakes
 
+    // The fakes are used only from the main actor; @unchecked Sendable lets
+    // the container's @Sendable factories hand them out.
+
     /// Stands in for the mic and system audio transcribers.
-    final class FakeListener: UtteranceSource {
+    final class FakeListener: UtteranceSource, @unchecked Sendable {
         let utterances: AsyncStream<Utterance>
         private let continuation: AsyncStream<Utterance>.Continuation
         init() { (utterances, continuation) = AsyncStream.makeStream() }
@@ -26,7 +30,7 @@ struct CallAssistControllerCharacterisationTests {
     }
 
     /// Answers each request with the next scripted reply and records it.
-    final class FakeProvider: AnswerProvider {
+    final class FakeProvider: AnswerProvider, @unchecked Sendable {
         enum Reply {
             case answer([String])
             /// Sends these pieces and then never finishes, like a slow answer.
@@ -54,6 +58,36 @@ struct CallAssistControllerCharacterisationTests {
         }
     }
 
+    /// Screen capture that never has a screenshot.
+    @MainActor
+    final class FakeScreen: ScreenCapture {
+        var latest: ScreenSnapshotter.Snapshot?
+        var problem: String?
+        func start() {}
+        func stop() {}
+        func refresh() async {}
+    }
+
+    /// Overrides every service a Call Assist session touches. `keys` are the
+    /// providers with an API key saved.
+    static func useFakes(_ values: inout DependencyValues, defaults: UserDefaults, keys: Set<AssistProvider>,
+                         micAllowed: Bool = true, listener: FakeListener, provider: FakeProvider,
+                         history: AnswerHistoryStore, shortcuts: GlobalShortcuts) {
+        values.settingsStorage = defaults
+        values.keychain = KeychainClient(
+            hasKey: { keys.contains($0) },
+            key: { keys.contains($0) ? "test-key" : nil },
+            save: { _, _ in },
+            delete: { _ in })
+        values.answerClient = AnswerClientFactory(make: { _, _, _ in provider })
+        values.micPermission = MicPermissionClient(status: { micAllowed ? .authorized : .denied },
+                                                   request: { micAllowed })
+        values.utteranceSource = UtteranceSourceClient(make: { listener })
+        values.screenCapture = ScreenCaptureClient(make: { FakeScreen() })
+        values.answerHistory = history
+        values.globalShortcuts = shortcuts
+    }
+
     /// One controller wired to fakes, a throwaway settings suite and a
     /// throwaway history file.
     final class Harness {
@@ -68,19 +102,23 @@ struct CallAssistControllerCharacterisationTests {
         @MainActor
         init(_ replies: [FakeProvider.Reply] = [], hasKey: Bool = true, micAllowed: Bool = true,
              saveHistory: Bool = true) {
-            provider = FakeProvider(replies)
+            let provider = FakeProvider(replies)
+            self.provider = provider
             let defaults = UserDefaults(suiteName: suiteName)!
-            settings = CallAssistSettings(defaults: defaults, hasKey: { _ in hasKey })
+            let listener = listener
+            let historyURL = historyURL
+            (settings, controller) = withDependencies {
+                CallAssistControllerCharacterisationTests.useFakes(
+                    &$0, defaults: defaults, keys: hasKey ? Set(AssistProvider.allCases) : [],
+                    micAllowed: micAllowed, listener: listener, provider: provider,
+                    history: AnswerHistoryStore(url: historyURL),
+                    shortcuts: GlobalShortcuts(registersWithSystem: false))
+            } operation: {
+                let settings = CallAssistSettings()
+                return (settings, CallAssistController(settings: settings))
+            }
             settings.includeScreen = false
             settings.saveHistory = saveHistory
-            let listener = listener
-            let provider = provider
-            controller = CallAssistController(settings: settings, dependencies: .init(
-                requestMicAccess: { micAllowed },
-                makeListener: { listener },
-                makeClient: { _ in provider },
-                history: AnswerHistoryStore(url: historyURL),
-                shortcuts: GlobalShortcuts(registersWithSystem: false)))
         }
 
         deinit {

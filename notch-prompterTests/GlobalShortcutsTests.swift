@@ -29,16 +29,17 @@ struct GlobalShortcutsTests {
             } operation: {
                 PrompterViewModel()
             }
-            settings = CallAssistSettings(defaults: defaults, hasKey: { keys.contains($0) })
+            (settings, controller) = withDependencies {
+                Fakes.useFakes(&$0, defaults: defaults, keys: keys, listener: Fakes.FakeListener(),
+                               provider: Fakes.FakeProvider([]),
+                               history: AnswerHistoryStore(url: FileManager.default.temporaryDirectory
+                                   .appendingPathComponent("shortcuts-\(UUID().uuidString).sqlite")),
+                               shortcuts: shortcuts)
+            } operation: {
+                let settings = CallAssistSettings()
+                return (settings, CallAssistController(settings: settings))
+            }
             settings.includeScreen = false
-            let listener = Fakes.FakeListener()
-            controller = CallAssistController(settings: settings, dependencies: .init(
-                requestMicAccess: { true },
-                makeListener: { listener },
-                makeClient: { _ in Fakes.FakeProvider([]) },
-                history: AnswerHistoryStore(url: FileManager.default.temporaryDirectory
-                    .appendingPathComponent("shortcuts-\(UUID().uuidString).sqlite")),
-                shortcuts: shortcuts))
         }
 
         deinit { UserDefaults().removePersistentDomain(forName: suite) }

@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreGraphics
 import Combine
+import Dependencies
 import os
 
 /// Runs one Call Assist session: listens, keeps the transcript, detects
@@ -46,26 +47,13 @@ final class CallAssistController: ObservableObject {
 
     var isActive: Bool { state != .idle }
 
-    /// What a session talks to outside the app. `live` in the app; tests
-    /// swap in fakes for the mic, the transcriber and the provider.
-    struct Dependencies {
-        var requestMicAccess: () async -> Bool
-        var makeListener: () -> UtteranceSource
-        var makeClient: (CallAssistSettings) -> AnswerProvider?
-        var history: AnswerHistoryStore
-        var shortcuts: GlobalShortcuts
-
-        static func live(shortcuts: GlobalShortcuts = GlobalShortcuts()) -> Dependencies {
-            Dependencies(requestMicAccess: { await AVCaptureDevice.requestAccess(for: .audio) },
-                         makeListener: { CallListener() },
-                         makeClient: { $0.makeClient() },
-                         history: AnswerHistoryStore(),
-                         shortcuts: shortcuts)
-        }
-    }
-
     private let settings: CallAssistSettings
-    private let dependencies: Dependencies
+    @Dependency(\.micPermission) private var micPermission
+    @Dependency(\.utteranceSource) private var utteranceSource
+    @Dependency(\.screenCapture) private var screenCapture
+    @Dependency(\.globalShortcuts) private var shortcuts
+    /// Every answer, kept when Save history is on. Settings reads it too.
+    @Dependency(\.answerHistory) var history
     private var listener: UtteranceSource?
     private var knowledge = ""
     /// Made once per session, so the Keychain is read at start and never mid-call.
@@ -73,19 +61,17 @@ final class CallAssistController: ObservableObject {
     private var noticeTask: Task<Void, Never>?
     private var listenTask: Task<Void, Never>?
     private var answerTask: Task<Void, Never>?
-    var history: AnswerHistoryStore { dependencies.history }
     private var sessionID = ""
     /// The answer still streaming, as an index into answers.
     private var streamingIndex: Int?
-    private let screen = ScreenSnapshotter()
+    private lazy var screen = screenCapture.make()
     /// Why screenshots are not being attached, for the Assist tab.
     @Published private(set) var screenProblem: String?
     private let log = callAssistLog
     private static let transcriptSpan: TimeInterval = 5 * 60
 
-    init(settings: CallAssistSettings, dependencies: Dependencies = .live()) {
+    init(settings: CallAssistSettings) {
         self.settings = settings
-        self.dependencies = dependencies
         keyObserver = settings.$provider
             .combineLatest(settings.$providersWithKey)
             .map { provider, withKey in withKey.contains(provider) }
@@ -107,7 +93,6 @@ final class CallAssistController: ObservableObject {
     /// ⌃⌥A is taken only once a session could start; the keys that act on a
     /// session only while one runs.
     private func updateShortcuts() {
-        let shortcuts = dependencies.shortcuts
         shortcuts.set([.assistToggle: { [weak self] in self?.toggle() }],
                       on: shortcutsEnabled && (keyReady || isActive))
         shortcuts.set([
@@ -136,7 +121,7 @@ final class CallAssistController: ObservableObject {
 
         listenTask = Task {
             do {
-                guard await dependencies.requestMicAccess() else {
+                guard await micPermission.request() else {
                     throw CaptureError("Microphone access is off. Turn it on in System Settings > Privacy & Security > Microphone.")
                 }
                 let sources = settings.knowledgeSources
@@ -146,12 +131,12 @@ final class CallAssistController: ObservableObject {
                         ?? "The knowledge base is larger than the model's context window.")
                 }
                 knowledge = loaded.text
-                guard let client = dependencies.makeClient(settings) else {
+                guard let client = settings.makeClient() else {
                     throw CaptureError("No API key saved for \(settings.provider.displayName).")
                 }
                 self.client = client
 
-                let listener = dependencies.makeListener()
+                let listener = utteranceSource.make()
                 self.listener = listener
                 try await listener.start()
                 guard state == .starting else { return }

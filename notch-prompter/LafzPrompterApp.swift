@@ -1,5 +1,4 @@
 import SwiftUI
-import Dependencies
 import AppKit
 import Combine
 
@@ -40,12 +39,10 @@ struct LafzPrompterApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    @Dependency(\.globalShortcuts) private var shortcuts
     let viewModel = PrompterViewModel()
     let callAssist = CallAssistSettings()
     let scripts = ScriptLibrary()
-    private(set) lazy var callAssistController = CallAssistController(
-        settings: callAssist, dependencies: .live(shortcuts: shortcuts))
+    private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
     private var prompterWindow: PrompterWindow!
     private var hideObserver: AnyCancellable?
     private var assistStateObserver: AnyCancellable?

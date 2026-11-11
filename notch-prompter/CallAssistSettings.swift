@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import Dependencies
 
 /// User settings for Call Assist. Kept apart from PrompterViewModel so typing in
 /// the Assist tab does not re-render the prompter.
@@ -38,7 +39,9 @@ final class CallAssistSettings: ObservableObject {
     /// Per-source token estimates for Settings; nil while counting.
     @Published private(set) var knowledgeSummary: [KnowledgeBase.Source]?
 
-    private let defaults: UserDefaults
+    @Dependency(\.settingsStorage) private var defaults
+    @Dependency(\.keychain) private var keychain
+    @Dependency(\.answerClient) private var answerClient
     private var summaryTask: Task<Void, Never>?
 
     private enum Keys {
@@ -50,14 +53,15 @@ final class CallAssistSettings: ObservableObject {
         static func model(_ p: AssistProvider) -> String { "AssistModel.\(p.rawValue)" }
     }
 
-    /// `hasKey` is for tests, which must not depend on the real Keychain.
-    init(defaults: UserDefaults = .standard, hasKey: (AssistProvider) -> Bool = KeychainStore.hasKey) {
-        self.defaults = defaults
+    init() {
+        // Read through locals: the stored properties are not all set yet.
+        @Dependency(\.settingsStorage) var defaults
+        @Dependency(\.keychain) var keychain
         provider = AssistProvider(rawValue: defaults.string(forKey: Keys.provider) ?? "") ?? .anthropic
         instructions = defaults.string(forKey: Keys.instructions) ?? Self.defaultInstructions
         includeScreen = defaults.object(forKey: Keys.includeScreen) as? Bool ?? true
         saveHistory = defaults.object(forKey: Keys.saveHistory) as? Bool ?? true
-        providersWithKey = Set(AssistProvider.allCases.filter(hasKey))
+        providersWithKey = Set(AssistProvider.allCases.filter(keychain.hasKey))
         knowledgeSources = (defaults.stringArray(forKey: Keys.knowledgeSources) ?? []).map {
             URL(fileURLWithPath: $0)
         }
@@ -110,18 +114,18 @@ final class CallAssistSettings: ObservableObject {
     func saveKey(_ key: String) throws {
         let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        try KeychainStore.save(trimmed, for: provider)
+        try keychain.save(trimmed, provider)
         providersWithKey.insert(provider)
     }
 
     func removeKey() {
-        KeychainStore.delete(for: provider)
+        keychain.delete(provider)
         providersWithKey.remove(provider)
     }
 
     /// A client for the selected provider, or nil when no key is saved.
     func makeClient() -> AnswerProvider? {
-        guard let key = KeychainStore.key(for: provider) else { return nil }
-        return provider.makeClient(apiKey: key, model: model.id)
+        guard let key = keychain.key(provider) else { return nil }
+        return answerClient.make(provider, key, model.id)
     }
 }
