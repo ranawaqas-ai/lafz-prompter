@@ -4,7 +4,7 @@ import SwiftUI
 /// a session is running. The script keeps its place underneath.
 struct PrompterRootView: View {
     @ObservedObject var viewModel: PrompterViewModel
-    @ObservedObject var callAssist: CallAssistController
+    @Environment(CallAssistController.self) private var callAssist
 
     var body: some View {
         let showingAssist = callAssist.isActive || callAssist.notice != nil
@@ -14,7 +14,7 @@ struct PrompterRootView: View {
             PrompterView(viewModel: viewModel)
                 .opacity(showingAssist ? 0 : 1)
             if showingAssist {
-                AssistPrompterView(viewModel: viewModel, callAssist: callAssist)
+                AssistPrompterView(viewModel: viewModel)
             }
             PrompterResizeHandles(viewModel: viewModel)
         }
@@ -25,7 +25,7 @@ struct PrompterRootView: View {
 /// the prompter's own font and theme.
 private struct AssistPrompterView: View {
     @ObservedObject var viewModel: PrompterViewModel
-    @ObservedObject var callAssist: CallAssistController
+    @Environment(CallAssistController.self) private var callAssist
     @State private var position = SwiftUI.ScrollPosition(edge: .top)
     @State private var offsetY: CGFloat = 0
 
@@ -45,7 +45,7 @@ private struct AssistPrompterView: View {
                                 .truncationMode(.head)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             if callAssist.answers.count > 1 {
-                                AnswerPager(callAssist: callAssist, color: theme.textColor,
+                                AnswerPager(color: theme.textColor,
                                             size: viewModel.fontSize * 0.75)
                             }
                         }
@@ -141,7 +141,7 @@ private struct CodeBlockView: View {
 /// "‹ 2 / 5 ›": steps through this session's answers. Control-Option-[ and
 /// Control-Option-] do the same from the keyboard.
 private struct AnswerPager: View {
-    @ObservedObject var callAssist: CallAssistController
+    @Environment(CallAssistController.self) private var callAssist
     let color: Color
     let size: Double
 

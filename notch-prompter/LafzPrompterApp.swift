@@ -8,10 +8,10 @@ struct LafzPrompterApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsView(viewModel: appDelegate.viewModel,
-                         callAssistController: appDelegate.callAssistController)
+            SettingsView(viewModel: appDelegate.viewModel)
                 .environment(appDelegate.scripts)
                 .environment(appDelegate.callAssist)
+                .environment(appDelegate.callAssistController)
                 .onAppear(perform: {
                     NSApp.setActivationPolicy(.regular)
                 })
@@ -47,7 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
     private var prompterWindow: PrompterWindow!
     private var hideObserver: AnyCancellable?
-    private var assistStateObserver: AnyCancellable?
+    private var assistStateTask: Task<Void, Never>?
     private var shortcutsSettingObserver: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -60,14 +60,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Starting Call Assist brings the prompter back, so answers are never
         // fetched with nothing on screen, and the scroll shortcuts move the
         // answer instead of the script while it runs.
-        assistStateObserver = callAssistController.$state
-            .removeDuplicates()
-            .sink { [weak self] state in
+        let controller = callAssistController
+        assistStateTask = Task { [weak self] in
+            for await active in Observations({ controller.isActive }) {
                 guard let self else { return }
-                if state == .starting { self.viewModel.isPrompterVisible = true }
-                let controller = self.callAssistController
-                self.viewModel.scrollRedirect = state == .idle ? nil : { controller.nudgeScroll(by: $0) }
+                if active { self.viewModel.isPrompterVisible = true }
+                self.viewModel.scrollRedirect = active ? { controller.nudgeScroll(by: $0) } : nil
             }
+        }
         // One setting turns off every global shortcut, Call Assist's too.
         shortcutsSettingObserver = viewModel.$enableGlobalKeyboardShortcuts
             .sink { [weak self] enabled in self?.callAssistController.shortcutsEnabled = enabled }

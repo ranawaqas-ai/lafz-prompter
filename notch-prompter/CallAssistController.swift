@@ -1,13 +1,13 @@
 import AVFoundation
 import CoreGraphics
-import Combine
+import Observation
 import Dependencies
 import os
 
 /// Runs one Call Assist session: listens, keeps the transcript, detects
 /// questions and streams answers for the prompter to show.
-@MainActor
-final class CallAssistController: ObservableObject {
+@MainActor @Observable
+final class CallAssistController {
     enum State: Equatable {
         case idle
         case starting
@@ -15,30 +15,30 @@ final class CallAssistController: ObservableObject {
         case answering
     }
 
-    @Published private(set) var state: State = .idle {
+    private(set) var state: State = .idle {
         didSet {
             if state != oldValue { callAssistLog.info("state: \(String(describing: self.state), privacy: .public)") }
             updateShortcuts()
         }
     }
-    @Published private(set) var transcript: [Utterance] = []
+    private(set) var transcript: [Utterance] = []
     /// This session's answers, oldest first, including ones a newer question
     /// cut short. Each is also saved to the history file when that is on.
-    @Published private(set) var answers: [AnswerRecord] = []
+    private(set) var answers: [AnswerRecord] = []
     /// The answer being shown when the user has gone back; nil follows the newest.
-    @Published private(set) var viewing: Int?
+    private(set) var viewing: Int?
 
     var displayedIndex: Int? { answers.isEmpty ? nil : min(viewing ?? answers.count - 1, answers.count - 1) }
     var question: String { displayedIndex.map { answers[$0].question } ?? "" }
     var answer: String { displayedIndex.map { answers[$0].answer } ?? "" }
-    @Published private(set) var error: String?
+    private(set) var error: String?
     /// Seconds from the end of their question to the first answer word, for
     /// the latest answer. The plan's target is a median of 3 s or less.
-    @Published private(set) var lastLatency: TimeInterval?
+    private(set) var lastLatency: TimeInterval?
     /// A short message shown in the prompter, e.g. why a start failed.
-    @Published private(set) var notice: String?
+    private(set) var notice: String?
     /// Requests from the scroll shortcuts to move the answer.
-    @Published private(set) var scrollNudge = ScrollNudge(delta: 0, sequence: 0)
+    private(set) var scrollNudge = ScrollNudge(delta: 0, sequence: 0)
 
     struct ScrollNudge: Equatable {
         let delta: CGFloat
@@ -48,25 +48,25 @@ final class CallAssistController: ObservableObject {
     var isActive: Bool { state != .idle }
 
     private let settings: CallAssistSettings
-    @Dependency(\.micPermission) private var micPermission
-    @Dependency(\.utteranceSource) private var utteranceSource
-    @Dependency(\.screenCapture) private var screenCapture
-    @Dependency(\.globalShortcuts) private var shortcuts
+    @ObservationIgnored @Dependency(\.micPermission) private var micPermission
+    @ObservationIgnored @Dependency(\.utteranceSource) private var utteranceSource
+    @ObservationIgnored @Dependency(\.screenCapture) private var screenCapture
+    @ObservationIgnored @Dependency(\.globalShortcuts) private var shortcuts
     /// Every answer, kept when Save history is on. Settings reads it too.
-    @Dependency(\.answerHistory) var history
-    private var listener: UtteranceSource?
-    private var knowledge = ""
+    @ObservationIgnored @Dependency(\.answerHistory) var history
+    @ObservationIgnored private var listener: UtteranceSource?
+    @ObservationIgnored private var knowledge = ""
     /// Made once per session, so the Keychain is read at start and never mid-call.
-    private var client: AnswerProvider?
-    private var noticeTask: Task<Void, Never>?
-    private var listenTask: Task<Void, Never>?
-    private var answerTask: Task<Void, Never>?
-    private var sessionID = ""
+    @ObservationIgnored private var client: AnswerProvider?
+    @ObservationIgnored private var noticeTask: Task<Void, Never>?
+    @ObservationIgnored private var listenTask: Task<Void, Never>?
+    @ObservationIgnored private var answerTask: Task<Void, Never>?
+    @ObservationIgnored private var sessionID = ""
     /// The answer still streaming, as an index into answers.
-    private var streamingIndex: Int?
-    private lazy var screen = screenCapture.make()
+    @ObservationIgnored private var streamingIndex: Int?
+    @ObservationIgnored private lazy var screen = screenCapture.make()
     /// Why screenshots are not being attached, for the Assist tab.
-    @Published private(set) var screenProblem: String?
+    private(set) var screenProblem: String?
     private let log = callAssistLog
     private static let transcriptSpan: TimeInterval = 5 * 60
 
@@ -91,8 +91,8 @@ final class CallAssistController: ObservableObject {
         didSet { updateShortcuts() }
     }
     /// Whether the selected provider has a key, so a session could start.
-    private var keyReady = false
-    private var keyTask: Task<Void, Never>?
+    @ObservationIgnored private var keyReady = false
+    @ObservationIgnored private var keyTask: Task<Void, Never>?
 
     /// ⌃⌥A is taken only once a session could start; the keys that act on a
     /// session only while one runs.

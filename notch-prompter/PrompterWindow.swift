@@ -2,16 +2,21 @@ import AppKit
 import SwiftUI
 import Combine
 
+@MainActor
 final class PrompterWindow {
     private var window: NSWindow!
     private let viewModel: PrompterViewModel
+    private let callAssist: CallAssistController
+    private var sharingTask: Task<Void, Never>?
     private var cancellables: Set<AnyCancellable> = []
 
     @MainActor
     init(viewModel: PrompterViewModel, callAssist: CallAssistController, scripts: ScriptLibrary) {
         self.viewModel = viewModel
+        self.callAssist = callAssist
 
-        let contentView = PrompterRootView(viewModel: viewModel, callAssist: callAssist)
+        let contentView = PrompterRootView(viewModel: viewModel)
+            .environment(callAssist)
             // Dropping a script file on the prompter loads it straight away.
             .dropDestination(for: URL.self) { urls, _ in
                 let files = urls.filter(ScriptImporter.canRead)
@@ -93,12 +98,16 @@ final class PrompterWindow {
         // A Call Assist answer is always hidden from screen sharing, whatever
         // the setting says: the other side of the call must not see it.
         viewModel.$hideFromScreenRecording
-            .combineLatest(callAssist.$state.map { $0 != .idle })
             .receive(on: RunLoop.main)
-            .sink { [weak self] hideFromRecording, assisting in
-                self?.updateScreenRecordingVisibility(hideFromRecording || assisting)
-            }
+            .sink { [weak self] _ in self?.updateSharing() }
             .store(in: &cancellables)
+        sharingTask = Task { [weak self, callAssist] in
+            for await _ in Observations({ callAssist.isActive }) { self?.updateSharing() }
+        }
+    }
+
+    private func updateSharing() {
+        updateScreenRecordingVisibility(viewModel.hideFromScreenRecording || callAssist.isActive)
     }
 
     func show() {
