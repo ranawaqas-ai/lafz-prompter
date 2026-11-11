@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Charter ships with macOS and iOS; the rest are its closest system matches. */
+  font-family: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -94,6 +95,7 @@ summary {
 }
 
 .demo {
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --k: 0.36;
   --s: 5;
   --wide: translate(100px, 63px) scale(0.9);
@@ -298,7 +300,7 @@ summary {
   right: 0;
   padding: 0 14px;
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-size: 10px;
   line-height: 20px;
   text-align: center;
