@@ -1,50 +1,59 @@
 import SwiftUI
 
-/// Strips along the prompter's bottom and side edges: drag them to change its
-/// height and width. The top stays under the notch, and the window keeps its
-/// alignment, so a centred prompter grows on both sides at once.
+/// Strips along the prompter's bottom and side edges, and its bottom corners:
+/// drag them to change the height, the width, or both. The top stays under
+/// the notch, and the window keeps its alignment, so a centred prompter grows
+/// on both sides at once.
 struct PrompterResizeHandles: View {
     @ObservedObject var viewModel: PrompterViewModel
 
     /// Same limits as the Width and Height sliders in Settings.
     static let widthRange: ClosedRange<CGFloat> = 150...600
     static let heightRange: ClosedRange<CGFloat> = 80...500
-    private static let thickness: CGFloat = 8
+    private static let edge: CGFloat = 8
+    private static let corner: CGFloat = 16
 
     var body: some View {
+        // A left-aligned prompter is pinned at its left edge and a right-aligned
+        // one at its right, so only the free side has handles.
+        let left = viewModel.horizontalAlignment != .left
+        let right = viewModel.horizontalAlignment != .right
         ZStack {
             VStack {
                 Spacer()
-                handle(.bottom).frame(height: Self.thickness)
+                handle(.bottom).frame(height: Self.edge)
             }
             HStack {
-                // A left-aligned prompter is pinned at its left edge, a
-                // right-aligned one at its right, so only the free side drags.
-                if viewModel.horizontalAlignment != .left {
-                    handle(.left).frame(width: Self.thickness)
-                }
+                if left { handle(.left).frame(width: Self.edge) }
                 Spacer()
-                if viewModel.horizontalAlignment != .right {
-                    handle(.right).frame(width: Self.thickness)
+                if right { handle(.right).frame(width: Self.edge) }
+            }
+            // Corners last, so they sit above the edges where they overlap.
+            VStack {
+                Spacer()
+                HStack {
+                    if left { handle(.bottomLeft).frame(width: Self.corner, height: Self.corner) }
+                    Spacer()
+                    if right { handle(.bottomRight).frame(width: Self.corner, height: Self.corner) }
                 }
             }
         }
     }
 
-    private enum Edge { case bottom, left, right }
-
-    private func handle(_ edge: Edge) -> some View {
-        ResizeStrip(cursor: edge == .bottom ? .resizeUpDown : .resizeLeftRight) { start, mouse in
-            switch edge {
-            case .bottom:
+    private func handle(_ position: NSCursor.FrameResizePosition) -> some View {
+        let horizontal: CGFloat = [.left, .bottomLeft].contains(position) ? -1
+            : [.right, .bottomRight].contains(position) ? 1 : 0
+        let vertical = [.bottom, .bottomLeft, .bottomRight].contains(position)
+        return ResizeStrip(cursor: .frameResize(position: position, directions: .all)) { start, mouse in
+            if vertical {
                 // Screen y grows upward, so dragging down is a negative change.
                 let height = start.height + (start.mouse.y - mouse.y)
                 viewModel.prompterHeight = height.clamped(to: Self.heightRange).rounded()
-            case .left, .right:
-                let dx = edge == .right ? mouse.x - start.mouse.x : start.mouse.x - mouse.x
+            }
+            if horizontal != 0 {
                 // Centred: the opposite edge moves too, so the width changes twice as much.
                 let factor: CGFloat = viewModel.horizontalAlignment == .center ? 2 : 1
-                let width = start.width + dx * factor
+                let width = start.width + (mouse.x - start.mouse.x) * horizontal * factor
                 viewModel.prompterWidth = width.clamped(to: Self.widthRange).rounded()
             }
         } began: {
