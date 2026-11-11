@@ -43,10 +43,17 @@ private struct AssistPrompterView: View {
                             .lineLimit(1)
                             .truncationMode(.head)
                     }
-                    Text(body(theme: theme))
-                        .font(font(for: callAssist.answer, scale: 1))
-                        .foregroundStyle(theme.textColor)
-                        .lineSpacing(viewModel.lineHeight)
+                    ForEach(Array(AnswerFormatting.segments(body(theme: theme)).enumerated()), id: \.offset) { _, segment in
+                        switch segment {
+                        case .prose(let text):
+                            Text(Self.inlineMarkdown(text))
+                                .font(font(for: text, scale: 1))
+                                .foregroundStyle(theme.textColor)
+                                .lineSpacing(viewModel.lineHeight)
+                        case .code(let language, let code):
+                            CodeBlockView(code: code, language: language, theme: theme, fontSize: viewModel.fontSize)
+                        }
+                    }
                 }
                 .multilineTextAlignment(viewModel.textAlignment.swiftUIAlignment)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -78,9 +85,44 @@ private struct AssistPrompterView: View {
         }
     }
 
+    /// Bold, italics and `inline code` in prose; plain text if it does not parse.
+    private static func inlineMarkdown(_ text: String) -> AttributedString {
+        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
+    }
+
     private func font(for text: String, scale: Double) -> Font {
         let size = viewModel.fontSize * scale
         if let family = viewModel.fontFamily(for: text) { return Font.custom(family, fixedSize: size) }
         return scale == 1 ? viewModel.systemFont : .system(size: size)
+    }
+}
+
+/// A code block: monospaced, syntax coloured, and scrolling sideways rather
+/// than wrapping, so indentation stays readable in a narrow prompter.
+private struct CodeBlockView: View {
+    let code: String
+    let language: String?
+    let theme: PrompterTheme
+    let fontSize: Double
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if let language {
+                Text(language)
+                    .font(.system(size: max(fontSize * 0.6, 8), weight: .medium))
+                    .foregroundStyle(theme.textColor.opacity(0.45))
+            }
+            ScrollView(.horizontal, showsIndicators: false) {
+                Text(SyntaxHighlighter.highlight(code, language: language, dark: theme == .dark))
+                    .font(.system(size: fontSize * 0.8, design: .monospaced))
+                    .foregroundStyle(theme.textColor)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .textSelection(.enabled)
+            }
+        }
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(theme.textColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
     }
 }

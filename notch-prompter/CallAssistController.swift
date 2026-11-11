@@ -196,7 +196,7 @@ final class CallAssistController: ObservableObject {
         answer = ""
         state = .answering
         let request = AnswerRequest(
-            instructions: settings.instructions,
+            instructions: settings.instructions + "\n\n" + AnswerFormatting.formattingRule,
             knowledge: knowledge,
             transcript: transcriptText(),
             question: question,
@@ -234,7 +234,7 @@ final class CallAssistController: ObservableObject {
     /// reads it from the provider's cache.
     private func warmCache() {
         guard !knowledge.isEmpty, let client else { return }
-        let request = AnswerRequest(instructions: settings.instructions, knowledge: knowledge,
+        let request = AnswerRequest(instructions: settings.instructions + "\n\n" + AnswerFormatting.formattingRule, knowledge: knowledge,
                                     transcript: "", question: "Reply with OK.")
         Task {
             do {
