@@ -8,10 +8,17 @@ final class PrompterWindow {
     private var cancellables: Set<AnyCancellable> = []
 
     @MainActor
-    init(viewModel: PrompterViewModel, callAssist: CallAssistController) {
+    init(viewModel: PrompterViewModel, callAssist: CallAssistController, scripts: ScriptLibrary) {
         self.viewModel = viewModel
 
         let contentView = PrompterRootView(viewModel: viewModel, callAssist: callAssist)
+            // Dropping a script file on the prompter loads it straight away.
+            .dropDestination(for: URL.self) { urls, _ in
+                let files = urls.filter(ScriptImporter.canRead)
+                guard !files.isEmpty else { return false }
+                scripts.importFiles(files)
+                return scripts.importError == nil
+            }
             .clipShape(UnevenRoundedRectangle(
                 topLeadingRadius: 0,
                 bottomLeadingRadius: 16,

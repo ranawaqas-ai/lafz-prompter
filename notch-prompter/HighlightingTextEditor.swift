@@ -12,6 +12,8 @@ struct HighlightingTextEditor: NSViewRepresentable {
     @Binding var text: String
     var font: NSFont = .systemFont(ofSize: 15, weight: .regular)
     var isFocused: FocusState<Bool>.Binding?
+    /// Called with dropped script files; other drops edit the text as usual.
+    var onFileDrop: (([URL]) -> Void)?
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -25,7 +27,7 @@ struct HighlightingTextEditor: NSViewRepresentable {
         scrollView.borderType = .noBorder
         scrollView.drawsBackground = false
         
-        let textView = NSTextView()
+        let textView = FileDropTextView()
         textView.isEditable = true
         textView.isSelectable = true
         textView.allowsUndo = true
@@ -42,6 +44,7 @@ struct HighlightingTextEditor: NSViewRepresentable {
         textView.isHorizontallyResizable = false
         textView.autoresizingMask = [.width]
         
+        textView.onFileDrop = onFileDrop
         scrollView.documentView = textView
         context.coordinator.textView = textView
         
@@ -53,7 +56,8 @@ struct HighlightingTextEditor: NSViewRepresentable {
     }
     
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        guard let textView = scrollView.documentView as? NSTextView else { return }
+        guard let textView = scrollView.documentView as? FileDropTextView else { return }
+        textView.onFileDrop = onFileDrop
         
         if textView.string != text {
             let selectedRanges = textView.selectedRanges
@@ -115,5 +119,31 @@ struct HighlightingTextEditor: NSViewRepresentable {
             // Restore selection
             textView.selectedRanges = selectedRanges
         }
+    }
+}
+/// A text view that hands dropped script files to its owner. NSTextView would
+/// otherwise insert the file's path into the text.
+final class FileDropTextView: NSTextView {
+    var onFileDrop: (([URL]) -> Void)?
+
+    private func scriptFiles(in info: NSDraggingInfo) -> [URL] {
+        let urls = info.draggingPasteboard.readObjects(forClasses: [NSURL.self],
+                                                       options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
+        return urls.filter(ScriptImporter.canRead)
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        onFileDrop != nil && !scriptFiles(in: sender).isEmpty ? .copy : super.draggingEntered(sender)
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        onFileDrop != nil && !scriptFiles(in: sender).isEmpty ? .copy : super.draggingUpdated(sender)
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let files = scriptFiles(in: sender)
+        guard let onFileDrop, !files.isEmpty else { return super.performDragOperation(sender) }
+        onFileDrop(files)
+        return true
     }
 }

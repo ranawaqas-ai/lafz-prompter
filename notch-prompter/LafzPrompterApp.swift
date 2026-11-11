@@ -10,7 +10,8 @@ struct LafzPrompterApp: App {
     var body: some Scene {
         Settings {
             SettingsView(viewModel: appDelegate.viewModel, callAssist: appDelegate.callAssist,
-                         callAssistController: appDelegate.callAssistController)
+                         callAssistController: appDelegate.callAssistController,
+                         scripts: appDelegate.scripts)
                 .onAppear(perform: {
                     NSApp.setActivationPolicy(.regular)
                 })
@@ -20,7 +21,7 @@ struct LafzPrompterApp: App {
         }
 
         MenuBarExtra {
-            MenuContent(viewModel: appDelegate.viewModel)
+            MenuContent(viewModel: appDelegate.viewModel, library: appDelegate.scripts)
         } label: {
             let image: NSImage = {
                 let ratio = $0.size.height / $0.size.width
@@ -41,13 +42,15 @@ struct LafzPrompterApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let viewModel = PrompterViewModel()
     let callAssist = CallAssistSettings()
+    let scripts = ScriptLibrary()
     private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
     private var prompterWindow: PrompterWindow!
     private var hideObserver: AnyCancellable?
     private var assistStateObserver: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        prompterWindow = PrompterWindow(viewModel: viewModel, callAssist: callAssistController)
+        scripts.attach(to: viewModel)
+        prompterWindow = PrompterWindow(viewModel: viewModel, callAssist: callAssistController, scripts: scripts)
         // Hiding the prompter ends a Call Assist session, as it stops voice activation.
         hideObserver = viewModel.$isPrompterVisible
             .filter { !$0 }
@@ -70,14 +73,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // Covers a quit inside the save debounce window.
     func applicationWillTerminate(_ notification: Notification) {
         viewModel.saveSettings()
+        scripts.updateCurrent(text: viewModel.text)
+        scripts.flush()
     }
 }
 
 struct MenuContent: View {
     @ObservedObject var viewModel: PrompterViewModel
-    
+    @ObservedObject var library: ScriptLibrary
 
-    
     var body: some View {
         Button {
             viewModel.isPrompterVisible.toggle()
@@ -109,7 +113,30 @@ struct MenuContent: View {
             Label("Reset", systemImage: "arrow.counterclockwise")
         }
 
-        
+        Divider()
+
+        Button {
+            load { library.importClipboard() }
+        } label: {
+            Label("Load Script from Clipboard", systemImage: "doc.on.clipboard")
+        }
+
+        Button {
+            load { library.showOpenPanel() }
+        } label: {
+            Label("Open Script…", systemImage: "folder")
+        }
+
+        Menu {
+            ForEach(library.scripts.prefix(12)) { script in
+                Toggle(script.title, isOn: Binding(
+                    get: { library.currentID == script.id },
+                    set: { if $0 { load { library.select(script.id) } } }))
+            }
+        } label: {
+            Label("Scripts", systemImage: "doc.text")
+        }
+
         Divider()
 
         SettingsLink {
@@ -141,5 +168,22 @@ struct MenuContent: View {
             Label("Exit", systemImage: "xmark.circle")
         }
         .keyboardShortcut("q", modifiers: [.command])
+    }
+
+    /// Loads a script from the menu bar and brings the prompter up with it.
+    /// A failed import has no Settings window to show in, so it is an alert.
+    private func load(_ action: () -> Void) {
+        let before = library.currentID
+        action()
+        if let error = library.importError {
+            library.importError = nil
+            NSApp.activate()
+            let alert = NSAlert()
+            alert.messageText = "Could not load the script"
+            alert.informativeText = error
+            alert.runModal()
+        } else if library.currentID != before {
+            viewModel.isPrompterVisible = true
+        }
     }
 }

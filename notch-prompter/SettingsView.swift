@@ -41,6 +41,7 @@ struct SettingsView: View {
     @ObservedObject var viewModel: PrompterViewModel
     let callAssist: CallAssistSettings
     let callAssistController: CallAssistController
+    let scripts: ScriptLibrary
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: SettingsTab = .script
     @State private var showResetConfirmation = false
@@ -123,7 +124,7 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 switch selectedTab {
                 case .script:
-                    ScriptTabView(viewModel: viewModel)
+                    ScriptTabView(viewModel: viewModel, library: scripts)
                 case .appearance:
                     AppearanceTabView(viewModel: viewModel)
                 case .behavior:
@@ -204,53 +205,6 @@ struct SettingsView: View {
         }
     }
 }
-
-// MARK: - Script Tab
-struct ScriptTabView: View {
-    @ObservedObject var viewModel: PrompterViewModel
-    @FocusState private var isTextEditorFocused: Bool
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                // Background
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(nsColor: .textBackgroundColor))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .strokeBorder(
-                                isTextEditorFocused ? Color.accentColor : Color(nsColor: .separatorColor),
-                                lineWidth: isTextEditorFocused ? 2 : 1
-                            )
-                    )
-                    .shadow(color: .black.opacity(0.03), radius: 1, x: 0, y: 1)
-                
-                // Placeholder
-                if viewModel.text.isEmpty {
-                    Text("Type your script here...\n\nUse [brackets] for stage directions like [pause], [smile], etc.")
-                        .font(.system(size: 15))
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 13)
-                        .padding(.vertical, 12)
-                        .allowsHitTesting(false)
-                }
-                
-                HighlightingTextEditor(
-                    text: $viewModel.text,
-                    font: .systemFont(ofSize: 15, weight: .regular),
-                    isFocused: $isTextEditorFocused
-                )
-                .padding(.horizontal, 8)
-                .padding(.vertical, 8)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 16)
-            .frame(maxHeight: .infinity)
-        }
-    }
-}
-
 
 // MARK: - Appearance Tab
 struct AppearanceTabView: View {

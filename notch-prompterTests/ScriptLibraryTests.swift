@@ -52,6 +52,7 @@ struct ScriptLibraryTests {
 
     @Test func titlesComeFromTheFirstLine() {
         #expect(ScriptLibrary.title(from: "\n  Intro line \nrest") == "Intro line")
+        #expect(ScriptLibrary.title(from: "[slowly]\nFirst words [pause]") == "First words")
         #expect(ScriptLibrary.title(from: "   ") == "Untitled")
         #expect(ScriptLibrary.title(from: String(repeating: "a", count: 60)).count == 41)
     }

@@ -170,10 +170,14 @@ final class ScriptLibrary: ObservableObject {
         save()
     }
 
-    /// The first line, shortened, for scripts that came without a file name.
+    /// The first spoken line, shortened, for scripts that came without a file
+    /// name. [Stage directions] are skipped, since they are not said aloud.
     static func title(from text: String) -> String {
-        let line = text.split(whereSeparator: \.isNewline).first.map(String.init)?
-            .trimmingCharacters(in: .whitespaces) ?? ""
+        let line = text
+            .replacingOccurrences(of: #"\[[^\]]*\]"#, with: "", options: .regularExpression)
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .first { !$0.isEmpty } ?? ""
         guard !line.isEmpty else { return "Untitled" }
         return line.count > 40 ? line.prefix(40).trimmingCharacters(in: .whitespaces) + "…" : line
     }
