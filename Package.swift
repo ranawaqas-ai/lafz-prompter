@@ -17,5 +17,10 @@ let package = Package(
             exclude: ["Assets.xcassets"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        .testTarget(
+            name: "LafzPrompterTests",
+            dependencies: ["LafzPrompter"],
+            path: "notch-prompterTests"
+        ),
     ]
 )
