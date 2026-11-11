@@ -22,15 +22,6 @@ extension Font.Design: @retroactive RawRepresentable {
         }
     }
     
-    var displayName: String {
-        switch self {
-        case .default: return "Default"
-        case .serif: return "Serif"
-        case .rounded: return "Rounded"
-        case .monospaced: return "Monospaced"
-        @unknown default: return "Default"
-        }
-    }
     
     var icon: String {
         switch self {

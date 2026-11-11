@@ -27,11 +27,15 @@ differences.
 
 ## What the fakes replace
 
-`PrompterViewModel(defaults:startsDisplayLink:registersHotKeys:)` takes a throwaway
-defaults suite, no display link (tests call `tick(current:)` with their own times), and
-no global hotkeys.
+Everything that touches the outside world is a service registered in the dependency
+container (`swift-dependencies`, one file per service in `notch-prompter/Services`).
+Tests override the services they use with `withDependencies`; a test that reaches a
+service it did not override fails with "has no test implementation", so nothing real is
+touched by accident.
 
-`CallAssistSession(settings:dependencies:)` takes the mic permission, the utterance
-source, the AI client and the history database. The tests use a scripted
-`FakeListener`, a `FakeProvider` that answers, stalls or fails on cue, and a temporary
-SQLite file. Nothing touches the mic, the network, the Keychain or the real history.
+The Call Assist tests use `useFakes` in `CallAssistSessionCharacterisationTests`: a
+scripted `FakeListener` for the transcribers, a `FakeProvider` that answers, stalls or
+fails on cue, a `FakeScreen`, a fake Keychain, and a temporary SQLite file for history.
+The prompter tests use a throwaway UserDefaults suite and `FrameClock.stopped`, then call
+`tick(current:)` with their own times. `AppCoordinatorTests` runs the real models with
+these fakes and a `FakePanel` standing in for the prompter window.

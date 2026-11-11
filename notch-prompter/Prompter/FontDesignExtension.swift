@@ -17,12 +17,4 @@ extension Font.Design {
         @unknown default: return "Default"
         }
     }
-    
-    var previewCharacter: String {
-        return "Ag"
-    }
-
-    var previewFontView: Font {
-        .system(size: 16, design: self)
-    }
 }

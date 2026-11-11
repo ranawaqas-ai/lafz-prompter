@@ -294,7 +294,7 @@ private struct SessionSection: View {
             if controller.isActive {
                 VStack(alignment: .leading, spacing: 3) {
                     ForEach(Array(controller.transcript.suffix(6).enumerated()), id: \.offset) { _, line in
-                        (Text(line.speaker == .me ? "Me: " : "Them: ").bold() + Text(line.text))
+                        Text("\(Text(line.speaker == .me ? "Me: " : "Them: ").bold())\(line.text)")
                             .font(.system(size: 11))
                             .foregroundStyle(line.speaker == .me ? .secondary : .primary)
                     }

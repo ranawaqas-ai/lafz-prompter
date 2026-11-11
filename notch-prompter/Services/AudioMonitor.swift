@@ -10,13 +10,12 @@ import AVFoundation
 import SwiftUI
 import Combine
 import Accelerate
+import os
 
 class AudioMonitor: ObservableObject {
     private var audioEngine: AVAudioEngine
     private var inputNode: AVAudioInputNode?
-    private var timer: Timer?
     private let smoothingFactor: Float = 0.5
-    private var lastPublishTime = Date.timeIntervalSinceReferenceDate
     
     @Published var rmsLevel: Float = 0
     
@@ -42,7 +41,8 @@ class AudioMonitor: ObservableObject {
         do {
             try audioEngine.start()
         } catch {
-            print("Error starting audio engine: \(error)")
+            Logger(subsystem: "space.waqasrana.LafzPrompter", category: "Voice")
+                .error("could not start the mic for voice activation: \(error.localizedDescription, privacy: .public)")
         }
     }
 
