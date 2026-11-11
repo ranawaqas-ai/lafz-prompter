@@ -46,7 +46,9 @@ private struct AssistPrompterView: View {
                 .multilineTextAlignment(viewModel.textAlignment.swiftUIAlignment)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
-                .padding(.top, 32)
+                // The script starts one blank line below this inset; matching it
+                // keeps the first line clear of the notch.
+                .padding(.top, 32 + viewModel.fontSize * 1.3 + viewModel.lineHeight)
                 .padding(.bottom, 12)
             }
             // The answer stays at its start while it streams; the scroll
