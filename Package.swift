@@ -7,13 +7,19 @@ let package = Package(
     platforms: [.macOS(.v26)],
     dependencies: [
         .package(url: "https://github.com/soffes/HotKey", from: "0.2.0"),
+        // The dependency container: services are registered once and swapped
+        // for fakes in tests (see notch-prompter/Services).
+        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.9.0"),
         // Tests only: approval files and view images (see notch-prompterTests/README.md).
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.0"),
     ],
     targets: [
         .executableTarget(
             name: "LafzPrompter",
-            dependencies: ["HotKey"],
+            dependencies: [
+                "HotKey",
+                .product(name: "Dependencies", package: "swift-dependencies"),
+            ],
             path: "notch-prompter",
             // Compiled into the app bundle by scripts/build-app.sh with actool.
             exclude: ["Assets.xcassets"],
@@ -24,6 +30,7 @@ let package = Package(
             dependencies: [
                 "LafzPrompter",
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "Dependencies", package: "swift-dependencies"),
             ],
             path: "notch-prompterTests"
         ),
