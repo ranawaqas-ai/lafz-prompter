@@ -1,4 +1,5 @@
 import SwiftUI
+import Dependencies
 import AppKit
 import Combine
 
@@ -39,8 +40,8 @@ struct LafzPrompterApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let shortcuts = GlobalShortcuts()
-    private(set) lazy var viewModel = PrompterViewModel(shortcuts: shortcuts)
+    @Dependency(\.globalShortcuts) private var shortcuts
+    let viewModel = PrompterViewModel()
     let callAssist = CallAssistSettings()
     let scripts = ScriptLibrary()
     private(set) lazy var callAssistController = CallAssistController(

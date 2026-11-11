@@ -1,4 +1,5 @@
 import AppKit
+import Dependencies
 import Foundation
 import SnapshotTesting
 import SwiftUI
@@ -22,9 +23,16 @@ struct PrompterViewModelCharacterisationTests {
         var stored: [String: Any] { defaults.persistentDomain(forName: name) ?? [:] }
     }
 
+    /// A view model on a throwaway defaults suite, with no display link
+    /// (tests call `tick` with their own times) and no real global shortcuts.
     private func makeViewModel(_ suite: Suite) -> PrompterViewModel {
-        PrompterViewModel(defaults: suite.defaults, startsDisplayLink: false,
-                          shortcuts: GlobalShortcuts(registersWithSystem: false))
+        withDependencies {
+            $0.settingsStorage = suite.defaults
+            $0.frameClock = .stopped
+            $0.globalShortcuts = GlobalShortcuts(registersWithSystem: false)
+        } operation: {
+            PrompterViewModel()
+        }
     }
 
     /// Lets debounced Combine work on the main run loop happen.

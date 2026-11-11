@@ -4,6 +4,7 @@ import CoreVideo
 import AVFoundation
 import Accelerate
 import SwiftUI
+import Dependencies
 
 final class PrompterViewModel: ObservableObject {
     
@@ -137,18 +138,17 @@ final class PrompterViewModel: ObservableObject {
         static let manualScrollAmount = "ManualScrollAmount"
     }
     
-    private let defaults: UserDefaults
-    private let shortcuts: GlobalShortcuts
+    // MARK: Services
+    @Dependency(\.settingsStorage) private var defaults
+    @Dependency(\.globalShortcuts) private var shortcuts
+    @Dependency(\.frameClock) private var frameClock
+    @Dependency(\.micPermission) private var micPermission
+    @Dependency(\.audioLevels) private var audioLevels
 
     // MARK: Init
-    /// `defaults` and `startsDisplayLink` exist for tests: a separate defaults
-    /// suite, and no display link (tests call `tick` with their own times).
-    init(defaults: UserDefaults = .standard, startsDisplayLink: Bool = true,
-         shortcuts: GlobalShortcuts = GlobalShortcuts()) {
-        self.defaults = defaults
-        self.shortcuts = shortcuts
+    init() {
         loadSettings()
-        if startsDisplayLink { startTimer() }
+        startTimer()
         observeSettingsChanges()
         $voiceActivation
             .removeDuplicates()
@@ -180,18 +180,17 @@ final class PrompterViewModel: ObservableObject {
     }
     
     private func withMicrophoneAccess(_ action: @escaping () -> Void) {
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        switch micPermission.status() {
         case .authorized:
             action()
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-                DispatchQueue.main.async {
-                    if granted {
-                        action()
-                    } else {
-                        self?.voiceActivation = false
-                        self?.showMicrophoneAlert = true
-                    }
+            let request = micPermission.request
+            Task { @MainActor [weak self] in
+                if await request() {
+                    action()
+                } else {
+                    self?.voiceActivation = false
+                    self?.showMicrophoneAlert = true
                 }
             }
         case .denied, .restricted:
@@ -240,7 +239,7 @@ final class PrompterViewModel: ObservableObject {
 
     private func monitorAudio() {
         if(audioMonitor == nil){
-            audioMonitor = AudioMonitor()
+            audioMonitor = audioLevels.makeMonitor()
         }
         
         // Replace rather than add: each extra subscriber also wrote isPlaying on
@@ -339,7 +338,7 @@ final class PrompterViewModel: ObservableObject {
 
     // MARK: Timer
     private func startTimer() {
-        timerCancellable = CADisplayLinkPublisher()
+        timerCancellable = frameClock.ticks()
             .sink { [weak self] timestamp in
                 self?.tick(current: timestamp)
             }

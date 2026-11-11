@@ -1,3 +1,4 @@
+import Dependencies
 import Foundation
 import SnapshotTesting
 import Testing
@@ -20,7 +21,14 @@ struct GlobalShortcutsTests {
         @MainActor
         init(keys: Set<AssistProvider>) {
             let defaults = UserDefaults(suiteName: suite)!
-            viewModel = PrompterViewModel(defaults: defaults, startsDisplayLink: false, shortcuts: shortcuts)
+            let shortcuts = shortcuts
+            viewModel = withDependencies {
+                $0.settingsStorage = defaults
+                $0.frameClock = .stopped
+                $0.globalShortcuts = shortcuts
+            } operation: {
+                PrompterViewModel()
+            }
             settings = CallAssistSettings(defaults: defaults, hasKey: { keys.contains($0) })
             settings.includeScreen = false
             let listener = Fakes.FakeListener()
