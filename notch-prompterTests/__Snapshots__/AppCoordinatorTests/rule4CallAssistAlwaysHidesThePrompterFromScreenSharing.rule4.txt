@@ -1,0 +1,20 @@
+== launch, setting off
+prompter shown: true, playing: false, offset: 0
+hidden from screen sharing: false
+call assist: idle, scroll nudges: 0 (last 0)
+== Call Assist running, setting off
+prompter shown: true, playing: false, offset: 0
+hidden from screen sharing: true
+call assist: listening, scroll nudges: 0 (last 0)
+== Call Assist stopped
+prompter shown: true, playing: false, offset: 0
+hidden from screen sharing: false
+call assist: idle, scroll nudges: 0 (last 0)
+== setting switched on
+prompter shown: true, playing: false, offset: 0
+hidden from screen sharing: true
+call assist: idle, scroll nudges: 0 (last 0)
+== Call Assist ran and stopped, setting on
+prompter shown: true, playing: false, offset: 0
+hidden from screen sharing: true
+call assist: idle, scroll nudges: 0 (last 0)

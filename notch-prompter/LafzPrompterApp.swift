@@ -57,7 +57,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         prompterWindow = PrompterWindow(preferences: preferences, playback: playback,
                                         callAssist: callAssistController, scripts: scripts)
         coordinator = AppCoordinator(preferences: preferences, playback: playback,
-                                     scripts: scripts, callAssist: callAssistController)
+                                     scripts: scripts, callAssist: callAssistController,
+                                     panel: prompterWindow)
         coordinator.start()
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)

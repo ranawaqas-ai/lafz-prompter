@@ -1,15 +1,21 @@
 import AppKit
 import SwiftUI
 
+/// The prompter's window as the rules see it.
 @MainActor
-final class PrompterWindow {
+protocol PrompterPanel: AnyObject {
+    /// Whether the panel is left out of screenshots, recordings and screen sharing.
+    var isHiddenFromScreenSharing: Bool { get set }
+}
+
+@MainActor
+final class PrompterWindow: PrompterPanel {
     private var window: NSWindow!
     private let preferences: Preferences
     private let playback: Playback
     private let callAssist: CallAssistController
     private var layoutTask: Task<Void, Never>?
     private var visibilityTask: Task<Void, Never>?
-    private var sharingTask: Task<Void, Never>?
 
     @MainActor
     init(preferences: Preferences, playback: Playback, callAssist: CallAssistController, scripts: ScriptLibrary) {
@@ -79,13 +85,6 @@ final class PrompterWindow {
                 visible ? self?.animateShow() : self?.animateHide()
             }
         }
-        // A Call Assist answer is always hidden from screen sharing, whatever
-        // the setting says: the other side of the call must not see it.
-        sharingTask = Task { [weak self, preferences, callAssist] in
-            for await hide in Observations({ preferences.hideFromScreenRecording || callAssist.isActive }) {
-                self?.updateScreenRecordingVisibility(hide)
-            }
-        }
     }
 
     func show() {
@@ -133,13 +132,10 @@ final class PrompterWindow {
         return CGRect(x: x, y: y, width: width, height: height)
     }
     
-    private func updateScreenRecordingVisibility(_ hideFromRecording: Bool) {
-        // https://developer.apple.com/documentation/appkit/nswindow/sharingtype-swift.property
-        if hideFromRecording {
-            window.sharingType = .none
-        } else {
-            window.sharingType = .readOnly
-        }
+    // https://developer.apple.com/documentation/appkit/nswindow/sharingtype-swift.property
+    var isHiddenFromScreenSharing: Bool {
+        get { window.sharingType == .none }
+        set { window.sharingType = newValue ? .none : .readOnly }
     }
     
     private let animationSpeed = 0.25

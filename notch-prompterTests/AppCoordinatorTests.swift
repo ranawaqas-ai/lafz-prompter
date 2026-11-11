@@ -11,6 +11,11 @@ import Testing
 struct AppCoordinatorTests {
     typealias Fakes = CallAssistControllerCharacterisationTests
 
+    /// The prompter window, recording what the rules set on it.
+    final class FakePanel: PrompterPanel {
+        var isHiddenFromScreenSharing = false
+    }
+
     /// The app's models wired to fakes, with the coordinator running.
     final class App {
         let shortcuts = GlobalShortcuts(registersWithSystem: false)
@@ -19,6 +24,7 @@ struct AppCoordinatorTests {
         let scripts: ScriptLibrary
         let callAssist: CallAssistController
         let coordinator: AppCoordinator
+        let panel = FakePanel()
         private let suite = "lafz-coordinator-tests-\(UUID().uuidString)"
         private var log: [String] = []
 
@@ -43,7 +49,7 @@ struct AppCoordinatorTests {
                         CallAssistController(settings: settings))
             }
             coordinator = AppCoordinator(preferences: preferences, playback: playback,
-                                         scripts: scripts, callAssist: callAssist)
+                                         scripts: scripts, callAssist: callAssist, panel: panel)
             coordinator.start()
         }
 
@@ -54,6 +60,7 @@ struct AppCoordinatorTests {
             log.append("""
                 == \(step)
                 prompter shown: \(playback.isPrompterVisible), playing: \(playback.isPlaying), offset: \(Int(playback.offset))
+                hidden from screen sharing: \(panel.isHiddenFromScreenSharing)
                 call assist: \(callAssist.state), scroll nudges: \(callAssist.scrollNudge.sequence) (last \(Int(callAssist.scrollNudge.delta)))
                 """)
         }
@@ -111,6 +118,25 @@ struct AppCoordinatorTests {
         app.playback.scrollDown()
         app.record("scrolled down after Call Assist stopped")
         assertSnapshot(of: app.transcript, as: .lines, named: "rule3")
+    }
+
+    @Test func rule4CallAssistAlwaysHidesThePrompterFromScreenSharing() async {
+        let app = App()
+        await settle()
+        app.record("launch, setting off")
+        await startAssist(app)
+        app.record("Call Assist running, setting off")
+        app.callAssist.stop()
+        await settle()
+        app.record("Call Assist stopped")
+        app.preferences.hideFromScreenRecording = true
+        await settle()
+        app.record("setting switched on")
+        await startAssist(app)
+        app.callAssist.stop()
+        await settle()
+        app.record("Call Assist ran and stopped, setting on")
+        assertSnapshot(of: app.transcript, as: .lines, named: "rule4")
     }
 
     @Test func rule6PickingAnotherScriptStartsItFromTheTop() async {

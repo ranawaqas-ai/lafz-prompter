@@ -46,7 +46,8 @@ struct GlobalShortcutsTests {
             let files = ScriptLibraryTests.MemoryFiles()
             let scripts = withDependencies { $0.scriptFiles = files.client } operation: { ScriptLibrary() }
             coordinator = AppCoordinator(preferences: preferences, playback: playback,
-                                         scripts: scripts, callAssist: controller)
+                                         scripts: scripts, callAssist: controller,
+                                         panel: AppCoordinatorTests.FakePanel())
             coordinator.start()
         }
 

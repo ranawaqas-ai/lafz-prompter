@@ -8,13 +8,16 @@ final class AppCoordinator {
     private let playback: Playback
     private let scripts: ScriptLibrary
     private let callAssist: CallAssistController
+    private let panel: PrompterPanel
     private var tasks: [Task<Void, Never>] = []
 
-    init(preferences: Preferences, playback: Playback, scripts: ScriptLibrary, callAssist: CallAssistController) {
+    init(preferences: Preferences, playback: Playback, scripts: ScriptLibrary,
+         callAssist: CallAssistController, panel: PrompterPanel) {
         self.preferences = preferences
         self.playback = playback
         self.scripts = scripts
         self.callAssist = callAssist
+        self.panel = panel
     }
 
     deinit {
@@ -31,7 +34,16 @@ final class AppCoordinator {
         // 5. One setting holds or releases every global shortcut, the
         //    prompter's and Call Assist's. Applied now, then on each change.
         applyShortcutsSetting()
+        // 4. While Call Assist runs, the prompter is hidden from screen
+        //    sharing whatever the setting says: the other side of the call
+        //    must not see the answer. Applied now, then on each change.
+        applyScreenSharing()
         tasks = [
+            Task { [weak self] in
+                for await _ in Observations({ preferences.hideFromScreenRecording || callAssist.isActive }) {
+                    self?.applyScreenSharing()
+                }
+            },
             Task { [weak self] in
                 for await _ in Observations({ preferences.enableGlobalKeyboardShortcuts }) {
                     self?.applyShortcutsSetting()
@@ -60,6 +72,10 @@ final class AppCoordinator {
                 }
             },
         ]
+    }
+
+    private func applyScreenSharing() {
+        panel.isHiddenFromScreenSharing = preferences.hideFromScreenRecording || callAssist.isActive
     }
 
     private func applyShortcutsSetting() {
