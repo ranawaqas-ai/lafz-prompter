@@ -24,7 +24,6 @@ showProgressBar = true
 enableGlobalKeyboardShortcuts = true
 speedIncrement = 2.0
 manualScrollAmount = 50.0
-textLength = 1845
 == zeros
 speed = 12.0
 fontSize = 12.0
@@ -51,7 +50,6 @@ showProgressBar = true
 enableGlobalKeyboardShortcuts = true
 speedIncrement = 2.0
 manualScrollAmount = 50.0
-textLength = 1845
 == unknown names
 speed = 12.0
 fontSize = 12.0
@@ -78,7 +76,6 @@ showProgressBar = true
 enableGlobalKeyboardShortcuts = true
 speedIncrement = 2.0
 manualScrollAmount = 50.0
-textLength = 1845
 == custom values
 speed = 20.0
 fontSize = 18.0
@@ -105,4 +102,3 @@ showProgressBar = true
 enableGlobalKeyboardShortcuts = true
 speedIncrement = 2.0
 manualScrollAmount = 50.0
-textLength = 1845

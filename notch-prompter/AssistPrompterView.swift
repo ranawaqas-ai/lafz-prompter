@@ -3,7 +3,6 @@ import SwiftUI
 /// The prompter's content: the script normally, the Call Assist answer while
 /// a session is running. The script keeps its place underneath.
 struct PrompterRootView: View {
-    @Bindable var viewModel: PrompterViewModel
     @Environment(CallAssistController.self) private var callAssist
 
     var body: some View {
@@ -11,12 +10,12 @@ struct PrompterRootView: View {
         ZStack {
             // Hidden rather than covered: with a see-through background the
             // script would show through the answer.
-            PrompterView(viewModel: viewModel)
+            PrompterView()
                 .opacity(showingAssist ? 0 : 1)
             if showingAssist {
-                AssistPrompterView(viewModel: viewModel)
+                AssistPrompterView()
             }
-            PrompterResizeHandles(viewModel: viewModel)
+            PrompterResizeHandles()
         }
     }
 }
@@ -24,17 +23,17 @@ struct PrompterRootView: View {
 /// The detected question in a dim line, the answer streaming beneath it, in
 /// the prompter's own font and theme.
 private struct AssistPrompterView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
     @Environment(CallAssistController.self) private var callAssist
     @State private var position = SwiftUI.ScrollPosition(edge: .top)
     @State private var offsetY: CGFloat = 0
 
     var body: some View {
-        let theme = viewModel.prompterTheme
+        let theme = preferences.prompterTheme
         ZStack {
-            theme.backgroundColor.opacity(viewModel.backgroundOpacity)
+            theme.backgroundColor.opacity(preferences.backgroundOpacity)
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: viewModel.lineHeight) {
+                VStack(alignment: .leading, spacing: preferences.lineHeight) {
                     if !callAssist.question.isEmpty {
                         HStack(spacing: 6) {
                             // One line, keeping the end, which is the actual question.
@@ -46,7 +45,7 @@ private struct AssistPrompterView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             if callAssist.answers.count > 1 {
                                 AnswerPager(color: theme.textColor,
-                                            size: viewModel.fontSize * 0.75)
+                                            size: preferences.fontSize * 0.75)
                             }
                         }
                     }
@@ -56,18 +55,18 @@ private struct AssistPrompterView: View {
                             Text(Self.inlineMarkdown(text))
                                 .font(font(for: text, scale: 1))
                                 .foregroundStyle(theme.textColor)
-                                .lineSpacing(viewModel.lineHeight)
+                                .lineSpacing(preferences.lineHeight)
                         case .code(let language, let code):
-                            CodeBlockView(code: code, language: language, theme: theme, fontSize: viewModel.fontSize)
+                            CodeBlockView(code: code, language: language, theme: theme, fontSize: preferences.fontSize)
                         }
                     }
                 }
-                .multilineTextAlignment(viewModel.textAlignment.swiftUIAlignment)
+                .multilineTextAlignment(preferences.textAlignment.swiftUIAlignment)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
                 // The script starts one blank line below this inset; matching it
                 // keeps the first line clear of the notch.
-                .padding(.top, 32 + viewModel.fontSize * 1.3 + viewModel.lineHeight)
+                .padding(.top, 32 + preferences.fontSize * 1.3 + preferences.lineHeight)
                 .padding(.bottom, 12)
             }
             // The answer stays at its start while it streams; the scroll
@@ -99,9 +98,9 @@ private struct AssistPrompterView: View {
     }
 
     private func font(for text: String, scale: Double) -> Font {
-        let size = viewModel.fontSize * scale
-        if let family = viewModel.fontFamily(for: text) { return Font.custom(family, fixedSize: size) }
-        return scale == 1 ? viewModel.systemFont : .system(size: size)
+        let size = preferences.fontSize * scale
+        if let family = preferences.fontFamily(for: text) { return Font.custom(family, fixedSize: size) }
+        return scale == 1 ? preferences.systemFont : .system(size: size)
     }
 }
 

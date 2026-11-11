@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct PrompterView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
+    @Environment(Playback.self) private var playback
+    @Environment(ScriptLibrary.self) private var library
 
     // Measure content height to stop appropriately
     @State private var contentHeight: CGFloat = 0
@@ -12,7 +14,7 @@ struct PrompterView: View {
 
     var body: some View {
         ScrollablePrompterView(
-            viewModel: viewModel,
+            models: PrompterModels(preferences: preferences, playback: playback, library: library),
             contentHeight: $contentHeight,
             isHovering: $isHovering,
             wasPlayingBeforeHover: $wasPlayingBeforeHover
@@ -20,16 +22,25 @@ struct PrompterView: View {
     }
 }
 
+/// The models the prompter's content reads. The content sits in its own
+/// NSHostingView, which the SwiftUI environment does not reach, so they are
+/// handed across and put back into its environment.
+struct PrompterModels {
+    let preferences: Preferences
+    let playback: Playback
+    let library: ScriptLibrary
+}
+
 // MARK: Scrollable Prompter View with NSView for scroll events
 struct ScrollablePrompterView: NSViewRepresentable {
-    @Bindable var viewModel: PrompterViewModel
+    let models: PrompterModels
     @Binding var contentHeight: CGFloat
     @Binding var isHovering: Bool
     @Binding var wasPlayingBeforeHover: Bool
     
     func makeNSView(context: Context) -> PrompterHostingView {
         let hostingView = PrompterHostingView(
-            viewModel: viewModel,
+            models: models,
             contentHeight: $contentHeight,
             isHovering: $isHovering,
             wasPlayingBeforeHover: $wasPlayingBeforeHover
@@ -44,28 +55,24 @@ struct ScrollablePrompterView: NSViewRepresentable {
 
 // MARK: - Custom NSView to handle scroll events
 class PrompterHostingView: NSView {
-    private let viewModel: PrompterViewModel
-    private var hostingView: NSHostingView<PrompterContentView>!
+    private let models: PrompterModels
+    private var hostingView: NSHostingView<AnyView>!
     private var trackingArea: NSTrackingArea?
     @Binding var contentHeight: CGFloat
     @Binding var isHovering: Bool
     @Binding var wasPlayingBeforeHover: Bool
     
-    init(viewModel: PrompterViewModel, 
+    init(models: PrompterModels,
          contentHeight: Binding<CGFloat>,
          isHovering: Binding<Bool>,
          wasPlayingBeforeHover: Binding<Bool>) {
-        self.viewModel = viewModel
+        self.models = models
         self._contentHeight = contentHeight
         self._isHovering = isHovering
         self._wasPlayingBeforeHover = wasPlayingBeforeHover
         super.init(frame: .zero)
         
-        let contentView = PrompterContentView(
-            viewModel: viewModel,
-            contentHeight: contentHeight
-        )
-        hostingView = NSHostingView(rootView: contentView)
+        hostingView = NSHostingView(rootView: content(contentHeight: contentHeight))
         hostingView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(hostingView)
         
@@ -82,11 +89,14 @@ class PrompterHostingView: NSView {
     }
     
     func updateContent() {
-        let contentView = PrompterContentView(
-            viewModel: viewModel,
-            contentHeight: $contentHeight
-        )
-        hostingView.rootView = contentView
+        hostingView.rootView = content(contentHeight: $contentHeight)
+    }
+
+    private func content(contentHeight: Binding<CGFloat>) -> AnyView {
+        AnyView(PrompterContentView(contentHeight: contentHeight)
+            .environment(models.preferences)
+            .environment(models.playback)
+            .environment(models.library))
     }
     
     override func updateTrackingAreas() {
@@ -129,11 +139,12 @@ class PrompterHostingView: NSView {
         let scrollAmount = event.scrollingDeltaY
         let sensitivity: CGFloat = 2.0 // Adjust scroll sensitivity
         
-        viewModel.offset = max(0, viewModel.offset - scrollAmount * sensitivity)
+        models.playback.offset = max(0, models.playback.offset - scrollAmount * sensitivity)
     }
     
     private func handleHoverChange(hovering: Bool) {
-        guard viewModel.pauseOnHover else {
+        let playback = models.playback
+        guard models.preferences.pauseOnHover else {
             isHovering = false
             wasPlayingBeforeHover = false
             return
@@ -141,13 +152,13 @@ class PrompterHostingView: NSView {
 
         if hovering {
             isHovering = true
-            wasPlayingBeforeHover = viewModel.isPlaying
-            if viewModel.isPlaying {
-                viewModel.pause()
+            wasPlayingBeforeHover = playback.isPlaying
+            if playback.isPlaying {
+                playback.pause()
             }
         } else {
             if isHovering, wasPlayingBeforeHover {
-                viewModel.play()
+                playback.play()
             }
             isHovering = false
             wasPlayingBeforeHover = false
@@ -157,96 +168,98 @@ class PrompterHostingView: NSView {
 
 // MARK: - Content View (SwiftUI)
 struct PrompterContentView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
+    @Environment(Playback.self) private var playback
+    @Environment(ScriptLibrary.self) private var library
     @Binding var contentHeight: CGFloat
     @State private var showControls = false
 
     var body: some View {
         ZStack {
-            viewModel.prompterTheme.backgroundColor.opacity(viewModel.backgroundOpacity)
+            preferences.prompterTheme.backgroundColor.opacity(preferences.backgroundOpacity)
             GeometryReader { geo in
                 VStack(spacing: 0) {
                     Spacer(minLength: 0)
-                    PrompterTextView(viewModel: viewModel)
+                    PrompterTextView()
                         .frame(width: geo.size.width, alignment: .center)
-                        .offset(y: -viewModel.offset)
+                        .offset(y: -playback.offset)
                         .background(HeightReader(height: $contentHeight))
                     Spacer(minLength: 0)
                 }
                 .clipped()
-                .onChange(of: viewModel.offset) { _, newValue in
+                .onChange(of: playback.offset) { _, newValue in
                     if contentHeight > 0, newValue >= contentHeight {
                         // We've scrolled past the end - stop at the end
-                        viewModel.offset = contentHeight
-                        viewModel.finishScript()
+                        playback.offset = contentHeight
+                        playback.finishScript()
                     }
                 }
-                .onChange(of: viewModel.text) { _, _ in
+                .onChange(of: library.text) { _, _ in
                     // reset offset when text changes to avoid jump into middle
-                    viewModel.offset = 0
+                    playback.offset = 0
                 }
             }
             
             // Fade overlays
             VStack(spacing: 0) {
-                if viewModel.enableTopFade {
+                if preferences.enableTopFade {
                     LinearGradient(
-                        gradient: Gradient(colors: [viewModel.prompterTheme.fadeColor.opacity(viewModel.backgroundOpacity), .clear]),
+                        gradient: Gradient(colors: [preferences.prompterTheme.fadeColor.opacity(preferences.backgroundOpacity), .clear]),
                         startPoint: .top,
                         endPoint: .bottom
                     )
-                    .frame(height: viewModel.topFadeHeight)
+                    .frame(height: preferences.topFadeHeight)
                     .allowsHitTesting(false)
                 }
                 
                 Spacer()
                 
-                if viewModel.enableBottomFade {
+                if preferences.enableBottomFade {
                     LinearGradient(
-                        gradient: Gradient(colors: [.clear, viewModel.prompterTheme.fadeColor.opacity(viewModel.backgroundOpacity)]),
+                        gradient: Gradient(colors: [.clear, preferences.prompterTheme.fadeColor.opacity(preferences.backgroundOpacity)]),
                         startPoint: .top,
                         endPoint: .bottom
                     )
-                    .frame(height: viewModel.bottomFadeHeight)
+                    .frame(height: preferences.bottomFadeHeight)
                     .allowsHitTesting(false)
                 }
             }
             
             // Progress bar on the right side
-            if viewModel.showProgressBar {
+            if preferences.showProgressBar {
                 HStack {
                     Spacer()
                     ProgressBarView(
-                        currentOffset: viewModel.offset,
+                        currentOffset: playback.offset,
                         totalHeight: contentHeight,
-                        theme: viewModel.prompterTheme
+                        theme: preferences.prompterTheme
                     )
                 }
             }
             
             // Hover controls overlay
-            if showControls && viewModel.showHoverControls {
+            if showControls && preferences.showHoverControls {
                 VStack {
                     Spacer()
                     
                     HStack(spacing: 8) {
                         // Play
-                        if viewModel.voiceActivation {
+                        if preferences.voiceActivation {
                             Button(action: {
-                                viewModel.togglePlayback()
+                                playback.togglePlayback()
                             }) {
-                                Image(systemName: viewModel.isListening ? "microphone.circle.fill" : "microphone.slash.circle.fill")
+                                Image(systemName: playback.isListening ? "microphone.circle.fill" : "microphone.slash.circle.fill")
                                     .font(.system(size: 22))
-                                    .foregroundColor(viewModel.isListening ? .orange : .white)
+                                    .foregroundColor(playback.isListening ? .orange : .white)
                                     .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
                             }
                             .buttonStyle(.plain)
-                            .help(viewModel.isListening ? "Stop listening" : "Start listening")
+                            .help(playback.isListening ? "Stop listening" : "Start listening")
                         } else {
                             Button(action: {
-                                viewModel.togglePlayback()
+                                playback.togglePlayback()
                             }) {
-                                Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                                Image(systemName: playback.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                                     .font(.system(size: 22))
                                     .foregroundColor(.white)
                                     .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
@@ -255,7 +268,7 @@ struct PrompterContentView: View {
                         }
                         // SCroll back
                         Button(action: {
-                            viewModel.scrollBack()
+                            playback.scrollBack()
                         }) {
                             Image(systemName: "backward.circle.fill")
                                 .font(.system(size: 22))
@@ -290,7 +303,7 @@ struct PrompterContentView: View {
                 .animation(.easeInOut(duration: 0.2), value: showControls)
             }
         }
-//        .opacity(viewModel.opacity) TODO: it would be better to control background and text opacity separatly, or just background opacity
+//        .opacity(preferences.opacity) TODO: it would be better to control background and text opacity separatly, or just background opacity
         .ignoresSafeArea()
         .onHover { hovering in
             withAnimation {
@@ -336,14 +349,15 @@ struct PrompterContentView: View {
 // Separate view so scrolling, which only changes the offset, does not rebuild
 // the attributed text on every frame.
 struct PrompterTextView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
+    @Environment(ScriptLibrary.self) private var library
 
     var body: some View {
         movingText
     }
 
     private var movingText: some View {
-        return VStack(spacing: viewModel.lineHeight) {
+        return VStack(spacing: preferences.lineHeight) {
             textBlock
         }
         .padding(.horizontal, 16)
@@ -351,12 +365,12 @@ struct PrompterTextView: View {
     }
 
     private var textBlock: some View {
-        let base = viewModel.text.isEmpty ? "Put some text in Settings..." : viewModel.text
+        let base = library.text.isEmpty ? "Put some text in Settings..." : library.text
         let text = "\n" + base + "\n\n[the end]"
         
         return Text(attributedText(from: text))
-            .multilineTextAlignment(viewModel.textAlignment.swiftUIAlignment)
-            .lineSpacing(viewModel.lineHeight)
+            .multilineTextAlignment(preferences.textAlignment.swiftUIAlignment)
+            .lineSpacing(preferences.lineHeight)
             .lineLimit(nil)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -367,9 +381,9 @@ struct PrompterTextView: View {
         
         // Default font and color
         // Latin words keep the system font when the script itself is set in another family.
-        let fontFamily = viewModel.fontFamily(for: text)
-        let defaultFont = fontFamily.map { Font.custom($0, fixedSize: viewModel.fontSize) } ?? viewModel.systemFont
-        let defaultColor = viewModel.prompterTheme.textColor
+        let fontFamily = preferences.fontFamily(for: text)
+        let defaultFont = fontFamily.map { Font.custom($0, fixedSize: preferences.fontSize) } ?? preferences.systemFont
+        let defaultColor = preferences.prompterTheme.textColor
         
         // Apply default attributes to entire string
         attributedString.font = defaultFont
@@ -390,13 +404,13 @@ struct PrompterTextView: View {
                         // Italic on a family without an italic face makes the system
                         // substitute another font, which breaks Nastaliq.
                         attributedString[attributedRange].font = fontFamily == nil ? defaultFont.italic() : defaultFont
-                        attributedString[attributedRange].foregroundColor = viewModel.prompterTheme.textColor.opacity(0.4)
+                        attributedString[attributedRange].foregroundColor = preferences.prompterTheme.textColor.opacity(0.4)
                     }
                 }
             }
         }
         
-        if fontFamily != nil, viewModel.fontChoice == .automatic {
+        if fontFamily != nil, preferences.fontChoice == .automatic {
             applySystemFontToLatinWords(in: &attributedString, source: text)
         }
 
@@ -409,7 +423,7 @@ struct PrompterTextView: View {
         for match in matches {
             guard let stringRange = Range(match.range, in: text),
                   let attributedRange = Range(stringRange, in: attributedString) else { continue }
-            attributedString[attributedRange].font = viewModel.systemFont
+            attributedString[attributedRange].font = preferences.systemFont
         }
     }
 }

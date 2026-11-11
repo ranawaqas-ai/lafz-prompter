@@ -4,18 +4,23 @@ import SwiftUI
 @MainActor
 final class PrompterWindow {
     private var window: NSWindow!
-    private let viewModel: PrompterViewModel
+    private let preferences: Preferences
+    private let playback: Playback
     private let callAssist: CallAssistController
     private var layoutTask: Task<Void, Never>?
     private var visibilityTask: Task<Void, Never>?
     private var sharingTask: Task<Void, Never>?
 
     @MainActor
-    init(viewModel: PrompterViewModel, callAssist: CallAssistController, scripts: ScriptLibrary) {
-        self.viewModel = viewModel
+    init(preferences: Preferences, playback: Playback, callAssist: CallAssistController, scripts: ScriptLibrary) {
+        self.preferences = preferences
+        self.playback = playback
         self.callAssist = callAssist
 
-        let contentView = PrompterRootView(viewModel: viewModel)
+        let contentView = PrompterRootView()
+            .environment(preferences)
+            .environment(playback)
+            .environment(scripts)
             .environment(callAssist)
             // Dropping a script file on the prompter loads it straight away.
             .dropDestination(for: URL.self) { urls, _ in
@@ -40,8 +45,8 @@ final class PrompterWindow {
         // the Settings window forward with it.
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0,
-                                width: viewModel.prompterWidth,
-                                height: viewModel.prompterHeight),
+                                width: preferences.prompterWidth,
+                                height: preferences.prompterHeight),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -61,23 +66,23 @@ final class PrompterWindow {
         window.contentView = hosting
 
         // Size and place the panel when any of its layout settings change.
-        layoutTask = Task { [weak self, viewModel] in
+        layoutTask = Task { [weak self, preferences] in
             for await _ in Observations({
-                _ = (viewModel.prompterWidth, viewModel.prompterHeight,
-                     viewModel.selectedScreenIndex, viewModel.horizontalAlignment)
+                _ = (preferences.prompterWidth, preferences.prompterHeight,
+                     preferences.selectedScreenIndex, preferences.horizontalAlignment)
             }) {
-                self?.resizeWindow(width: viewModel.prompterWidth, height: viewModel.prompterHeight)
+                self?.resizeWindow(width: preferences.prompterWidth, height: preferences.prompterHeight)
             }
         }
-        visibilityTask = Task { [weak self, viewModel] in
-            for await visible in Observations({ viewModel.isPrompterVisible }) {
+        visibilityTask = Task { [weak self, playback] in
+            for await visible in Observations({ playback.isPrompterVisible }) {
                 visible ? self?.animateShow() : self?.animateHide()
             }
         }
         // A Call Assist answer is always hidden from screen sharing, whatever
         // the setting says: the other side of the call must not see it.
-        sharingTask = Task { [weak self, viewModel, callAssist] in
-            for await hide in Observations({ viewModel.hideFromScreenRecording || callAssist.isActive }) {
+        sharingTask = Task { [weak self, preferences, callAssist] in
+            for await hide in Observations({ preferences.hideFromScreenRecording || callAssist.isActive }) {
                 self?.updateScreenRecordingVisibility(hide)
             }
         }
@@ -90,7 +95,7 @@ final class PrompterWindow {
             return
         }
 
-        let frame = topCenterFrame(width: viewModel.prompterWidth, height: viewModel.prompterHeight, screen: screen)
+        let frame = topCenterFrame(width: preferences.prompterWidth, height: preferences.prompterHeight, screen: screen)
         window.setFrame(frame, display: true)
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -100,18 +105,18 @@ final class PrompterWindow {
         guard let screen = getSelectedScreen() else { return }
         let frame = topCenterFrame(width: width, height: height, screen: screen)
 
-        window.setFrame(frame, display: true, animate: !viewModel.isResizing)
+        window.setFrame(frame, display: true, animate: !preferences.isResizing)
     }
     
     private func getSelectedScreen() -> NSScreen? {
-        viewModel.prompterScreen
+        preferences.prompterScreen
     }
 
     private func topCenterFrame(width: CGFloat, height: CGFloat, screen: NSScreen) -> CGRect {
         // Calculate horizontal position based on alignment
         // Convert alignment enum to position: left = 0.0, center = 0.5, right = 1.0
         let alignmentPosition: CGFloat = {
-            switch viewModel.horizontalAlignment {
+            switch preferences.horizontalAlignment {
             case .left: return 0.0
             case .center: return 0.5
             case .right: return 1.0
@@ -141,7 +146,7 @@ final class PrompterWindow {
     
     private func animateShow() {
         guard let screen = getSelectedScreen() else { return }
-        let finalFrame = topCenterFrame(width: viewModel.prompterWidth, height: viewModel.prompterHeight, screen: screen)
+        let finalFrame = topCenterFrame(width: preferences.prompterWidth, height: preferences.prompterHeight, screen: screen)
 
         var startFrame = finalFrame
         startFrame.origin.y = screen.frame.maxY

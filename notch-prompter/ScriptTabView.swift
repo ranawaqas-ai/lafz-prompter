@@ -4,7 +4,6 @@ import SwiftUI
 /// editor on the right. Scripts come in by typing, by Paste, by Open, or by
 /// dropping a file anywhere on the tab.
 struct ScriptTabView: View {
-    @Bindable var viewModel: PrompterViewModel
     @Environment(ScriptLibrary.self) private var library
     @FocusState private var isTextEditorFocused: Bool
     @State private var renaming: Script?
@@ -105,7 +104,7 @@ struct ScriptTabView: View {
                 )
                 .shadow(color: .black.opacity(0.03), radius: 1, x: 0, y: 1)
 
-            if viewModel.text.isEmpty {
+            if library.text.isEmpty {
                 Text("Type or paste your script, or drop a file here.\n\nUse [brackets] for stage directions like [pause], [smile], etc.")
                     .font(.system(size: 15))
                     .foregroundStyle(.tertiary)
@@ -115,7 +114,7 @@ struct ScriptTabView: View {
             }
 
             HighlightingTextEditor(
-                text: $viewModel.text,
+                text: Bindable(library).text,
                 font: .systemFont(ofSize: 15, weight: .regular),
                 isFocused: $isTextEditorFocused,
                 onFileDrop: { library.importFiles($0) }

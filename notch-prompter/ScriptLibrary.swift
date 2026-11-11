@@ -21,8 +21,7 @@ final class ScriptLibrary {
     var importError: String?
 
     @ObservationIgnored @Dependency(\.scriptFiles) private var files
-    @ObservationIgnored private weak var viewModel: PrompterViewModel?
-    @ObservationIgnored private var textTask: Task<Void, Never>?
+    @ObservationIgnored @Dependency(\.settingsStorage) private var settingsStorage
     @ObservationIgnored private var saveTask: Task<Void, Never>?
 
     init() {
@@ -31,31 +30,53 @@ final class ScriptLibrary {
 
     var current: Script? { scripts.first { $0.id == currentID } }
 
-    /// Keeps the prompter's text and the current script in step. The script
-    /// the prompter already shows becomes the first entry of a new library.
-    func attach(to viewModel: PrompterViewModel) {
-        self.viewModel = viewModel
-        if current == nil {
-            if let match = scripts.first(where: { $0.text == viewModel.text }) {
-                currentID = match.id
-            } else {
-                add(text: viewModel.text, title: nil)
-            }
-        }
-        if let current, current.text != viewModel.text { viewModel.text = current.text }
-        // Saves edits into the current script, once typing pauses.
-        textTask = Task { [weak self, viewModel] in
-            var pending: Task<Void, Never>?
-            for await text in Observations({ viewModel.text }).dropFirst() {
-                pending?.cancel()
-                pending = Task { [weak self] in
-                    try? await Task.sleep(for: .milliseconds(400))
-                    guard !Task.isCancelled else { return }
-                    self?.updateCurrent(text: text)
-                }
-            }
+    /// The text the prompter shows: the current script's.
+    var text: String {
+        get { current?.text ?? "" }
+        set { updateCurrent(text: newValue) }
+    }
+
+    /// Makes sure a script is current at launch. On the first launch with a
+    /// library, the script the app kept in its settings before the library
+    /// existed (or the sample script) becomes the first entry.
+    func ensureCurrentScript() {
+        guard current == nil else { return }
+        let legacy = settingsStorage.string(forKey: Self.legacyTextKey) ?? Self.sampleText
+        if let match = scripts.first(where: { $0.text == legacy }) {
+            select(match.id)
+        } else {
+            add(text: legacy, title: nil)
         }
     }
+
+    /// Where the script was kept before the library, read once to import it.
+    private static let legacyTextKey = "PrompterText"
+
+    static let sampleText = """
+    This is a scrolling text test for Lafz Prompter for macOS.
+    The purpose of this demo is to check speed, readability, and smoothness. [pause]
+    Adjust the font size, scroll speed, and window opacity to your preference.  
+    Keep your eyes on the notch and follow the moving line.
+
+    Good morning everyone. [smile] Today I want to share a few key points about our upcoming product launch.
+    First, we focused on reducing complexity and delivering a clean, intuitive user experience.
+    Second, we significantly improved performance, ensuring that the application runs smoothly even under heavy load. [gesture to screen]
+    Finally, we are excited to begin our rollout strategy and gather feedback from early adopters.
+    Thank you for your time, and let's begin. [nod]
+
+    You are capable of more than you think.  
+    Every step forward, no matter how small, builds momentum.  
+    Stay focused, stay consistent, and trust the process. [pause]
+    Progress is progress, even if no one else sees it.  
+    Keep going — your future self will thank you.
+    
+    In the rapidly evolving world of technology, the ability to adapt and learn quickly has become more important than ever.
+    Teams and individuals who embrace experimentation, curiosity, and continuous improvement tend to outperform those who rely on rigid structures and outdated processes.
+    Innovation rarely comes from doing the same thing repeatedly. [emphasize] Instead, it thrives in environments where people feel safe to explore new ideas, challenge assumptions, and iterate rapidly.
+    As we move into the next phase of development, our focus should remain on collaboration, communication, and execution.
+    By aligning our goals and maintaining a clear vision, we can build products that not only solve real problems but also inspire and empower the people who use them.
+    Let’s continue pushing boundaries and striving for excellence.
+    """
 
     // MARK: Loading scripts
 
@@ -118,16 +139,9 @@ final class ScriptLibrary {
     // MARK: Managing scripts
 
     func select(_ id: UUID) {
-        guard let script = scripts.first(where: { $0.id == id }) else { return }
-        // An edit still inside the debounce belongs to the script being left.
-        if let viewModel, currentID != id { updateCurrent(text: viewModel.text) }
+        guard scripts.contains(where: { $0.id == id }) else { return }
         currentID = id
         save()
-        guard let viewModel else { return }
-        if viewModel.text != script.text {
-            viewModel.text = script.text
-            viewModel.reset()
-        }
     }
 
     func rename(_ id: UUID, to title: String) {

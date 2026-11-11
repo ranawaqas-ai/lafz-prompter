@@ -38,7 +38,8 @@ enum SettingsTab: CaseIterable, Identifiable {
 }
 
 struct SettingsView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
+    @Environment(Playback.self) private var playback
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: SettingsTab = .script
     @State private var showResetConfirmation = false
@@ -56,14 +57,14 @@ struct SettingsView: View {
         .frame(width: 680)
         .frame(minHeight: 560, maxHeight: 760)
         .background(.ultraThinMaterial)
-        .alert("Microphone access denied", isPresented: $viewModel.showMicrophoneAlert) {
+        .alert("Microphone access denied", isPresented: Bindable(playback).showMicrophoneAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Enable microphone access in System Settings → Privacy & Security → Microphone.")
         }
         .confirmationDialog("Reset Prompter Position?", isPresented: $showResetConfirmation, titleVisibility: .visible) {
             Button("Reset", role: .destructive) {
-                viewModel.reset()
+                playback.reset()
             }
             Button("Cancel", role: .cancel) { }
         } message: {
@@ -121,19 +122,19 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 switch selectedTab {
                 case .script:
-                    ScriptTabView(viewModel: viewModel)
+                    ScriptTabView()
                 case .appearance:
-                    AppearanceTabView(viewModel: viewModel)
+                    AppearanceTabView()
                 case .behavior:
-                    BehaviorTabView(viewModel: viewModel)
+                    BehaviorTabView()
                 case .voice:
-                    VoiceTabView(viewModel: viewModel)
+                    VoiceTabView()
                 case .assist:
                     AssistTabView()
                 case .layout:
-                    LayoutTabView(viewModel: viewModel)
+                    LayoutTabView()
                 case .shortcuts:
-                    KeyboardTabView(viewModel: viewModel)
+                    KeyboardTabView()
                 }
 
                 Divider()
@@ -143,18 +144,18 @@ struct SettingsView: View {
                 HStack {
 
                     Button {
-                        viewModel.togglePlayback()
+                        playback.togglePlayback()
                     } label: {
                         HStack(spacing: 4) {
-                            if viewModel.voiceActivation {
-                                Image(systemName: viewModel.isListening ? "mic.slash.fill" : "mic.fill")
+                            if preferences.voiceActivation {
+                                Image(systemName: playback.isListening ? "mic.slash.fill" : "mic.fill")
                                     .font(.system(size: 10))
-                                Text(viewModel.isListening ? "Stop listening" : "Listen")
+                                Text(playback.isListening ? "Stop listening" : "Listen")
                                     .font(.system(size: 12, weight: .medium))
                             } else {
-                                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                                Image(systemName: playback.isPlaying ? "pause.fill" : "play.fill")
                                     .font(.system(size: 10))
-                                Text(viewModel.isPlaying ? "Pause" : "Play")
+                                Text(playback.isPlaying ? "Pause" : "Play")
                                     .font(.system(size: 12, weight: .medium))
                             }
                         }
@@ -174,17 +175,17 @@ struct SettingsView: View {
                     .buttonStyle(.automatic)
                     
                     Button {
-                        viewModel.isPrompterVisible.toggle()
+                        playback.isPrompterVisible.toggle()
                     } label: {
                         HStack(spacing: 4) {
-                            Image(systemName: viewModel.isPrompterVisible ? "eye.slash.fill" : "eye.fill")
+                            Image(systemName: playback.isPrompterVisible ? "eye.slash.fill" : "eye.fill")
                                 .font(.system(size: 10))
-                            Text(viewModel.isPrompterVisible ? "Hide" : "Show")
+                            Text(playback.isPrompterVisible ? "Hide" : "Show")
                                 .font(.system(size: 12, weight: .medium))
                         }
                     }
                     .buttonStyle(.automatic)
-                    .help(viewModel.isPrompterVisible ? "Hide the prompter window" : "Show the prompter window")
+                    .help(playback.isPrompterVisible ? "Hide the prompter window" : "Show the prompter window")
 
                     Spacer()
                     
@@ -205,13 +206,13 @@ struct SettingsView: View {
 
 // MARK: - Appearance Tab
 struct AppearanceTabView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
 
     private let installedFontFamilies = NSFontManager.shared.availableFontFamilies
 
     // The style buttons only apply to the system font.
     private func isSelected(_ design: Font.Design) -> Bool {
-        !viewModel.fontChoice.isCustom && viewModel.fontDesign == design
+        !preferences.fontChoice.isCustom && preferences.fontDesign == design
     }
     
     var body: some View {
@@ -228,9 +229,9 @@ struct AppearanceTabView: View {
                     HStack(spacing: 8) {
                         ForEach([Font.Design.default, .serif, .rounded, .monospaced], id: \.self) { design in
                             Button {
-                                viewModel.fontDesign = design
-                                if viewModel.fontChoice.isCustom {
-                                    viewModel.fontChoice = .automatic
+                                preferences.fontDesign = design
+                                if preferences.fontChoice.isCustom {
+                                    preferences.fontChoice = .automatic
                                 }
                             } label: {
                                 VStack(spacing: 4) {
@@ -267,7 +268,7 @@ struct AppearanceTabView: View {
                         }
                     }
 
-                    Picker("Font", selection: $viewModel.fontChoice) {
+                    Picker("Font", selection: Bindable(preferences).fontChoice) {
                         Text("Automatic").tag(PrompterFontChoice.automatic)
                         Text("System").tag(PrompterFontChoice.system)
                         Divider()
@@ -284,7 +285,7 @@ struct AppearanceTabView: View {
                 
                 SettingSlider(
                     label: "Size",
-                    value: $viewModel.fontSize,
+                    value: Bindable(preferences).fontSize,
                     range: 8...80,
                     step: 1,
                     unit: "pt"
@@ -292,7 +293,7 @@ struct AppearanceTabView: View {
                 
                 SettingSlider(
                     label: "Line spacing",
-                    value: $viewModel.lineHeight,
+                    value: Bindable(preferences).lineHeight,
                     range: 0...20,
                     step: 1,
                     unit: "pt"
@@ -306,7 +307,7 @@ struct AppearanceTabView: View {
                     HStack(spacing: 8) {
                         ForEach(PrompterTextAlignment.allCases, id: \.self) { alignment in
                             Button {
-                                viewModel.textAlignment = alignment
+                                preferences.textAlignment = alignment
                             } label: {
                                 VStack(spacing: 4) {
                                     Image(systemName: alignment.icon)
@@ -317,12 +318,12 @@ struct AppearanceTabView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                                 .background(
-                                    viewModel.textAlignment == alignment 
+                                    preferences.textAlignment == alignment 
                                         ? Color.accentColor.opacity(0.15) 
                                     : Color(NSColor.controlBackgroundColor)
                                 )
                                 .foregroundStyle(
-                                    viewModel.textAlignment == alignment 
+                                    preferences.textAlignment == alignment 
                                         ? Color.accentColor 
                                         : .primary
                                 )
@@ -331,7 +332,7 @@ struct AppearanceTabView: View {
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
                                         .strokeBorder(
-                                            viewModel.textAlignment == alignment 
+                                            preferences.textAlignment == alignment 
                                                 ? Color.accentColor 
                                                 : Color.primary.opacity(0.2),
                                             lineWidth: 1
@@ -348,7 +349,7 @@ struct AppearanceTabView: View {
                 Text("Theme")
                     .font(.system(size: 13, weight: .medium))
                 
-                Picker("", selection: $viewModel.prompterTheme) {
+                Picker("", selection: Bindable(preferences).prompterTheme) {
                     ForEach(PrompterTheme.allCases, id: \.self) { theme in
                         Text(theme.displayName).tag(theme)
                     }
@@ -358,7 +359,7 @@ struct AppearanceTabView: View {
 
                 SettingSlider(
                     label: "Background opacity",
-                    value: $viewModel.backgroundOpacity,
+                    value: Bindable(preferences).backgroundOpacity,
                     range: 0.2...1.0,
                     step: 0.05,
                     unit: "",
@@ -374,7 +375,7 @@ struct AppearanceTabView: View {
                     .font(.system(size: 13, weight: .medium))
                 
                 HStack(alignment: .top, spacing: 10) {
-                    Toggle("", isOn: $viewModel.enableTopFade)
+                    Toggle("", isOn: Bindable(preferences).enableTopFade)
                         .labelsHidden()
                         .toggleStyle(.switch)
                         .controlSize(.small)
@@ -389,10 +390,10 @@ struct AppearanceTabView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
-                if viewModel.enableTopFade {
+                if preferences.enableTopFade {
                     SettingSlider(
                         label: "Height",
-                        value: $viewModel.topFadeHeight,
+                        value: Bindable(preferences).topFadeHeight,
                         range: 10...150,
                         step: 5,
                         unit: "px"
@@ -400,7 +401,7 @@ struct AppearanceTabView: View {
                 }
                 
                 HStack(alignment: .top, spacing: 10) {
-                    Toggle("", isOn: $viewModel.enableBottomFade)
+                    Toggle("", isOn: Bindable(preferences).enableBottomFade)
                         .labelsHidden()
                         .toggleStyle(.switch)
                         .controlSize(.small)
@@ -415,10 +416,10 @@ struct AppearanceTabView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
-                if viewModel.enableBottomFade {
+                if preferences.enableBottomFade {
                     SettingSlider(
                         label: "Height",
-                        value: $viewModel.bottomFadeHeight,
+                        value: Bindable(preferences).bottomFadeHeight,
                         range: 10...150,
                         step: 5,
                         unit: "px"
@@ -432,14 +433,14 @@ struct AppearanceTabView: View {
 
 // MARK: - Behavior Tab
 struct BehaviorTabView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 14) {
                 SettingSlider(
                     label: "Scroll speed",
-                    value: $viewModel.speed,
+                    value: Bindable(preferences).speed,
                     range: 1...100,
                     step: 1,
                     unit: "pt/s"
@@ -450,7 +451,7 @@ struct BehaviorTabView: View {
                 Text("Mouse Interaction")
                     .font(.system(size: 13, weight: .medium))
                 
-                Toggle(isOn: $viewModel.pauseOnHover) {
+                Toggle(isOn: Bindable(preferences).pauseOnHover) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Pause on hover")
                             .font(.system(size: 13))
@@ -461,7 +462,7 @@ struct BehaviorTabView: View {
                 }
                 .toggleStyle(.checkbox)
                 
-                Toggle(isOn: $viewModel.showHoverControls) {
+                Toggle(isOn: Bindable(preferences).showHoverControls) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Show controls on hover")
                             .font(.system(size: 13))
@@ -472,7 +473,7 @@ struct BehaviorTabView: View {
                 }
                 .toggleStyle(.checkbox)
                 
-                Toggle(isOn: $viewModel.showProgressBar) {
+                Toggle(isOn: Bindable(preferences).showProgressBar) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Show progress bar")
                             .font(.system(size: 13))
@@ -488,7 +489,7 @@ struct BehaviorTabView: View {
                 Text("Privacy")
                     .font(.system(size: 13, weight: .medium))
                 
-                Toggle(isOn: $viewModel.hideFromScreenRecording) {
+                Toggle(isOn: Bindable(preferences).hideFromScreenRecording) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Hide from screen recordings")
                             .font(.system(size: 13))
@@ -506,13 +507,14 @@ struct BehaviorTabView: View {
 
 // MARK: - Voice Tab
 struct VoiceTabView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
+    @Environment(Playback.self) private var playback
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .top, spacing: 10) {
-                    Toggle("", isOn: $viewModel.voiceActivation)
+                    Toggle("", isOn: Bindable(preferences).voiceActivation)
                         .labelsHidden()
                         .toggleStyle(.switch)
                         .controlSize(.small)
@@ -527,14 +529,14 @@ struct VoiceTabView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
-                if viewModel.voiceActivation {
+                if preferences.voiceActivation {
                     Divider()
                     
                     SettingSlider(
                         label: "Detection threshold",
                         value: Binding(
-                            get: { Double(viewModel.audioThreshold) },
-                            set: { viewModel.audioThreshold = Float($0) }
+                            get: { Double(preferences.audioThreshold) },
+                            set: { preferences.audioThreshold = Float($0) }
                         ),
                         range: 0.0...0.1,
                         step: 0.005,
@@ -554,9 +556,9 @@ struct VoiceTabView: View {
                             .foregroundStyle(.secondary)
                         
                         HStack {
-                            let rms = viewModel.audioMonitor?.rmsLevel ?? 0
+                            let rms = playback.audioMonitor?.rmsLevel ?? 0
                             let percentage = min(max(rms / 0.1, 0), 1.0) * 100
-                            let color: Color = rms > Float(viewModel.audioThreshold) ? .green : .red
+                            let color: Color = rms > Float(preferences.audioThreshold) ? .green : .red
                             
                             ProgressView(value: percentage / 100)
                                 .progressViewStyle(
@@ -570,7 +572,7 @@ struct VoiceTabView: View {
                         }
                     }
                     
-                    Text(viewModel.isListening ? "Speak to test your microphone levels" : "Press Listen below to see your microphone level")
+                    Text(playback.isListening ? "Speak to test your microphone levels" : "Press Listen below to see your microphone level")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
@@ -582,7 +584,7 @@ struct VoiceTabView: View {
 
 // MARK: - Layout Tab
 struct LayoutTabView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -593,10 +595,10 @@ struct LayoutTabView: View {
                 SettingSlider(
                     label: "Width",
                     value: Binding(
-                        get: { Double(viewModel.prompterWidth) },
-                        set: { viewModel.prompterWidth = CGFloat($0) }
+                        get: { Double(preferences.prompterWidth) },
+                        set: { preferences.prompterWidth = CGFloat($0) }
                     ),
-                    range: Double(viewModel.prompterWidthRange.lowerBound)...Double(viewModel.prompterWidthRange.upperBound),
+                    range: Double(preferences.prompterWidthRange.lowerBound)...Double(preferences.prompterWidthRange.upperBound),
                     step: 10,
                     unit: "px"
                 )
@@ -604,10 +606,10 @@ struct LayoutTabView: View {
                 SettingSlider(
                     label: "Height",
                     value: Binding(
-                        get: { Double(viewModel.prompterHeight) },
-                        set: { viewModel.prompterHeight = CGFloat($0) }
+                        get: { Double(preferences.prompterHeight) },
+                        set: { preferences.prompterHeight = CGFloat($0) }
                     ),
-                    range: Double(viewModel.prompterHeightRange.lowerBound)...Double(viewModel.prompterHeightRange.upperBound),
+                    range: Double(preferences.prompterHeightRange.lowerBound)...Double(preferences.prompterHeightRange.upperBound),
                     step: 10,
                     unit: "px"
                 )
@@ -625,7 +627,7 @@ struct LayoutTabView: View {
                     HStack(spacing: 8) {
                         ForEach(PrompterHorizontalAlignment.allCases, id: \.self) { alignment in
                             Button {
-                                viewModel.horizontalAlignment = alignment
+                                preferences.horizontalAlignment = alignment
                             } label: {
                                 VStack(spacing: 4) {
                                     Image(systemName: alignment.icon)
@@ -636,12 +638,12 @@ struct LayoutTabView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                                 .background(
-                                    viewModel.horizontalAlignment == alignment 
+                                    preferences.horizontalAlignment == alignment 
                                         ? Color.accentColor.opacity(0.15) 
                                         : Color(NSColor.controlBackgroundColor)
                                 )
                                 .foregroundStyle(
-                                    viewModel.horizontalAlignment == alignment 
+                                    preferences.horizontalAlignment == alignment 
                                         ? Color.accentColor 
                                         : .primary
                                 )
@@ -650,7 +652,7 @@ struct LayoutTabView: View {
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
                                         .strokeBorder(
-                                            viewModel.horizontalAlignment == alignment 
+                                            preferences.horizontalAlignment == alignment 
                                                 ? Color.accentColor 
                                                 : Color.primary.opacity(0.2),
                                             lineWidth: 1
@@ -677,7 +679,7 @@ struct LayoutTabView: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                     
-                    Picker("", selection: $viewModel.selectedScreenIndex) {
+                    Picker("", selection: Bindable(preferences).selectedScreenIndex) {
                         ForEach(Array(NSScreen.screens.enumerated()), id: \.offset) { index, screen in
                             Text("\(screen.localizedName) (\(index + 1))").tag(index)
                         }
@@ -697,13 +699,13 @@ struct LayoutTabView: View {
 // TODO: add option to change shortcuts
 // MARK: - Keyboard Tab
 struct KeyboardTabView: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .top, spacing: 10) {
-                    Toggle("", isOn: $viewModel.enableGlobalKeyboardShortcuts)
+                    Toggle("", isOn: Bindable(preferences).enableGlobalKeyboardShortcuts)
                         .labelsHidden()
                         .toggleStyle(.switch)
                         .controlSize(.small)
@@ -718,7 +720,7 @@ struct KeyboardTabView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
-                if viewModel.enableGlobalKeyboardShortcuts {
+                if preferences.enableGlobalKeyboardShortcuts {
                     Divider()
                     
                     Text("Keyboard Shortcuts")
@@ -769,7 +771,7 @@ struct KeyboardTabView: View {
                     
                     SettingSlider(
                         label: "Speed increment",
-                        value: $viewModel.speedIncrement,
+                        value: Bindable(preferences).speedIncrement,
                         range: 1...10,
                         step: 1,
                         unit: "pt/s"
@@ -787,7 +789,7 @@ struct KeyboardTabView: View {
                     
                     SettingSlider(
                         label: "Scroll amount",
-                        value: $viewModel.manualScrollAmount,
+                        value: Bindable(preferences).manualScrollAmount,
                         range: 10...100,
                         step: 5,
                         unit: "px"

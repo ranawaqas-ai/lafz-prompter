@@ -9,7 +9,7 @@ import SwiftUI
 /// pointer over a handle, the handle's grip lit in the accent colour on hover
 /// and while dragging, and the size shown live during the drag.
 struct PrompterResizeHandles: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Preferences.self) private var preferences
     @State private var pointerInside = false
     @State private var hovered: Handle?
     @State private var dragging: Handle?
@@ -42,17 +42,17 @@ struct PrompterResizeHandles: View {
     var body: some View {
         // A left-aligned prompter is pinned at its left edge and a right-aligned
         // one at its right, so only the free side has handles.
-        let left = viewModel.horizontalAlignment != .left
-        let right = viewModel.horizontalAlignment != .right
+        let left = preferences.horizontalAlignment != .left
+        let right = preferences.horizontalAlignment != .right
         ZStack {
             ResizeGrips(left: left, right: right,
-                        color: viewModel.prompterTheme.textColor,
+                        color: preferences.prompterTheme.textColor,
                         pointerInside: pointerInside,
                         active: dragging ?? hovered)
                 .allowsHitTesting(false)
 
             if dragging != nil {
-                Text("\(Int(viewModel.prompterWidth)) × \(Int(viewModel.prompterHeight))")
+                Text("\(Int(preferences.prompterWidth)) × \(Int(preferences.prompterHeight))")
                     .font(.system(size: 13, weight: .semibold).monospacedDigit())
                     .foregroundStyle(.white)
                     .padding(.horizontal, 10)
@@ -96,20 +96,20 @@ struct PrompterResizeHandles: View {
             if handle.vertical {
                 // Screen y grows upward, so dragging down is a negative change.
                 let height = start.height + (start.mouse.y - mouse.y)
-                viewModel.prompterHeight = height.clamped(to: viewModel.prompterHeightRange).rounded()
+                preferences.prompterHeight = height.clamped(to: preferences.prompterHeightRange).rounded()
             }
             if handle.horizontal != 0 {
                 // Centred: the opposite edge moves too, so the width changes twice as much.
-                let factor: CGFloat = viewModel.horizontalAlignment == .center ? 2 : 1
+                let factor: CGFloat = preferences.horizontalAlignment == .center ? 2 : 1
                 let width = start.width + (mouse.x - start.mouse.x) * handle.horizontal * factor
-                viewModel.prompterWidth = width.clamped(to: viewModel.prompterWidthRange).rounded()
+                preferences.prompterWidth = width.clamped(to: preferences.prompterWidthRange).rounded()
             }
         } began: {
-            viewModel.isResizing = true
+            preferences.isResizing = true
             dragging = handle
-            return (viewModel.prompterWidth, viewModel.prompterHeight)
+            return (preferences.prompterWidth, preferences.prompterHeight)
         } ended: {
-            viewModel.isResizing = false
+            preferences.isResizing = false
             dragging = nil
         } hoverChanged: { inside in
             if inside { hovered = handle } else if hovered == handle { hovered = nil }

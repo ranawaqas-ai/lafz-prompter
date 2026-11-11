@@ -7,7 +7,9 @@ struct LafzPrompterApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsView(viewModel: appDelegate.viewModel)
+            SettingsView()
+                .environment(appDelegate.preferences)
+                .environment(appDelegate.playback)
                 .environment(appDelegate.scripts)
                 .environment(appDelegate.callAssist)
                 .environment(appDelegate.callAssistController)
@@ -20,7 +22,9 @@ struct LafzPrompterApp: App {
         }
 
         MenuBarExtra {
-            MenuContent(viewModel: appDelegate.viewModel)
+            MenuContent()
+                .environment(appDelegate.playback)
+                .environment(appDelegate.preferences)
                 .environment(appDelegate.scripts)
         } label: {
             let image: NSImage = {
@@ -40,7 +44,8 @@ struct LafzPrompterApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let viewModel = PrompterViewModel()
+    let preferences = Preferences()
+    private(set) lazy var playback = Playback(preferences: preferences)
     let callAssist = CallAssistSettings()
     let scripts = ScriptLibrary()
     private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
@@ -48,14 +53,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hideTask: Task<Void, Never>?
     private var assistStateTask: Task<Void, Never>?
     private var shortcutsSettingTask: Task<Void, Never>?
+    private var scriptChangeTask: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        scripts.attach(to: viewModel)
-        prompterWindow = PrompterWindow(viewModel: viewModel, callAssist: callAssistController, scripts: scripts)
+        scripts.ensureCurrentScript()
+        prompterWindow = PrompterWindow(preferences: preferences, playback: playback,
+                                        callAssist: callAssistController, scripts: scripts)
         // Hiding the prompter ends a Call Assist session, as it stops voice activation.
-        let viewModel = viewModel
+        let playback = playback
+        let preferences = preferences
         hideTask = Task { [callAssistController] in
-            for await visible in Observations({ viewModel.isPrompterVisible }) where !visible {
+            for await visible in Observations({ playback.isPrompterVisible }) where !visible {
                 callAssistController.stop()
             }
         }
@@ -66,59 +74,66 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         assistStateTask = Task { [weak self] in
             for await active in Observations({ controller.isActive }) {
                 guard let self else { return }
-                if active { self.viewModel.isPrompterVisible = true }
-                self.viewModel.scrollRedirect = active ? { controller.nudgeScroll(by: $0) } : nil
+                if active { self.playback.isPrompterVisible = true }
+                self.playback.scrollRedirect = active ? { controller.nudgeScroll(by: $0) } : nil
             }
         }
         // One setting turns off every global shortcut, Call Assist's too.
         shortcutsSettingTask = Task { [callAssistController] in
-            for await enabled in Observations({ viewModel.enableGlobalKeyboardShortcuts }) {
+            for await enabled in Observations({ preferences.enableGlobalKeyboardShortcuts }) {
                 callAssistController.shortcutsEnabled = enabled
+            }
+        }
+        // Another script picked: start it from the top.
+        scriptChangeTask = Task { [scripts] in
+            for await _ in Observations({ scripts.currentID }).dropFirst() {
+                playback.reset()
             }
         }
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)
     }
 
-    // Covers a quit inside the save debounce window.
+    // Keeps the stored settings complete, and covers a quit inside the
+    // script library's save debounce.
     func applicationWillTerminate(_ notification: Notification) {
-        viewModel.saveSettings()
-        scripts.updateCurrent(text: viewModel.text)
+        preferences.saveAll()
         scripts.flush()
     }
 }
 
 struct MenuContent: View {
-    @Bindable var viewModel: PrompterViewModel
+    @Environment(Playback.self) private var playback
+    @Environment(Preferences.self) private var preferences
     @Environment(ScriptLibrary.self) private var library
 
     var body: some View {
         Button {
-            viewModel.isPrompterVisible.toggle()
+            playback.isPrompterVisible.toggle()
         } label: {
-            Label(viewModel.isPrompterVisible ? "Hide Prompter" : "Show Prompter",
-                  systemImage: viewModel.isPrompterVisible ? "eye.slash" : "eye")
+            Label(playback.isPrompterVisible ? "Hide Prompter" : "Show Prompter",
+                  systemImage: playback.isPrompterVisible ? "eye.slash" : "eye")
         }
         .keyboardShortcut("h", modifiers: [.control, .option])
         
         Divider()
         
         Button {
-            viewModel.togglePlayback()
+            playback.togglePlayback()
         }
         label: {
-            if viewModel.voiceActivation {
-                Label(viewModel.isListening ? "Stop Listening" : "Start Listening",
-                      systemImage: viewModel.isListening ? "mic.slash" : "mic")
+            if preferences.voiceActivation {
+                Label(playback.isListening ? "Stop Listening" : "Start Listening",
+                      systemImage: playback.isListening ? "mic.slash" : "mic")
             } else {
-                Label(viewModel.isPlaying ? "Pause" : "Play",
-                      systemImage: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                Label(playback.isPlaying ? "Pause" : "Play",
+                      systemImage: playback.isPlaying ? "pause.fill" : "play.fill")
             }
         }
         .keyboardShortcut("p", modifiers: [.control, .option])
 
         Button {
-            viewModel.reset()
+            playback.reset()
         } label: {
             Label("Reset", systemImage: "arrow.counterclockwise")
         }
@@ -178,7 +193,7 @@ struct MenuContent: View {
             alert.informativeText = error
             alert.runModal()
         } else if library.currentID != before {
-            viewModel.isPrompterVisible = true
+            playback.isPrompterVisible = true
         }
     }
 }

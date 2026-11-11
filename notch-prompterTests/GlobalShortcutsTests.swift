@@ -13,7 +13,8 @@ struct GlobalShortcutsTests {
 
     private final class App {
         let shortcuts = GlobalShortcuts(registersWithSystem: false)
-        let viewModel: PrompterViewModel
+        let preferences: Preferences
+        let playback: Playback
         let settings: CallAssistSettings
         let controller: CallAssistController
         private let suite = "lafz-shortcut-tests-\(UUID().uuidString)"
@@ -22,12 +23,13 @@ struct GlobalShortcutsTests {
         init(keys: Set<AssistProvider>) {
             let defaults = UserDefaults(suiteName: suite)!
             let shortcuts = shortcuts
-            viewModel = withDependencies {
+            (preferences, playback) = withDependencies {
                 $0.settingsStorage = defaults
                 $0.frameClock = .stopped
                 $0.globalShortcuts = shortcuts
             } operation: {
-                PrompterViewModel()
+                let preferences = Preferences()
+                return (preferences, Playback(preferences: preferences))
             }
             (settings, controller) = withDependencies {
                 Fakes.useFakes(&$0, defaults: defaults, keys: keys, listener: Fakes.FakeListener(),
@@ -46,7 +48,7 @@ struct GlobalShortcutsTests {
 
         /// The Settings switch, as AppDelegate passes it on to Call Assist.
         @MainActor func setShortcutsSetting(_ on: Bool) {
-            viewModel.enableGlobalKeyboardShortcuts = on
+            preferences.enableGlobalKeyboardShortcuts = on
             controller.shortcutsEnabled = on
         }
     }
@@ -82,8 +84,10 @@ struct GlobalShortcutsTests {
         record("session running, started with ⌃⌥A")
 
         app.setShortcutsSetting(false)
+        await settle()
         record("global shortcuts switched off during the session")
         app.setShortcutsSetting(true)
+        await settle()
         record("switched back on")
 
         app.shortcuts.press(.assistToggle)
@@ -103,8 +107,8 @@ struct GlobalShortcutsTests {
     @Test func pressingAPrompterShortcutRunsItsAction() {
         let app = App(keys: [])
         app.shortcuts.press(.playPause)
-        #expect(app.viewModel.isPlaying)
+        #expect(app.playback.isPlaying)
         app.shortcuts.press(.faster)
-        #expect(app.viewModel.speed == 14)
+        #expect(app.preferences.speed == 14)
     }
 }

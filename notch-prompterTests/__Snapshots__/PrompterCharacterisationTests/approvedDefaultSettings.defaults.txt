@@ -14,7 +14,6 @@ PrompterHeight = 150
 PrompterLineHeight = 8
 PrompterPauseOnHover = 1
 PrompterSpeed = 12
-PrompterText = 1845 characters, starting "This is a scrolling text test for Lafz P"
 PrompterTheme = dark
 PrompterWidth = 184
 SelectedScreenIndex = 0

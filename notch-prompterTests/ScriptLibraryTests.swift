@@ -19,8 +19,15 @@ struct ScriptLibraryTests {
 
     private let files = MemoryFiles()
 
+    private let settings = UserDefaults(suiteName: "lafz-library-tests-\(UUID().uuidString)")!
+
     private func makeLibrary() -> ScriptLibrary {
-        withDependencies { $0.scriptFiles = files.client } operation: { ScriptLibrary() }
+        withDependencies {
+            $0.scriptFiles = files.client
+            $0.settingsStorage = settings
+        } operation: {
+            ScriptLibrary()
+        }
     }
 
     @Test func addingMakesTheScriptCurrentAndSkipsDuplicates() {
@@ -75,6 +82,30 @@ struct ScriptLibraryTests {
         library.importClipboard()
         #expect(library.importError == "The clipboard has no text in it. Copy your script first.")
         #expect(library.current?.title == "Copied opening")
+    }
+
+    @Test func theFirstLaunchImportsTheScriptKeptInSettings() {
+        settings.set("Old opening\nkept before the library", forKey: "PrompterText")
+        let library = makeLibrary()
+        library.ensureCurrentScript()
+        #expect(library.text == "Old opening\nkept before the library")
+        #expect(library.scripts.count == 1)
+        library.ensureCurrentScript()         // a later launch adds nothing
+        #expect(library.scripts.count == 1)
+    }
+
+    @Test func withNothingKeptTheFirstLaunchStartsWithTheSample() {
+        let library = makeLibrary()
+        library.ensureCurrentScript()
+        #expect(library.text == ScriptLibrary.sampleText)
+    }
+
+    @Test func editingTheTextUpdatesTheCurrentScript() {
+        let library = makeLibrary()
+        library.add(text: "Draft", title: "Talk")
+        library.text = "Draft, edited"
+        #expect(library.current?.text == "Draft, edited")
+        #expect(library.current?.title == "Talk")
     }
 
     @Test func titlesComeFromTheFirstLine() {
