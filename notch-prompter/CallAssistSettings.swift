@@ -38,7 +38,6 @@ final class CallAssistSettings: ObservableObject {
         static let instructions = "AssistInstructions"
         static let knowledgeSources = "AssistKnowledgeSources"
         static func model(_ p: AssistProvider) -> String { "AssistModel.\(p.rawValue)" }
-        static func contextWindow(_ p: AssistProvider) -> String { "AssistContextWindow.\(p.rawValue)" }
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -82,25 +81,18 @@ final class CallAssistSettings: ObservableObject {
     /// Call Assist is usable only once a key is saved for the selected provider.
     var isAvailable: Bool { providersWithKey.contains(provider) }
 
-    var model: String {
-        get { defaults.string(forKey: Keys.model(provider)) ?? provider.defaultModel }
+    /// The selected model for the current provider. Only models from the
+    /// provider's list can be chosen, so a stored name that is no longer
+    /// listed falls back to the default.
+    var model: AssistModel {
+        get { provider.model(withID: defaults.string(forKey: Keys.model(provider))) }
         set {
             objectWillChange.send()
-            let trimmed = newValue.trimmingCharacters(in: .whitespaces)
-            defaults.set(trimmed.isEmpty ? nil : trimmed, forKey: Keys.model(provider))
+            defaults.set(newValue.id, forKey: Keys.model(provider))
         }
     }
 
-    var contextWindow: Int {
-        get {
-            let stored = defaults.integer(forKey: Keys.contextWindow(provider))
-            return stored > 0 ? stored : provider.defaultContextWindow
-        }
-        set {
-            objectWillChange.send()
-            defaults.set(newValue > 0 ? newValue : nil, forKey: Keys.contextWindow(provider))
-        }
-    }
+    var contextWindow: Int { model.contextWindow }
 
     func saveKey(_ key: String) throws {
         let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -117,6 +109,6 @@ final class CallAssistSettings: ObservableObject {
     /// A client for the selected provider, or nil when no key is saved.
     func makeClient() -> AnswerProvider? {
         guard let key = KeychainStore.key(for: provider) else { return nil }
-        return provider.makeClient(apiKey: key, model: model)
+        return provider.makeClient(apiKey: key, model: model.id)
     }
 }

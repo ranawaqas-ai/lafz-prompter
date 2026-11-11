@@ -84,21 +84,13 @@ private struct ProviderSection: View {
             }
 
             Group {
-                HStack {
-                    Text("Model").frame(width: 110, alignment: .leading)
-                    TextField(settings.provider.defaultModel, text: Binding(
-                        get: { settings.model }, set: { settings.model = $0 }))
-                        .textFieldStyle(.roundedBorder)
+                Picker("Model", selection: Binding(
+                    get: { settings.model }, set: { settings.model = $0; resetTest() })) {
+                    ForEach(settings.provider.models) { Text($0.name).tag($0) }
                 }
-                HStack {
-                    Text("Context window").frame(width: 110, alignment: .leading)
-                    TextField("tokens", value: Binding(
-                        get: { settings.contextWindow }, set: { settings.contextWindow = $0 }),
-                              format: .number)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 140)
-                    Text("tokens").font(.system(size: 11)).foregroundStyle(.secondary)
-                }
+                Text("Context window: \(settings.contextWindow.formatted()) tokens")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
                 HStack(alignment: .top) {
                     Button(testTask == nil ? "Test" : "Testing…") { runTest() }
                         .disabled(testTask != nil)
