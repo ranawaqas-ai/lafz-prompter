@@ -101,7 +101,7 @@ summary {
   }
 
   .demo-fit {
-    width: min(100%, calc((100svh - 10rem) * 2000 / 1260));
+    width: min(100%, calc((100svh - 12rem) * 2000 / 1260));
   }
 }
 
