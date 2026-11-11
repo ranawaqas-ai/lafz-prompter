@@ -23,8 +23,7 @@ source for everyone, including for commercial use.
 ## Install
 Download the zip from [Releases](https://github.com/ranawaqas-ai/lafz-prompter/releases/latest)
 or [lafz.waqasrana.space](https://lafz.waqasrana.space) and drag the app into Applications.
-The app is not signed with an Apple Developer ID, so on the first launch you right-click it
-and choose Open, or allow it under Privacy & Security in System Settings.
+The app is signed with a Developer ID and notarized by Apple.
 
 ## Build
 Building requires Xcode or the Xcode command line tools.
@@ -32,6 +31,10 @@ Building requires Xcode or the Xcode command line tools.
 ```sh
 scripts/build-app.sh   # writes build/Lafz Prompter.app and build/LafzPrompter.zip
 ```
+
+The build is signed ad hoc unless `SIGN_IDENTITY` names a Developer ID certificate.
+With `NOTARY_PROFILE` also set to a `notarytool` keychain profile, it is notarized
+and stapled.
 
 The website lives in `website/` and builds into `docs/` for GitHub Pages.
 
