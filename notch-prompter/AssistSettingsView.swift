@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Assist Tab
 struct AssistTabView: View {
-    @ObservedObject var settings: CallAssistSettings
+    @Environment(CallAssistSettings.self) private var settings
     let controller: CallAssistController
 
     var body: some View {
@@ -42,7 +42,7 @@ struct AssistTabView: View {
 }
 
 private struct ProviderSection: View {
-    @ObservedObject var settings: CallAssistSettings
+    @Bindable var settings: CallAssistSettings
     @State private var keyDraft = ""
     @State private var keyError: String?
     @State private var testOutput = ""
@@ -156,7 +156,7 @@ private struct ProviderSection: View {
 }
 
 private struct InstructionsSection: View {
-    @ObservedObject var settings: CallAssistSettings
+    @Bindable var settings: CallAssistSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -183,7 +183,7 @@ private struct InstructionsSection: View {
 }
 
 private struct KnowledgeSection: View {
-    @ObservedObject var settings: CallAssistSettings
+    @Bindable var settings: CallAssistSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -260,7 +260,7 @@ private struct KnowledgeSection: View {
 
 /// Start and stop, plus the live transcript so capture problems show while testing.
 private struct SessionSection: View {
-    @ObservedObject var settings: CallAssistSettings
+    @Bindable var settings: CallAssistSettings
     @ObservedObject var controller: CallAssistController
 
     var body: some View {
@@ -323,7 +323,7 @@ private struct SessionSection: View {
 /// Past questions and answers from the history file, newest first, with
 /// a switch to stop saving and a way to delete everything.
 private struct HistorySection: View {
-    @ObservedObject var settings: CallAssistSettings
+    @Bindable var settings: CallAssistSettings
     @ObservedObject var controller: CallAssistController
     @State private var records: [AnswerRecord] = []
     @State private var confirmDelete = false

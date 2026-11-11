@@ -72,14 +72,18 @@ final class CallAssistController: ObservableObject {
 
     init(settings: CallAssistSettings) {
         self.settings = settings
-        keyObserver = settings.$provider
-            .combineLatest(settings.$providersWithKey)
-            .map { provider, withKey in withKey.contains(provider) }
-            .removeDuplicates()
-            .sink { [weak self] ready in
-                self?.keyReady = ready
-                self?.updateShortcuts()
+        keyReady = settings.isAvailable
+        updateShortcuts()
+        // A key saved or removed, or another provider picked, in Settings.
+        keyTask = Task { [weak self, settings] in
+            for await ready in Observations({ settings.isAvailable }) {
+                guard let self else { return }
+                if ready != self.keyReady {
+                    self.keyReady = ready
+                    self.updateShortcuts()
+                }
             }
+        }
     }
 
     /// Follows the app's "Global keyboard shortcuts" setting.
@@ -88,7 +92,7 @@ final class CallAssistController: ObservableObject {
     }
     /// Whether the selected provider has a key, so a session could start.
     private var keyReady = false
-    private var keyObserver: AnyCancellable?
+    private var keyTask: Task<Void, Never>?
 
     /// ⌃⌥A is taken only once a session could start; the keys that act on a
     /// session only while one runs.

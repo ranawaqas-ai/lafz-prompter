@@ -56,6 +56,12 @@ struct GlobalShortcutsTests {
         #expect(condition())
     }
 
+    /// Lets observation loops deliver a change made in Settings.
+    private func settle() async {
+        for _ in 0..<5 { await Task.yield() }
+        try? await Task.sleep(for: .milliseconds(20))
+    }
+
     @Test func approvedShortcutsInEachState() async {
         let app = App(keys: [.anthropic])
         var report = ""
@@ -65,8 +71,10 @@ struct GlobalShortcutsTests {
 
         record("launch, Anthropic key saved")
         app.settings.provider = .openAI
+        await settle()
         record("OpenAI selected, no key for it")
         app.settings.provider = .anthropic
+        await settle()
         record("Anthropic selected again")
 
         app.shortcuts.press(.assistToggle)

@@ -8,9 +8,10 @@ struct LafzPrompterApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsView(viewModel: appDelegate.viewModel, callAssist: appDelegate.callAssist,
+            SettingsView(viewModel: appDelegate.viewModel,
                          callAssistController: appDelegate.callAssistController)
                 .environment(appDelegate.scripts)
+                .environment(appDelegate.callAssist)
                 .onAppear(perform: {
                     NSApp.setActivationPolicy(.regular)
                 })

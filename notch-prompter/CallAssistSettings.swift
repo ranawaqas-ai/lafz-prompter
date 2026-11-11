@@ -1,10 +1,10 @@
 import Foundation
-import Combine
 import Dependencies
+import Observation
 
-/// User settings for Call Assist. Kept apart from PrompterViewModel so typing in
-/// the Assist tab does not re-render the prompter.
-final class CallAssistSettings: ObservableObject {
+/// User settings for Call Assist.
+@MainActor @Observable
+final class CallAssistSettings {
     static let defaultInstructions = """
     You are helping me answer questions on a live call. I will read your answer aloud. \
     Answer in 2 to 4 short sentences, first person, plain spoken English. \
@@ -12,37 +12,37 @@ final class CallAssistSettings: ObservableObject {
     say so in a few words rather than invent facts.
     """
 
-    @Published var provider: AssistProvider {
+    var provider: AssistProvider {
         didSet { defaults.set(provider.rawValue, forKey: Keys.provider) }
     }
-    @Published var instructions: String {
+    var instructions: String {
         didSet { defaults.set(instructions, forKey: Keys.instructions) }
     }
     /// Keep every question and answer in a SQLite file on this Mac.
-    @Published var saveHistory: Bool {
+    var saveHistory: Bool {
         didSet { defaults.set(saveHistory, forKey: Keys.saveHistory) }
     }
     /// Attach a screenshot of the front display to each answer.
-    @Published var includeScreen: Bool {
+    var includeScreen: Bool {
         didSet { defaults.set(includeScreen, forKey: Keys.includeScreen) }
     }
     /// Providers that have a key in the Keychain. Mirrors the Keychain so views
     /// can react without reading it on every render.
-    @Published private(set) var providersWithKey: Set<AssistProvider>
+    private(set) var providersWithKey: Set<AssistProvider>
     /// Files and folders the answers draw on, read fresh when Assist starts.
-    @Published private(set) var knowledgeSources: [URL] {
+    private(set) var knowledgeSources: [URL] {
         didSet {
             defaults.set(knowledgeSources.map(\.path), forKey: Keys.knowledgeSources)
             refreshKnowledgeSummary()
         }
     }
     /// Per-source token estimates for Settings; nil while counting.
-    @Published private(set) var knowledgeSummary: [KnowledgeBase.Source]?
+    private(set) var knowledgeSummary: [KnowledgeBase.Source]?
 
-    @Dependency(\.settingsStorage) private var defaults
-    @Dependency(\.keychain) private var keychain
-    @Dependency(\.answerClient) private var answerClient
-    private var summaryTask: Task<Void, Never>?
+    @ObservationIgnored @Dependency(\.settingsStorage) private var defaults
+    @ObservationIgnored @Dependency(\.keychain) private var keychain
+    @ObservationIgnored @Dependency(\.answerClient) private var answerClient
+    @ObservationIgnored private var summaryTask: Task<Void, Never>?
 
     private enum Keys {
         static let provider = "AssistProvider"
@@ -102,10 +102,13 @@ final class CallAssistSettings: ObservableObject {
     /// provider's list can be chosen, so a stored name that is no longer
     /// listed falls back to the default.
     var model: AssistModel {
-        get { provider.model(withID: defaults.string(forKey: Keys.model(provider))) }
+        // Stored in defaults per provider, so Observation is told by hand.
+        get {
+            access(keyPath: \.model)
+            return provider.model(withID: defaults.string(forKey: Keys.model(provider)))
+        }
         set {
-            objectWillChange.send()
-            defaults.set(newValue.id, forKey: Keys.model(provider))
+            withMutation(keyPath: \.model) { defaults.set(newValue.id, forKey: Keys.model(provider)) }
         }
     }
 
