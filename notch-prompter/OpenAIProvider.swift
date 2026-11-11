@@ -24,7 +24,7 @@ struct OpenAIProvider: AnswerProvider {
         return [
             "model": model,
             "stream": true,
-            "max_output_tokens": 1024,
+            "max_output_tokens": 4096,
             "instructions": instructions,
             "input": request.userMessage,
         ]
@@ -36,6 +36,13 @@ struct OpenAIProvider: AnswerProvider {
         switch event["type"] as? String {
         case "response.output_text.delta":
             return event["delta"] as? String
+        case "response.completed":
+            let usage = (event["response"] as? [String: Any])?["usage"] as? [String: Any]
+            let details = usage?["input_tokens_details"] as? [String: Any]
+            let cached = details?["cached_tokens"] as? Int ?? 0
+            let input = usage?["input_tokens"] as? Int ?? 0
+            providerLog.info("OpenAI input tokens: \(input), \(cached) read from cache")
+            return nil
         case "error":
             throw ProviderError(message: event["message"] as? String ?? "OpenAI stream error")
         case "response.failed":

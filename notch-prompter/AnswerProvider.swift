@@ -1,4 +1,8 @@
 import Foundation
+import os
+
+/// Token usage per answer, to confirm the knowledge base is read from cache.
+let providerLog = Logger(subsystem: "space.waqasrana.LafzPrompter", category: "CallAssistProvider")
 
 enum AssistProvider: String, CaseIterable, Identifiable {
     case anthropic

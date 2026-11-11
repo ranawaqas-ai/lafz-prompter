@@ -30,7 +30,8 @@ struct AnthropicProvider: AnswerProvider {
         }
         return [
             "model": model,
-            "max_tokens": 1024,
+            // Thinking spends from the same budget as the answer.
+            "max_tokens": 4096,
             "stream": true,
             // Low effort keeps thinking short: the user is waiting mid-call.
             "output_config": ["effort": "low"],
@@ -43,6 +44,13 @@ struct AnthropicProvider: AnswerProvider {
     static func text(fromEvent data: Data) throws -> String? {
         guard let event = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
         switch event["type"] as? String {
+        case "message_start":
+            let message = event["message"] as? [String: Any]
+            let usage = message?["usage"] as? [String: Any]
+            let cached = usage?["cache_read_input_tokens"] as? Int ?? 0
+            let input = usage?["input_tokens"] as? Int ?? 0
+            providerLog.info("Anthropic input tokens: \(input) uncached, \(cached) read from cache")
+            return nil
         case "content_block_delta":
             let delta = event["delta"] as? [String: Any]
             guard delta?["type"] as? String == "text_delta" else { return nil }
