@@ -19,7 +19,7 @@ final class PrompterWindow {
                 topTrailingRadius: 0
             )).border(Color.black.opacity(0.0), width: 0)
 
-        let hosting = NSHostingView(rootView: contentView)
+        let hosting = FirstMouseHostingView(rootView: contentView)
         hosting.wantsLayer = true
         hosting.layer?.masksToBounds = true
 
@@ -194,4 +194,10 @@ final class PrompterWindow {
             self?.window.orderOut(nil)
         })
     }
+}
+
+/// The prompter panel never becomes key, so every click on it is a "first
+/// mouse" click; accepting those lets the hover buttons work in one click.
+private final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }

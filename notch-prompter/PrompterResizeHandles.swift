@@ -68,14 +68,17 @@ struct PrompterResizeHandles: View {
 /// An invisible strip with a resize cursor that reports the pointer's screen
 /// position while dragged. Screen coordinates, because the window itself
 /// moves and grows under the pointer during the drag.
-private struct ResizeStrip: View {
+///
+/// AppKit rather than a SwiftUI gesture: the prompter is a non-activating
+/// panel that is never key, so a click on it is a "first mouse" click that
+/// SwiftUI drops, and only an active app's hover can change the cursor.
+private struct ResizeStrip: NSViewRepresentable {
     typealias Start = (width: CGFloat, height: CGFloat, mouse: CGPoint)
 
     let cursor: NSCursor
     let changed: (Start, CGPoint) -> Void
     let began: () -> (CGFloat, CGFloat)
     let ended: () -> Void
-    @State private var start: Start?
 
     init(cursor: NSCursor,
          changed: @escaping (Start, CGPoint) -> Void,
@@ -87,27 +90,55 @@ private struct ResizeStrip: View {
         self.ended = ended
     }
 
-    var body: some View {
-        Color.clear
-            .contentShape(Rectangle())
-            .onHover { inside in
-                if inside { cursor.push() } else { NSCursor.pop() }
-            }
-            .gesture(
-                DragGesture(minimumDistance: 1)
-                    .onChanged { _ in
-                        let mouse = NSEvent.mouseLocation
-                        if start == nil {
-                            let (width, height) = began()
-                            start = (width, height, mouse)
-                        }
-                        if let start { changed(start, mouse) }
-                    }
-                    .onEnded { _ in
-                        start = nil
-                        ended()
-                    }
-            )
+    func makeNSView(context: Context) -> ResizeStripView { ResizeStripView() }
+
+    func updateNSView(_ view: ResizeStripView, context: Context) {
+        view.cursor = cursor
+        view.changed = changed
+        view.began = began
+        view.ended = ended
+    }
+}
+
+private final class ResizeStripView: NSView {
+    var cursor: NSCursor = .arrow
+    var changed: ((ResizeStrip.Start, CGPoint) -> Void)?
+    var began: (() -> (CGFloat, CGFloat))?
+    var ended: (() -> Void)?
+    private var start: ResizeStrip.Start?
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(
+            rect: .zero,
+            options: [.mouseEnteredAndExited, .cursorUpdate, .activeAlways, .inVisibleRect],
+            owner: self))
+    }
+
+    override func cursorUpdate(with event: NSEvent) { cursor.set() }
+    override func mouseEntered(with event: NSEvent) { cursor.set() }
+    override func mouseExited(with event: NSEvent) {
+        if start == nil { NSCursor.arrow.set() }
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        guard let (width, height) = began?() else { return }
+        start = (width, height, NSEvent.mouseLocation)
+        cursor.set()
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let start else { return }
+        changed?(start, NSEvent.mouseLocation)
+        cursor.set()
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        start = nil
+        ended?()
     }
 }
 
