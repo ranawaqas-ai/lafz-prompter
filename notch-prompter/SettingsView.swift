@@ -714,7 +714,7 @@ struct KeyboardTabView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Enable global keyboard shortcuts")
                             .font(.system(size: 13, weight: .medium))
-                        Text("Control the prompter without having to focus on it")
+                        Text("Control the prompter and Call Assist from any app. Call Assist takes ⌃⌥A only once an API key is saved, and its other keys only during a session.")
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     }

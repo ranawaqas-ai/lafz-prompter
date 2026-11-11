@@ -80,7 +80,7 @@ struct CallAssistControllerCharacterisationTests {
                 makeListener: { listener },
                 makeClient: { _ in provider },
                 history: AnswerHistoryStore(url: historyURL),
-                registersHotKeys: false))
+                shortcuts: GlobalShortcuts(registersWithSystem: false)))
         }
 
         deinit {

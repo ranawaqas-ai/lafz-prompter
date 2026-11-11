@@ -23,7 +23,8 @@ struct PrompterViewModelCharacterisationTests {
     }
 
     private func makeViewModel(_ suite: Suite) -> PrompterViewModel {
-        PrompterViewModel(defaults: suite.defaults, startsDisplayLink: false, registersHotKeys: false)
+        PrompterViewModel(defaults: suite.defaults, startsDisplayLink: false,
+                          shortcuts: GlobalShortcuts(registersWithSystem: false))
     }
 
     /// Lets debounced Combine work on the main run loop happen.

@@ -1,7 +1,6 @@
 import AVFoundation
 import CoreGraphics
 import Combine
-import HotKey
 import os
 
 /// Runs one Call Assist session: listens, keeps the transcript, detects
@@ -18,6 +17,7 @@ final class CallAssistController: ObservableObject {
     @Published private(set) var state: State = .idle {
         didSet {
             if state != oldValue { callAssistLog.info("state: \(String(describing: self.state), privacy: .public)") }
+            updateShortcuts()
         }
     }
     @Published private(set) var transcript: [Utterance] = []
@@ -53,14 +53,14 @@ final class CallAssistController: ObservableObject {
         var makeListener: () -> UtteranceSource
         var makeClient: (CallAssistSettings) -> AnswerProvider?
         var history: AnswerHistoryStore
-        var registersHotKeys: Bool
+        var shortcuts: GlobalShortcuts
 
-        static func live() -> Dependencies {
+        static func live(shortcuts: GlobalShortcuts = GlobalShortcuts()) -> Dependencies {
             Dependencies(requestMicAccess: { await AVCaptureDevice.requestAccess(for: .audio) },
                          makeListener: { CallListener() },
                          makeClient: { $0.makeClient() },
                          history: AnswerHistoryStore(),
-                         registersHotKeys: true)
+                         shortcuts: shortcuts)
         }
     }
 
@@ -73,15 +73,10 @@ final class CallAssistController: ObservableObject {
     private var noticeTask: Task<Void, Never>?
     private var listenTask: Task<Void, Never>?
     private var answerTask: Task<Void, Never>?
-    private var toggleHotKey: HotKey?
-    private var answerNowHotKey: HotKey?
-    private var previousHotKey: HotKey?
-    private var nextHotKey: HotKey?
     var history: AnswerHistoryStore { dependencies.history }
     private var sessionID = ""
     /// The answer still streaming, as an index into answers.
     private var streamingIndex: Int?
-    private var solveScreenHotKey: HotKey?
     private let screen = ScreenSnapshotter()
     /// Why screenshots are not being attached, for the Assist tab.
     @Published private(set) var screenProblem: String?
@@ -91,17 +86,36 @@ final class CallAssistController: ObservableObject {
     init(settings: CallAssistSettings, dependencies: Dependencies = .live()) {
         self.settings = settings
         self.dependencies = dependencies
-        guard dependencies.registersHotKeys else { return }
-        toggleHotKey = HotKey(key: .a, modifiers: [.control, .option])
-        toggleHotKey?.keyDownHandler = { [weak self] in self?.toggle() }
-        answerNowHotKey = HotKey(key: .return, modifiers: [.control, .option])
-        answerNowHotKey?.keyDownHandler = { [weak self] in self?.answerNow() }
-        solveScreenHotKey = HotKey(key: .s, modifiers: [.control, .option])
-        solveScreenHotKey?.keyDownHandler = { [weak self] in self?.solveScreen() }
-        previousHotKey = HotKey(key: .leftBracket, modifiers: [.control, .option])
-        previousHotKey?.keyDownHandler = { [weak self] in self?.showPrevious() }
-        nextHotKey = HotKey(key: .rightBracket, modifiers: [.control, .option])
-        nextHotKey?.keyDownHandler = { [weak self] in self?.showNext() }
+        keyObserver = settings.$provider
+            .combineLatest(settings.$providersWithKey)
+            .map { provider, withKey in withKey.contains(provider) }
+            .removeDuplicates()
+            .sink { [weak self] ready in
+                self?.keyReady = ready
+                self?.updateShortcuts()
+            }
+    }
+
+    /// Follows the app's "Global keyboard shortcuts" setting.
+    var shortcutsEnabled = true {
+        didSet { updateShortcuts() }
+    }
+    /// Whether the selected provider has a key, so a session could start.
+    private var keyReady = false
+    private var keyObserver: AnyCancellable?
+
+    /// ⌃⌥A is taken only once a session could start; the keys that act on a
+    /// session only while one runs.
+    private func updateShortcuts() {
+        let shortcuts = dependencies.shortcuts
+        shortcuts.set([.assistToggle: { [weak self] in self?.toggle() }],
+                      on: shortcutsEnabled && (keyReady || isActive))
+        shortcuts.set([
+            .answerNow: { [weak self] in self?.answerNow() },
+            .solveScreen: { [weak self] in self?.solveScreen() },
+            .previousAnswer: { [weak self] in self?.showPrevious() },
+            .nextAnswer: { [weak self] in self?.showNext() },
+        ], on: shortcutsEnabled && isActive)
     }
 
     func toggle() {

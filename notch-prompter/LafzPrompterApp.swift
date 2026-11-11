@@ -1,6 +1,5 @@
 import SwiftUI
 import AppKit
-import HotKey
 import Combine
 
 @main
@@ -40,13 +39,16 @@ struct LafzPrompterApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let viewModel = PrompterViewModel()
+    let shortcuts = GlobalShortcuts()
+    private(set) lazy var viewModel = PrompterViewModel(shortcuts: shortcuts)
     let callAssist = CallAssistSettings()
     let scripts = ScriptLibrary()
-    private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
+    private(set) lazy var callAssistController = CallAssistController(
+        settings: callAssist, dependencies: .live(shortcuts: shortcuts))
     private var prompterWindow: PrompterWindow!
     private var hideObserver: AnyCancellable?
     private var assistStateObserver: AnyCancellable?
+    private var shortcutsSettingObserver: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         scripts.attach(to: viewModel)
@@ -66,6 +68,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let controller = self.callAssistController
                 self.viewModel.scrollRedirect = state == .idle ? nil : { controller.nudgeScroll(by: $0) }
             }
+        // One setting turns off every global shortcut, Call Assist's too.
+        shortcutsSettingObserver = viewModel.$enableGlobalKeyboardShortcuts
+            .sink { [weak self] enabled in self?.callAssistController.shortcutsEnabled = enabled }
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)
     }

@@ -1,0 +1,57 @@
+== launch, Anthropic key saved
+⌃⌥A Start or stop Call Assist
+⌃⌥H Show or hide the prompter
+⌃⌥P Play or pause
+⌃⌥← Slower
+⌃⌥↑ Scroll up
+⌃⌥→ Faster
+⌃⌥↓ Scroll down
+== OpenAI selected, no key for it
+⌃⌥H Show or hide the prompter
+⌃⌥P Play or pause
+⌃⌥← Slower
+⌃⌥↑ Scroll up
+⌃⌥→ Faster
+⌃⌥↓ Scroll down
+== Anthropic selected again
+⌃⌥A Start or stop Call Assist
+⌃⌥H Show or hide the prompter
+⌃⌥P Play or pause
+⌃⌥← Slower
+⌃⌥↑ Scroll up
+⌃⌥→ Faster
+⌃⌥↓ Scroll down
+== session running, started with ⌃⌥A
+⌃⌥A Start or stop Call Assist
+⌃⌥H Show or hide the prompter
+⌃⌥P Play or pause
+⌃⌥Return Answer now
+⌃⌥S Solve the screen
+⌃⌥[ Previous answer
+⌃⌥] Next answer
+⌃⌥← Slower
+⌃⌥↑ Scroll up
+⌃⌥→ Faster
+⌃⌥↓ Scroll down
+== global shortcuts switched off during the session
+
+== switched back on
+⌃⌥A Start or stop Call Assist
+⌃⌥H Show or hide the prompter
+⌃⌥P Play or pause
+⌃⌥Return Answer now
+⌃⌥S Solve the screen
+⌃⌥[ Previous answer
+⌃⌥] Next answer
+⌃⌥← Slower
+⌃⌥↑ Scroll up
+⌃⌥→ Faster
+⌃⌥↓ Scroll down
+== session stopped with ⌃⌥A
+⌃⌥A Start or stop Call Assist
+⌃⌥H Show or hide the prompter
+⌃⌥P Play or pause
+⌃⌥← Slower
+⌃⌥↑ Scroll up
+⌃⌥→ Faster
+⌃⌥↓ Scroll down

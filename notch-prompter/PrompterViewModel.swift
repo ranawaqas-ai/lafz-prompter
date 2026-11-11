@@ -4,7 +4,6 @@ import CoreVideo
 import AVFoundation
 import Accelerate
 import SwiftUI
-import HotKey
 
 final class PrompterViewModel: ObservableObject {
     
@@ -101,14 +100,6 @@ final class PrompterViewModel: ObservableObject {
     private var lastTick: CFTimeInterval?
     private var cancellables: Set<AnyCancellable> = []
     
-    // MARK: Global keyboard shortcuts
-    private var playPauseHotKey: HotKey?
-    private var showHideHotKey: HotKey?
-    private var increaseSpeedHotKey: HotKey?
-    private var decreaseSpeedHotKey: HotKey?
-    private var scrollUpHotKey: HotKey?
-    private var scrollDownHotKey: HotKey?
-    
     var audioMonitor: AudioMonitor?
     private var audioLevelCancellable: AnyCancellable?
     @Published var showMicrophoneAlert: Bool = false
@@ -147,18 +138,18 @@ final class PrompterViewModel: ObservableObject {
     }
     
     private let defaults: UserDefaults
-    private let registersHotKeys: Bool
+    private let shortcuts: GlobalShortcuts
 
     // MARK: Init
-    /// The parameters exist for tests: a separate defaults suite, no display
-    /// link (tests call `tick` with their own timestamps) and no global hotkeys.
-    init(defaults: UserDefaults = .standard, startsDisplayLink: Bool = true, registersHotKeys: Bool = true) {
+    /// `defaults` and `startsDisplayLink` exist for tests: a separate defaults
+    /// suite, and no display link (tests call `tick` with their own times).
+    init(defaults: UserDefaults = .standard, startsDisplayLink: Bool = true,
+         shortcuts: GlobalShortcuts = GlobalShortcuts()) {
         self.defaults = defaults
-        self.registersHotKeys = registersHotKeys
+        self.shortcuts = shortcuts
         loadSettings()
         if startsDisplayLink { startTimer() }
         observeSettingsChanges()
-//        setupKeyboardShortcuts()
         $voiceActivation
             .removeDuplicates()
             .sink { [weak self] enabled in
@@ -182,14 +173,8 @@ final class PrompterViewModel: ObservableObject {
         $enableGlobalKeyboardShortcuts
             .removeDuplicates()
             .sink { [weak self] enabled in
-                guard let self = self, self.registersHotKeys else { return }
-                if enabled {
-                    print("Global shortcuts enabled")
-                    self.registerGlobalKeyboardShortcuts()
-                } else {
-                    print("Global shortcuts disabled")
-                    self.unregisterGlobalKeyboardShortcuts()
-                }
+                guard let self else { return }
+                self.shortcuts.set(self.prompterShortcuts, on: enabled)
             }
             .store(in: &cancellables)
     }
@@ -340,64 +325,18 @@ final class PrompterViewModel: ObservableObject {
         speed = max(1, speed - speedIncrement)
     }
     
-    // MARK: Keyboard Shortcuts Setup
-    private func setupKeyboardShortcuts() {
-        // Initial registration if enabled
-        if enableGlobalKeyboardShortcuts {
-            registerGlobalKeyboardShortcuts()
-        }
+    // MARK: Global keyboard shortcuts
+    private var prompterShortcuts: [GlobalShortcuts.Shortcut: () -> Void] {
+        [
+            .playPause: { [weak self] in self?.togglePlayback() },
+            .showHide: { [weak self] in self?.isPrompterVisible.toggle() },
+            .faster: { [weak self] in self?.increaseSpeed() },
+            .slower: { [weak self] in self?.decreaseSpeed() },
+            .scrollUp: { [weak self] in self?.scrollUp() },
+            .scrollDown: { [weak self] in self?.scrollDown() },
+        ]
     }
-    
-    private func registerGlobalKeyboardShortcuts() {
-        
-        print("Register hotkeys")
-        // Control + Option + P: Play/Pause
-        playPauseHotKey = HotKey(key: .p, modifiers: [.control, .option])
-        playPauseHotKey?.keyDownHandler = { [weak self] in
-            self?.togglePlayback()
-        }
-        
-        // Control + Option + H: Show/Hide
-        showHideHotKey = HotKey(key: .h, modifiers: [.control, .option])
-        showHideHotKey?.keyDownHandler = { [weak self] in
-            self?.isPrompterVisible.toggle()
-        }
-        
-        // Control + Option + Right Arrow: Increase Speed
-        increaseSpeedHotKey = HotKey(key: .rightArrow, modifiers: [.control, .option])
-        increaseSpeedHotKey?.keyDownHandler = { [weak self] in
-            self?.increaseSpeed()
-        }
-        
-        // Control + Option + Left Arrow: Decrease Speed
-        decreaseSpeedHotKey = HotKey(key: .leftArrow, modifiers: [.control, .option])
-        decreaseSpeedHotKey?.keyDownHandler = { [weak self] in
-            self?.decreaseSpeed()
-        }
-        
-        // Control + Option + Up Arrow: Scroll Up
-        scrollUpHotKey = HotKey(key: .upArrow, modifiers: [.control, .option])
-        scrollUpHotKey?.keyDownHandler = { [weak self] in
-            self?.scrollUp()
-        }
-        
-        // Control + Option + Down Arrow: Scroll Down
-        scrollDownHotKey = HotKey(key: .downArrow, modifiers: [.control, .option])
-        scrollDownHotKey?.keyDownHandler = { [weak self] in
-            self?.scrollDown()
-        }
-    }
-    
-    private func unregisterGlobalKeyboardShortcuts() {
-        print("Unregister hotkeys")
-        playPauseHotKey = nil
-        showHideHotKey = nil
-        increaseSpeedHotKey = nil
-        decreaseSpeedHotKey = nil
-        scrollUpHotKey = nil
-        scrollDownHotKey = nil
-    }
-    
+
     // MARK: Timer
     private func startTimer() {
         timerCancellable = CADisplayLinkPublisher()
