@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import HotKey
+import Combine
 
 @main
 struct LafzPrompterApp: App {
@@ -8,7 +9,8 @@ struct LafzPrompterApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsView(viewModel: appDelegate.viewModel, callAssist: appDelegate.callAssist)
+            SettingsView(viewModel: appDelegate.viewModel, callAssist: appDelegate.callAssist,
+                         callAssistController: appDelegate.callAssistController)
                 .onAppear(perform: {
                     NSApp.setActivationPolicy(.regular)
                 })
@@ -35,13 +37,20 @@ struct LafzPrompterApp: App {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let viewModel = PrompterViewModel()
     let callAssist = CallAssistSettings()
+    private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
     private var prompterWindow: PrompterWindow!
+    private var hideObserver: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        prompterWindow = PrompterWindow(viewModel: viewModel)
+        prompterWindow = PrompterWindow(viewModel: viewModel, callAssist: callAssistController)
+        // Hiding the prompter ends a Call Assist session, as it stops voice activation.
+        hideObserver = viewModel.$isPrompterVisible
+            .filter { !$0 }
+            .sink { [weak self] _ in self?.callAssistController.stop() }
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)
     }

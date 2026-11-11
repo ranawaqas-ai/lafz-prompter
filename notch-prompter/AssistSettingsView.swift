@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Assist Tab
 struct AssistTabView: View {
     @ObservedObject var settings: CallAssistSettings
+    let controller: CallAssistController
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -14,6 +15,10 @@ struct AssistTabView: View {
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
+
+                Divider()
+
+                SessionSection(settings: settings, controller: controller)
 
                 Divider()
 
@@ -252,5 +257,58 @@ private struct KnowledgeSection: View {
         panel.allowsMultipleSelection = true
         guard panel.runModal() == .OK else { return }
         settings.addKnowledgeSources(panel.urls)
+    }
+}
+
+/// Start and stop, plus the live transcript so capture problems show while testing.
+private struct SessionSection: View {
+    @ObservedObject var settings: CallAssistSettings
+    @ObservedObject var controller: CallAssistController
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Button(controller.isActive ? "Stop Call Assist" : "Start Call Assist") {
+                    controller.toggle()
+                }
+                .keyboardShortcut("a", modifiers: [.control, .option])
+                .disabled(!settings.isAvailable || settings.knowledgeOverflowMessage != nil)
+                Text(status)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            Text("⌃⌥A starts or stops it. ⌃⌥Return answers their last words when no question was detected. The prompter is hidden from screen sharing while it runs.")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+            if let error = controller.error {
+                Text(error).font(.system(size: 11)).foregroundStyle(.red)
+            }
+            if controller.isActive {
+                VStack(alignment: .leading, spacing: 3) {
+                    ForEach(Array(controller.transcript.suffix(6).enumerated()), id: \.offset) { _, line in
+                        (Text(line.speaker == .me ? "Me: " : "Them: ").bold() + Text(line.text))
+                            .font(.system(size: 11))
+                            .foregroundStyle(line.speaker == .me ? .secondary : .primary)
+                    }
+                    if controller.transcript.isEmpty {
+                        Text("Nothing heard yet.").font(.system(size: 11)).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 6))
+            }
+        }
+    }
+
+    private var status: String {
+        switch controller.state {
+        case .idle: return settings.isAvailable ? "Off" : "Save an API key below to use Call Assist."
+        case .starting: return "Starting…"
+        case .listening, .answering:
+            guard let latency = controller.lastLatency else { return "Listening" }
+            return String(format: "Listening. Last answer started %.1f s after the question.", latency)
+        }
     }
 }

@@ -40,6 +40,7 @@ enum SettingsTab: CaseIterable, Identifiable {
 struct SettingsView: View {
     @ObservedObject var viewModel: PrompterViewModel
     let callAssist: CallAssistSettings
+    let callAssistController: CallAssistController
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: SettingsTab = .script
     @State private var showResetConfirmation = false
@@ -130,7 +131,7 @@ struct SettingsView: View {
                 case .voice:
                     VoiceTabView(viewModel: viewModel)
                 case .assist:
-                    AssistTabView(settings: callAssist)
+                    AssistTabView(settings: callAssist, controller: callAssistController)
                 case .layout:
                     LayoutTabView(viewModel: viewModel)
                 case .shortcuts:

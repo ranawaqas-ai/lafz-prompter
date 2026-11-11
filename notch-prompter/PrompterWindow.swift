@@ -7,10 +7,11 @@ final class PrompterWindow {
     private let viewModel: PrompterViewModel
     private var cancellables: Set<AnyCancellable> = []
 
-    init(viewModel: PrompterViewModel) {
+    @MainActor
+    init(viewModel: PrompterViewModel, callAssist: CallAssistController) {
         self.viewModel = viewModel
 
-        let contentView = PrompterView(viewModel: viewModel)
+        let contentView = PrompterRootView(viewModel: viewModel, callAssist: callAssist)
             .clipShape(UnevenRoundedRectangle(
                 topLeadingRadius: 0,
                 bottomLeadingRadius: 16,
@@ -76,15 +77,15 @@ final class PrompterWindow {
             }
             .store(in: &cancellables)
         
+        // A Call Assist answer is always hidden from screen sharing, whatever
+        // the setting says: the other side of the call must not see it.
         viewModel.$hideFromScreenRecording
+            .combineLatest(callAssist.$state.map { $0 != .idle })
             .receive(on: RunLoop.main)
-            .sink { [weak self] hideFromRecording in
-                self?.updateScreenRecordingVisibility(hideFromRecording)
+            .sink { [weak self] hideFromRecording, assisting in
+                self?.updateScreenRecordingVisibility(hideFromRecording || assisting)
             }
             .store(in: &cancellables)
-        
-        // Set initial screen recording visibility
-        updateScreenRecordingVisibility(viewModel.hideFromScreenRecording)
     }
 
     func show() {
