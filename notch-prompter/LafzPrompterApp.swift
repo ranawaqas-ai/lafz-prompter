@@ -9,8 +9,8 @@ struct LafzPrompterApp: App {
     var body: some Scene {
         Settings {
             SettingsView(viewModel: appDelegate.viewModel, callAssist: appDelegate.callAssist,
-                         callAssistController: appDelegate.callAssistController,
-                         scripts: appDelegate.scripts)
+                         callAssistController: appDelegate.callAssistController)
+                .environment(appDelegate.scripts)
                 .onAppear(perform: {
                     NSApp.setActivationPolicy(.regular)
                 })
@@ -20,7 +20,8 @@ struct LafzPrompterApp: App {
         }
 
         MenuBarExtra {
-            MenuContent(viewModel: appDelegate.viewModel, library: appDelegate.scripts)
+            MenuContent(viewModel: appDelegate.viewModel)
+                .environment(appDelegate.scripts)
         } label: {
             let image: NSImage = {
                 let ratio = $0.size.height / $0.size.width
@@ -83,7 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 struct MenuContent: View {
     @ObservedObject var viewModel: PrompterViewModel
-    @ObservedObject var library: ScriptLibrary
+    @Environment(ScriptLibrary.self) private var library
 
     var body: some View {
         Button {

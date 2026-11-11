@@ -41,7 +41,6 @@ struct SettingsView: View {
     @ObservedObject var viewModel: PrompterViewModel
     let callAssist: CallAssistSettings
     let callAssistController: CallAssistController
-    let scripts: ScriptLibrary
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: SettingsTab = .script
     @State private var showResetConfirmation = false
@@ -124,7 +123,7 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 switch selectedTab {
                 case .script:
-                    ScriptTabView(viewModel: viewModel, library: scripts)
+                    ScriptTabView(viewModel: viewModel)
                 case .appearance:
                     AppearanceTabView(viewModel: viewModel)
                 case .behavior:

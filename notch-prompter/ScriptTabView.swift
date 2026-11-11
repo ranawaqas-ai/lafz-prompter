@@ -5,7 +5,7 @@ import SwiftUI
 /// dropping a file anywhere on the tab.
 struct ScriptTabView: View {
     @ObservedObject var viewModel: PrompterViewModel
-    @ObservedObject var library: ScriptLibrary
+    @Environment(ScriptLibrary.self) private var library
     @FocusState private var isTextEditorFocused: Bool
     @State private var renaming: Script?
     @State private var newTitle = ""

@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import Observation
 import Dependencies
 
 struct Script: Identifiable, Codable, Equatable {
@@ -12,18 +13,18 @@ struct Script: Identifiable, Codable, Equatable {
 /// Every script the user has loaded, kept in a JSON file so loading a new
 /// one never throws the old one away. One script is current: it is the text
 /// the prompter shows, and edits to that text are saved back into it.
-@MainActor
-final class ScriptLibrary: ObservableObject {
+@MainActor @Observable
+final class ScriptLibrary {
     /// Newest edit first.
-    @Published private(set) var scripts: [Script] = []
-    @Published private(set) var currentID: UUID?
+    private(set) var scripts: [Script] = []
+    private(set) var currentID: UUID?
     /// The last import that failed, shown to the user until dismissed.
-    @Published var importError: String?
+    var importError: String?
 
-    @Dependency(\.scriptFiles) private var files
-    private weak var viewModel: PrompterViewModel?
-    private var textObserver: AnyCancellable?
-    private var saveTask: Task<Void, Never>?
+    @ObservationIgnored @Dependency(\.scriptFiles) private var files
+    @ObservationIgnored private weak var viewModel: PrompterViewModel?
+    @ObservationIgnored private var textObserver: AnyCancellable?
+    @ObservationIgnored private var saveTask: Task<Void, Never>?
 
     init() {
         load()
