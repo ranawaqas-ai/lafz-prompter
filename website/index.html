@@ -64,15 +64,15 @@
 
 <nav class="fixed top-0 left-0 right-0 z-50 bg-stone-50/80 backdrop-blur-xl">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-    <a href="/" class="flex items-center gap-2.5">
+    <a href="/" class="flex items-center gap-2.5 h-11 rounded-lg">
       <span class="logo-mark w-7 h-7 text-[13px]" aria-hidden="true">L</span>
       <span class="text-sm font-semibold">Lafz Prompter</span>
     </a>
     <div class="flex items-center gap-2">
-      <a href="https://github.com/ranawaqas-ai/lafz-prompter" target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 transition-colors p-2" aria-label="Source code on GitHub">
+      <a href="https://github.com/ranawaqas-ai/lafz-prompter" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center w-11 h-11 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-900/5 transition-colors" aria-label="Source code on GitHub">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       </a>
-      <a href="https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip" class="rounded-full bg-zinc-900 hover:bg-zinc-700 transition-colors px-4 py-2 text-xs sm:text-sm font-semibold text-white">Download</a>
+      <a href="https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip" class="btn-press inline-flex items-center h-11 rounded-full bg-zinc-900 hover:bg-zinc-700 transition px-5 text-sm font-semibold text-white">Download</a>
     </div>
   </div>
 </nav>
@@ -88,7 +88,7 @@
         Lafz Prompter is a free open-source macOS app that keeps your script directly under the camera.
         It stays hidden from screen recordings and screen sharing.
       </p>
-      <a href="https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip" class="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-700 transition-colors text-white rounded-full text-base font-semibold mb-3">
+      <a href="https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip" class="btn-press inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-700 transition text-white rounded-full text-base font-semibold mb-3">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
         Download for Mac
       </a>
@@ -97,8 +97,8 @@
   </section>
 
   <section class="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
-    <div class="demo" id="demo" role="img" aria-label="Animation of a MacBook. The script drops down from the notch, scrolls while you speak and waits when you pause, and is left out of the screen recording.">
-      <div class="demo-stage">
+    <div class="demo" id="demo">
+      <div class="demo-stage" role="img" aria-label="Animation of a MacBook. The script drops down from the notch, scrolls while you speak and waits when you pause, and is left out of the screen recording.">
         <div class="demo-camera demo-anim">
           <div class="demo-lid">
             <div class="demo-screen">
@@ -128,6 +128,10 @@
           <div class="demo-base"></div>
         </div>
       </div>
+      <button type="button" class="demo-toggle" id="demo-toggle" aria-label="Pause animation" aria-pressed="false">
+        <svg class="demo-toggle-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <svg class="demo-toggle-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+      </button>
       <div class="demo-overlay" aria-hidden="true">
         <div class="demo-voice demo-anim">
           <div class="demo-bars demo-anim"><i></i><i></i><i></i><i></i><i></i></div>
@@ -209,27 +213,27 @@
         </tbody>
       </table>
     </div>
-    <p class="text-xs text-zinc-400 mt-3 text-center">Lafz Prompter is not affiliated with or endorsed by NotchPrompter. The comparison describes NotchPrompter as of November 2026.</p>
+    <p class="text-xs text-zinc-500 mt-3 text-center">Lafz Prompter is not affiliated with or endorsed by NotchPrompter. The comparison describes NotchPrompter as of November 2026.</p>
   </section>
 
   <section id="faq" class="max-w-3xl mx-auto px-4 sm:px-6 pb-24">
     <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-center mb-8">Questions</h2>
     <div class="space-y-3">
-      <details class="bg-white rounded-xl border border-zinc-200 p-5">
-        <summary class="text-sm font-semibold cursor-pointer">Is Lafz Prompter free?</summary>
-        <p class="text-sm text-zinc-600 leading-relaxed mt-2">Lafz Prompter is free to download and use, and its source code is published on GitHub under the MIT License.</p>
+      <details class="faq bg-white rounded-xl border border-zinc-200">
+        <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Is Lafz Prompter free?<svg class="faq-chevron w-4 h-4 shrink-0 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p class="text-sm text-zinc-600 leading-relaxed px-5 pb-5 -mt-2">Lafz Prompter is free to download and use, and its source code is published on GitHub under the MIT License.</p>
       </details>
-      <details class="bg-white rounded-xl border border-zinc-200 p-5">
-        <summary class="text-sm font-semibold cursor-pointer">Is the teleprompter visible in Zoom or in screen recordings?</summary>
-        <p class="text-sm text-zinc-600 leading-relaxed mt-2">The prompter can be hidden from screen recordings and from screen sharing in Zoom, Google Meet and other apps, so that only you see the script.</p>
+      <details class="faq bg-white rounded-xl border border-zinc-200">
+        <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Is the teleprompter visible in Zoom or in screen recordings?<svg class="faq-chevron w-4 h-4 shrink-0 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p class="text-sm text-zinc-600 leading-relaxed px-5 pb-5 -mt-2">The prompter can be hidden from screen recordings and from screen sharing in Zoom, Google Meet and other apps, so that only you see the script.</p>
       </details>
-      <details class="bg-white rounded-xl border border-zinc-200 p-5">
-        <summary class="text-sm font-semibold cursor-pointer">Which Macs does Lafz Prompter run on?</summary>
-        <p class="text-sm text-zinc-600 leading-relaxed mt-2">Lafz Prompter runs on macOS 14 or newer with Apple Silicon or Intel. It sits under the notch on a MacBook and at the top of the screen on other displays.</p>
+      <details class="faq bg-white rounded-xl border border-zinc-200">
+        <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Which Macs does Lafz Prompter run on?<svg class="faq-chevron w-4 h-4 shrink-0 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p class="text-sm text-zinc-600 leading-relaxed px-5 pb-5 -mt-2">Lafz Prompter runs on macOS 14 or newer with Apple Silicon or Intel. It sits under the notch on a MacBook and at the top of the screen on other displays.</p>
       </details>
-      <details class="bg-white rounded-xl border border-zinc-200 p-5">
-        <summary class="text-sm font-semibold cursor-pointer">How does Lafz Prompter relate to NotchPrompter?</summary>
-        <p class="text-sm text-zinc-600 leading-relaxed mt-2">Lafz Prompter is a fork of NotchPrompter by Jakub Pomykała, based on the last version released under the MIT License. It is not affiliated with or endorsed by NotchPrompter.</p>
+      <details class="faq bg-white rounded-xl border border-zinc-200">
+        <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">How does Lafz Prompter relate to NotchPrompter?<svg class="faq-chevron w-4 h-4 shrink-0 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p class="text-sm text-zinc-600 leading-relaxed px-5 pb-5 -mt-2">Lafz Prompter is a fork of NotchPrompter by Jakub Pomykała, based on the last version released under the MIT License. It is not affiliated with or endorsed by NotchPrompter.</p>
       </details>
     </div>
   </section>
@@ -237,10 +241,10 @@
 
 <footer class="border-t border-zinc-200 bg-white">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row justify-between items-center gap-3">
-    <p class="text-xs text-zinc-400">&copy; 2026 Rana Muhammad Waqas · MIT License</p>
-    <div class="flex items-center gap-4">
-      <a href="/privacy-policy.html" class="text-xs text-zinc-400 hover:text-zinc-900 transition-colors">Privacy</a>
-      <a href="https://github.com/ranawaqas-ai/lafz-prompter" class="text-xs text-zinc-400 hover:text-zinc-900 transition-colors">GitHub</a>
+    <p class="text-xs text-zinc-500">&copy; 2026 Rana Muhammad Waqas · MIT License</p>
+    <div class="flex items-center gap-3">
+      <a href="/privacy-policy.html" class="inline-flex items-center min-h-11 px-1 text-xs text-zinc-500 hover:text-zinc-900 transition-colors">Privacy</a>
+      <a href="https://github.com/ranawaqas-ai/lafz-prompter" class="inline-flex items-center min-h-11 px-1 text-xs text-zinc-500 hover:text-zinc-900 transition-colors">GitHub</a>
     </div>
   </div>
 </footer>

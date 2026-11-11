@@ -41,6 +41,34 @@ details summary {
   list-style: none;
 }
 
+/* One focus style for every control; the browser default is easy to miss on stone. */
+:focus-visible {
+  outline: 2px solid #18181b;
+  outline-offset: 3px;
+}
+
+a,
+button,
+summary {
+  touch-action: manipulation;
+}
+
+.faq summary {
+  border-radius: 0.75rem;
+}
+
+.faq-chevron {
+  transition: transform 200ms ease-out;
+}
+
+.faq[open] .faq-chevron {
+  transform: rotate(180deg);
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
 .logo-mark {
   display: inline-flex;
   align-items: center;
@@ -61,7 +89,7 @@ details summary {
 }
 
 .feature p {
-  @apply text-xs text-zinc-500 leading-relaxed;
+  @apply text-sm text-zinc-500 leading-relaxed;
 }
 
 /* How-it-works animation.
@@ -249,10 +277,10 @@ details summary {
   left: 771.5px;
   top: 0;
   width: 185px;
-  height: 32px;
+  height: 150px;
   overflow: hidden;
   background: #000;
-  border-radius: 0 0 9px 9px;
+  clip-path: inset(0 0 118px 0 round 0 0 9px 9px);
   animation-name: demo-prompter;
 }
 
@@ -562,13 +590,13 @@ details summary {
 }
 
 @keyframes demo-prompter {
-  0%, 22% { height: 32px; border-radius: 0 0 9px 9px; opacity: 1; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
-  30% { height: 150px; border-radius: 0 0 16px 16px; }
+  0%, 22% { clip-path: inset(0 0 118px 0 round 0 0 9px 9px); opacity: 1; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  30% { clip-path: inset(0 0 0 0 round 0 0 16px 16px); }
   74% { opacity: 1; }
   76%, 88% { opacity: 0; }
   90% { opacity: 1; }
-  92% { height: 150px; border-radius: 0 0 16px 16px; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
-  98%, 100% { height: 32px; border-radius: 0 0 9px 9px; opacity: 1; }
+  92% { clip-path: inset(0 0 0 0 round 0 0 16px 16px); animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  98%, 100% { clip-path: inset(0 0 118px 0 round 0 0 9px 9px); opacity: 1; }
 }
 
 @keyframes demo-script {
@@ -671,9 +699,54 @@ details summary {
     --t: 7.6s;
   }
 
-  .demo .demo-anim,
-  .demo-captions .demo-anim,
-  .demo-bars i {
+  html:not(.demo-ready) .demo-anim,
+  html:not(.demo-ready) .demo-bars i {
     animation-play-state: paused;
   }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+.demo-paused .demo-anim,
+.demo-paused .demo-bars i {
+  animation-play-state: paused;
+}
+
+.demo-toggle {
+  position: absolute;
+  right: 2.5%;
+  bottom: 4%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.92);
+  color: #18181b;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 6px 18px -6px rgb(0 0 0 / 0.25);
+  cursor: pointer;
+  transition: background-color 150ms ease-out, transform 100ms ease-out;
+}
+
+/* Extends the hit area to 44 x 44 without growing the visible button. */
+.demo-toggle::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+}
+
+.demo-toggle:hover { background: #fff; }
+.demo-toggle:active { transform: scale(0.94); }
+
+.demo-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.demo-toggle[aria-pressed="true"] .demo-toggle-pause,
+.demo-toggle[aria-pressed="false"] .demo-toggle-play {
+  display: none;
 }
