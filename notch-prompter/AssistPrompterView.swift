@@ -114,9 +114,13 @@ private struct CodeBlockView: View {
                     .foregroundStyle(theme.textColor.opacity(0.45))
             }
             ScrollView(.horizontal, showsIndicators: false) {
-                Text(SyntaxHighlighter.highlight(code, language: language, dark: theme == .dark))
+                // Tabs as four spaces, and always left-aligned: the prompter's
+                // centred alignment would centre each line and wreck indentation.
+                Text(SyntaxHighlighter.highlight(code.replacingOccurrences(of: "\t", with: "    "),
+                                                 language: language, dark: theme == .dark))
                     .font(.system(size: fontSize * 0.8, design: .monospaced))
                     .foregroundStyle(theme.textColor)
+                    .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: true, vertical: false)
                     .textSelection(.enabled)
             }
