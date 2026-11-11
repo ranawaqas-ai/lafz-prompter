@@ -69,17 +69,6 @@ summary {
   transform: scale(0.97);
 }
 
-.logo-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 22%;
-  background: theme('colors.ink.DEFAULT');
-  color: theme('colors.paper');
-  line-height: 1;
-  font-weight: 800;
-}
-
 .feature {
   @apply bg-white rounded-xl border border-line p-6;
 }
@@ -190,7 +179,6 @@ summary {
 .demo-menubar-icon {
   width: 17px;
   height: 17px;
-  font-size: 10px;
 }
 
 .demo-window {
