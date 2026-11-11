@@ -15,7 +15,7 @@ cp "$BIN" "$APP/Contents/MacOS/LafzPrompter"
 cp packaging/Info.plist "$APP/Contents/Info.plist"
 xcrun actool notch-prompter/Assets.xcassets \
     --compile "$APP/Contents/Resources" \
-    --platform macosx --minimum-deployment-target 14.0 \
+    --platform macosx --minimum-deployment-target 26.0 \
     --app-icon AppIcon \
     --output-partial-info-plist build/assets-info.plist >/dev/null
 
