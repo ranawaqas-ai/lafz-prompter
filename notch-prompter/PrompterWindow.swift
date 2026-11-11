@@ -115,16 +115,7 @@ final class PrompterWindow {
     }
     
     private func getSelectedScreen() -> NSScreen? {
-        let screens = NSScreen.screens
-        let index = viewModel.selectedScreenIndex
-        
-        // Validate the index is within bounds
-        if index >= 0 && index < screens.count {
-            return screens[index]
-        }
-        
-        // Fallback to main screen if index is invalid
-        return NSScreen.main
+        viewModel.prompterScreen
     }
 
     private func topCenterFrame(width: CGFloat, height: CGFloat, screen: NSScreen) -> CGRect {

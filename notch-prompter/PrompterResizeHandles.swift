@@ -7,9 +7,6 @@ import SwiftUI
 struct PrompterResizeHandles: View {
     @ObservedObject var viewModel: PrompterViewModel
 
-    /// Same limits as the Width and Height sliders in Settings.
-    static let widthRange: ClosedRange<CGFloat> = 150...600
-    static let heightRange: ClosedRange<CGFloat> = 80...500
     private static let edge: CGFloat = 12
     private static let corner: CGFloat = 24
     @State private var hovering = false
@@ -54,13 +51,13 @@ struct PrompterResizeHandles: View {
             if vertical {
                 // Screen y grows upward, so dragging down is a negative change.
                 let height = start.height + (start.mouse.y - mouse.y)
-                viewModel.prompterHeight = height.clamped(to: Self.heightRange).rounded()
+                viewModel.prompterHeight = height.clamped(to: viewModel.prompterHeightRange).rounded()
             }
             if horizontal != 0 {
                 // Centred: the opposite edge moves too, so the width changes twice as much.
                 let factor: CGFloat = viewModel.horizontalAlignment == .center ? 2 : 1
                 let width = start.width + (mouse.x - start.mouse.x) * horizontal * factor
-                viewModel.prompterWidth = width.clamped(to: Self.widthRange).rounded()
+                viewModel.prompterWidth = width.clamped(to: viewModel.prompterWidthRange).rounded()
             }
         } began: {
             viewModel.isResizing = true

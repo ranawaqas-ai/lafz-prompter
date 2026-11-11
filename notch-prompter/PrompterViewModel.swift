@@ -48,6 +48,23 @@ final class PrompterViewModel: ObservableObject {
     @Published var pauseOnHover: Bool = true
     @Published var prompterWidth: CGFloat = 184
     @Published var prompterHeight: CGFloat = 150
+    /// The screen the prompter sits on: the chosen one, or the main screen.
+    var prompterScreen: NSScreen? {
+        let screens = NSScreen.screens
+        return screens.indices.contains(selectedScreenIndex) ? screens[selectedScreenIndex] : NSScreen.main
+    }
+
+    /// Allowed prompter width: up to the screen width less the 20 px margin
+    /// the window keeps on each side.
+    var prompterWidthRange: ClosedRange<CGFloat> {
+        150...max(150, (prompterScreen?.frame.width ?? 600) - 40)
+    }
+
+    /// Allowed prompter height: up to the full screen height.
+    var prompterHeightRange: ClosedRange<CGFloat> {
+        80...max(80, prompterScreen?.frame.height ?? 500)
+    }
+
     /// True while the user drags the prompter's bottom edge; the window then
     /// follows the pointer without animating.
     var isResizing = false

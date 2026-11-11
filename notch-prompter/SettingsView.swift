@@ -645,7 +645,7 @@ struct LayoutTabView: View {
                         get: { Double(viewModel.prompterWidth) },
                         set: { viewModel.prompterWidth = CGFloat($0) }
                     ),
-                    range: 150...600,
+                    range: Double(viewModel.prompterWidthRange.lowerBound)...Double(viewModel.prompterWidthRange.upperBound),
                     step: 10,
                     unit: "px"
                 )
@@ -656,7 +656,7 @@ struct LayoutTabView: View {
                         get: { Double(viewModel.prompterHeight) },
                         set: { viewModel.prompterHeight = CGFloat($0) }
                     ),
-                    range: 80...500,
+                    range: Double(viewModel.prompterHeightRange.lowerBound)...Double(viewModel.prompterHeightRange.upperBound),
                     step: 10,
                     unit: "px"
                 )
