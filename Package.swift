@@ -32,7 +32,9 @@ let package = Package(
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
             ],
-            path: "notch-prompterTests"
+            path: "notch-prompterTests",
+            // Approved files are read by SnapshotTesting from the source tree.
+            exclude: ["README.md", "__Snapshots__"]
         ),
     ]
 )
