@@ -22,6 +22,13 @@ enum QuestionDetector {
         "suppose", "imagine", "estimate", "calculate", "find", "return", "modify", "extend",
         "refactor", "debug", "fix", "add", "handle", "test", "prove", "derive", "outline",
         "summarize", "summarise", "share", "elaborate", "justify", "rewrite", "convert",
+        "use", "pick", "choose", "run", "try", "assume", "go", "build", "draw", "sketch",
+        "identify", "check", "verify", "improve", "reduce", "count", "sort", "reverse",
+    ]
+    /// Requests that put the verb later: "I need you to pick an example input".
+    private static let requestPhrases = [
+        "need you to", "want you to", "like you to", "i'd like to see", "i would like to see",
+        "go ahead and", "let's see", "let me see", "show me", "i'm curious", "help me understand",
     ]
     private static let minimumPromptWords = 5
 
@@ -34,22 +41,31 @@ enum QuestionDetector {
         if questionSentences(in: text).contains(where: { !isTag($0) }) { return true }
         let lower = text.lowercased()
         if askingPhrases.contains(where: lower.contains) { return true }
-        return sentences(in: text).contains(where: isPrompt)
+        if requestPhrases.contains(where: lower.contains), wordCount(text) >= minimumPromptWords { return true }
+        // Any clause that opens with a task verb, so "Take an example array,
+        // step through your code" counts as well as "Step through your code".
+        guard wordCount(text) >= minimumPromptWords else { return false }
+        return clauses(in: text).contains(where: opensWithTaskVerb)
     }
 
-    /// "Step through your code line by line." opens with a task verb and is
-    /// long enough to be a task.
-    private static func isPrompt(_ sentence: String) -> Bool {
-        let words = sentence.lowercased().split(whereSeparator: { !$0.isLetter && $0 != "'" })
-        guard words.count >= minimumPromptWords, let first = words.first else { return false }
-        // "Let's" and "now" often lead the verb: "Now, explain how it scales."
-        let verb = ["now", "so", "okay", "ok", "next", "please", "and", "then", "let's", "lets"].contains(String(first))
-            ? words.dropFirst().first.map(String.init) ?? "" : String(first)
+    /// Words that often come before the verb: "Now, explain", "and then state".
+    private static let leadIns: Set<String> = ["now", "so", "okay", "ok", "next", "please", "and", "then", "also", "first", "finally", "let's", "lets"]
+
+    private static func opensWithTaskVerb(_ clause: String) -> Bool {
+        let words = clause.lowercased().split(whereSeparator: { !$0.isLetter && $0 != "'" }).map(String.init)
+        guard let verb = words.first(where: { !leadIns.contains($0) }) else { return false }
         return promptVerbs.contains(verb)
     }
 
-    private static func sentences(in text: String) -> [String] {
-        text.split(whereSeparator: { ".!?".contains($0) }).map(String.init)
+    /// Clauses split at sentence ends, commas, semicolons and " and ".
+    private static func clauses(in text: String) -> [String] {
+        text.replacingOccurrences(of: " and ", with: ",")
+            .split(whereSeparator: { ".!?,;:".contains($0) })
+            .map(String.init)
+    }
+
+    private static func wordCount(_ text: String) -> Int {
+        text.split(whereSeparator: { !$0.isLetter && !$0.isNumber && $0 != "'" }).count
     }
 
     /// The question to answer when `latest` has just arrived, or nil. The text

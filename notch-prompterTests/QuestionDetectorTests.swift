@@ -15,6 +15,10 @@ struct QuestionDetectorTests {
         "Now, explain how your solution scales to a billion rows.",
         "Okay. Walk through the edge cases for an empty input.",
         "Please implement the LRU cache using a hash map.",
+        "I need you to pick an example input, step through your code line by line to show how the pointers move.",
+        "Use a concrete example, like nums is 1, 3, 4, 2, 2.",
+        "Great, so now walk me through the complexity.",
+        "Go ahead and code the brute force version first.",
     ])
     func questionsAreDetected(text: String) {
         #expect(QuestionDetector.isQuestion(text))
@@ -29,6 +33,8 @@ struct QuestionDetectorTests {
         "Take your time.",
         "Give me a second.",
         "That looks good to me.",
+        "Great, that's correct and the complexity is right.",
+        "Okay, sounds good.",
         "",
     ])
     func statementsAndTagsAreNot(text: String) {
