@@ -63,3 +63,617 @@ details summary {
 .feature p {
   @apply text-xs text-zinc-500 leading-relaxed;
 }
+
+/* How-it-works animation.
+   The stage is drawn in the logical points of a 16-inch MacBook Pro at its
+   default scale (1728 x 1117 screen, 185 x 32 notch), and the prompter uses
+   the app's default size (about 184 x 150) and 10 pt text, so the notch fit
+   shown here is the real one. main.js scales the stage to the frame width.
+   Every animated element shares one 18 s timeline; setting --t on .demo with
+   the animations paused freezes any frame of it. */
+.demo,
+.demo-captions {
+  --dur: 18s;
+}
+
+.demo {
+  --k: 0.36;
+  --s: 5;
+  --wide: translate(100px, 63px) scale(0.9);
+  --tx: -4000px;
+  --ty: 60px;
+  position: relative;
+  aspect-ratio: 2000 / 1260;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f5f5f4 55%, #e7e5e4 100%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 40px -12px rgb(0 0 0 / 0.18);
+}
+
+.demo-anim {
+  animation-duration: var(--dur);
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-delay: calc(var(--t, 0s) * -1);
+}
+
+.demo-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2000px;
+  height: 1260px;
+  transform: scale(var(--k));
+  transform-origin: 0 0;
+}
+
+.demo-camera {
+  position: absolute;
+  inset: 0;
+  transform: var(--wide);
+  transform-origin: 0 0;
+  animation-name: demo-camera;
+}
+
+.demo-lid {
+  position: absolute;
+  left: 100px;
+  top: 0;
+  width: 1800px;
+  height: 1190px;
+  background: #0b0b0c;
+  border-radius: 52px 52px 22px 22px;
+  box-shadow: 0 0 0 5px #c7c7cb, 0 0 0 7px #a1a1a6;
+}
+
+.demo-screen {
+  position: absolute;
+  left: 36px;
+  top: 36px;
+  width: 1728px;
+  height: 1117px;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  background:
+    radial-gradient(45% 55% at 18% 78%, rgb(255 255 255 / 0.45), transparent 70%),
+    radial-gradient(40% 50% at 85% 25%, rgb(255 214 170 / 0.75), transparent 70%),
+    linear-gradient(160deg, #f4d3b5 0%, #e8b6c4 38%, #a9bde6 72%, #7fa6cf 100%);
+}
+
+.demo-menubar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: rgb(255 255 255 / 0.4);
+  color: #1c1917;
+  font-size: 13px;
+}
+
+.demo-menubar-left,
+.demo-menubar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.demo-menubar-icon {
+  width: 17px;
+  height: 17px;
+  font-size: 10px;
+}
+
+.demo-window {
+  position: absolute;
+  right: 48px;
+  bottom: 48px;
+  width: 420px;
+  height: 290px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #1c1917;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.2), 0 24px 50px -10px rgb(0 0 0 / 0.45);
+}
+
+.demo-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  background: #e7e5e4;
+  color: #57534e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.demo-window-bar i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #a8a29e;
+}
+
+.demo-window-bar span {
+  margin-left: 8px;
+}
+
+.demo-window-body {
+  position: relative;
+  height: 260px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #d6d3d1, #a8a29e);
+}
+
+.demo-person {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+.demo-person-head {
+  position: relative;
+  width: 104px;
+  height: 120px;
+  margin: 0 auto -18px;
+  border-radius: 50%;
+  background: #c08a64;
+  z-index: 1;
+}
+
+.demo-person-head i {
+  position: absolute;
+  top: 52px;
+  width: 10px;
+  height: 12px;
+  border-radius: 50%;
+  background: #292524;
+}
+
+.demo-person-head i:first-child { left: 30px; }
+.demo-person-head i:last-child { right: 30px; }
+
+.demo-person-body {
+  width: 250px;
+  height: 120px;
+  border-radius: 120px 120px 0 0;
+  background: #3f6b5c;
+}
+
+.demo-prompter {
+  position: absolute;
+  left: 771.5px;
+  top: 0;
+  width: 185px;
+  height: 32px;
+  overflow: hidden;
+  background: #000;
+  border-radius: 0 0 9px 9px;
+  animation-name: demo-prompter;
+}
+
+.demo-prompter::before,
+.demo-prompter::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40px;
+  z-index: 1;
+}
+
+.demo-prompter::before {
+  top: 0;
+  background: linear-gradient(#000, transparent);
+}
+
+.demo-prompter::after {
+  bottom: 0;
+  background: linear-gradient(transparent, #000);
+}
+
+.demo-script {
+  position: absolute;
+  top: 46px;
+  left: 0;
+  right: 0;
+  padding: 0 14px;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  font-size: 10px;
+  line-height: 20px;
+  text-align: center;
+  animation-name: demo-script;
+}
+
+.demo-script em {
+  color: rgb(255 255 255 / 0.4);
+}
+
+.demo-progress {
+  position: absolute;
+  top: 36px;
+  bottom: 12px;
+  right: 5px;
+  width: 4px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.15);
+  z-index: 2;
+}
+
+.demo-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.6);
+  transform-origin: top;
+  animation-name: demo-progress;
+}
+
+.demo-rec {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 12px #ef4444;
+  opacity: 0;
+  animation-name: demo-rec;
+}
+
+.demo-notch {
+  position: absolute;
+  left: 807.5px;
+  top: 36px;
+  width: 185px;
+  height: 32px;
+  background: #000;
+  border-radius: 0 0 9px 9px;
+}
+
+/* The concave corners where the notch meets the top edge of the screen. */
+.demo-notch::before,
+.demo-notch::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+}
+
+.demo-notch::before {
+  left: -8px;
+  background: radial-gradient(circle at 0 100%, transparent 7.5px, #000 8px);
+}
+
+.demo-notch::after {
+  right: -8px;
+  background: radial-gradient(circle at 100% 100%, transparent 7.5px, #000 8px);
+}
+
+.demo-lens {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  width: 11px;
+  height: 11px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #3b4a6b 0%, #141a2a 55%, #050608 100%);
+}
+
+.demo-led {
+  position: absolute;
+  left: calc(50% + 14px);
+  top: 16px;
+  width: 4px;
+  height: 4px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 4px #4ade80;
+  opacity: 0;
+  animation-name: demo-led;
+}
+
+.demo-base {
+  position: absolute;
+  left: 0;
+  top: 1188px;
+  width: 2000px;
+  height: 46px;
+  border-radius: 0 0 70px 70px / 0 0 46px 46px;
+  background: linear-gradient(#ededf0, #b9b9be 70%, #8e8e93);
+}
+
+.demo-base::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 320px;
+  height: 14px;
+  transform: translateX(-50%);
+  border-radius: 0 0 14px 14px;
+  background: linear-gradient(#a1a1a6, #c7c7cb);
+}
+
+/* Labels drawn over the frame at page size, positioned in percentages of
+   the frame. They match the zoomed view: the lens is at 25.4% from the top
+   and the readable part of the script at about 55%. */
+.demo-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #3f3f46;
+}
+
+@media (min-width: 640px) {
+  .demo-overlay { font-size: 13px; }
+}
+
+.demo-voice {
+  position: absolute;
+  left: 50%;
+  bottom: 4.5%;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.45em 0.9em 0.45em 0.75em;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 6px 18px -6px rgb(0 0 0 / 0.25);
+  white-space: nowrap;
+  opacity: 0;
+  animation-name: demo-voice;
+}
+
+.demo-bars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 1.1em;
+  animation-name: demo-bars;
+}
+
+.demo-bars i {
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: #18181b;
+  animation: demo-bar 0.9s ease-in-out infinite alternate;
+}
+
+.demo-bars i:nth-child(2) { animation-delay: -0.3s; }
+.demo-bars i:nth-child(3) { animation-delay: -0.6s; }
+.demo-bars i:nth-child(4) { animation-delay: -0.15s; }
+.demo-bars i:nth-child(5) { animation-delay: -0.45s; }
+
+.demo-voice span {
+  font-weight: 600;
+}
+
+.demo-voice-on { animation-name: demo-voice-on; }
+
+.demo-voice-off {
+  position: absolute;
+  left: calc(0.75em + 23px + 0.6em);
+  animation-name: demo-voice-off;
+}
+
+.demo-eyeline {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation-name: demo-eyeline;
+}
+
+.demo-eyeline-rule {
+  position: absolute;
+  left: 76%;
+  top: 25.4%;
+  height: 29.6%;
+  border-left: 1.5px dashed #52525b;
+}
+
+.demo-eyeline-rule::before,
+.demo-eyeline-rule::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  width: 7px;
+  border-top: 1.5px solid #52525b;
+}
+
+.demo-eyeline-rule::before { top: 0; }
+.demo-eyeline-rule::after { bottom: 0; }
+
+.demo-eyeline span {
+  position: absolute;
+  left: 77.5%;
+  transform: translateY(-50%);
+  font-weight: 600;
+}
+
+.demo-eyeline-cam { top: 25.4%; }
+.demo-eyeline-text { top: 55%; }
+
+.demo-rec-label {
+  position: absolute;
+  left: 3%;
+  top: 4%;
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.4em 0.8em;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 6px 18px -6px rgb(0 0 0 / 0.25);
+  font-weight: 600;
+  opacity: 0;
+  animation-name: demo-rec;
+}
+
+.demo-rec-label i {
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+.demo-captions {
+  position: relative;
+  height: 3.2em;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #52525b;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .demo-captions { font-size: 1rem; }
+}
+
+.demo-captions p {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+.demo-captions p:nth-child(1) { animation-name: demo-cap-1; }
+.demo-captions p:nth-child(2) { animation-name: demo-cap-2; }
+.demo-captions p:nth-child(3) { animation-name: demo-cap-3; }
+.demo-captions p:nth-child(4) { animation-name: demo-cap-4; }
+.demo-captions p:nth-child(5) { animation-name: demo-cap-5; }
+
+/* Timeline (18 s): wide view 0-8%, zoom to the notch 8-20%, the prompter
+   drops 22-30%, scrolls 30-44%, waits 44-52%, scrolls 52-64%, zoom out
+   64-74%, recording view 76-88%, the prompter goes back into the notch
+   92-98%. */
+@keyframes demo-camera {
+  0%, 8% { transform: var(--wide); animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  20%, 64% { transform: translate(var(--tx), var(--ty)) scale(var(--s)); animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  74%, 100% { transform: var(--wide); }
+}
+
+@keyframes demo-prompter {
+  0%, 22% { height: 32px; border-radius: 0 0 9px 9px; opacity: 1; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  30% { height: 150px; border-radius: 0 0 16px 16px; }
+  74% { opacity: 1; }
+  76%, 88% { opacity: 0; }
+  90% { opacity: 1; }
+  92% { height: 150px; border-radius: 0 0 16px 16px; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  98%, 100% { height: 32px; border-radius: 0 0 9px 9px; opacity: 1; }
+}
+
+@keyframes demo-script {
+  0%, 25% { transform: translateY(0); opacity: 0; }
+  30% { transform: translateY(0); opacity: 1; }
+  44%, 52% { transform: translateY(-60px); }
+  64%, 92% { transform: translateY(-120px); opacity: 1; }
+  95% { transform: translateY(-120px); opacity: 0; }
+  96%, 100% { transform: translateY(0); opacity: 0; }
+}
+
+@keyframes demo-progress {
+  0%, 30% { transform: scaleY(0); }
+  44%, 52% { transform: scaleY(0.23); }
+  64%, 95% { transform: scaleY(0.46); }
+  96%, 100% { transform: scaleY(0); }
+}
+
+@keyframes demo-led {
+  0%, 22% { opacity: 0; }
+  24%, 96% { opacity: 1; }
+  98%, 100% { opacity: 0; }
+}
+
+@keyframes demo-voice {
+  0%, 29% { opacity: 0; }
+  31%, 62% { opacity: 1; }
+  64%, 100% { opacity: 0; }
+}
+
+@keyframes demo-bars {
+  0%, 44% { transform: scaleY(1); }
+  45%, 51% { transform: scaleY(0.15); }
+  52%, 100% { transform: scaleY(1); }
+}
+
+@keyframes demo-voice-on {
+  0%, 44% { opacity: 1; }
+  45%, 51% { opacity: 0; }
+  52%, 100% { opacity: 1; }
+}
+
+@keyframes demo-voice-off {
+  0%, 44% { opacity: 0; }
+  45%, 51% { opacity: 1; }
+  52%, 100% { opacity: 0; }
+}
+
+@keyframes demo-bar {
+  from { transform: scaleY(0.3); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes demo-eyeline {
+  0%, 53% { opacity: 0; }
+  55%, 62% { opacity: 1; }
+  64%, 100% { opacity: 0; }
+}
+
+@keyframes demo-rec {
+  0%, 74% { opacity: 0; }
+  76%, 88% { opacity: 1; }
+  90%, 100% { opacity: 0; }
+}
+
+@keyframes demo-cap-1 {
+  0%, 1% { opacity: 0; }
+  2%, 19% { opacity: 1; }
+  20%, 100% { opacity: 0; }
+}
+
+@keyframes demo-cap-2 {
+  0%, 20% { opacity: 0; }
+  21%, 29% { opacity: 1; }
+  30%, 100% { opacity: 0; }
+}
+
+@keyframes demo-cap-3 {
+  0%, 30% { opacity: 0; }
+  31%, 52% { opacity: 1; }
+  53%, 100% { opacity: 0; }
+}
+
+@keyframes demo-cap-4 {
+  0%, 53% { opacity: 0; }
+  54%, 65% { opacity: 1; }
+  66%, 100% { opacity: 0; }
+}
+
+@keyframes demo-cap-5 {
+  0%, 66% { opacity: 0; }
+  67%, 96% { opacity: 1; }
+  97%, 100% { opacity: 0; }
+}
+
+/* A still frame: zoomed in, the script half scrolled. */
+@media (prefers-reduced-motion: reduce) {
+  .demo,
+  .demo-captions {
+    --t: 7.6s;
+  }
+
+  .demo .demo-anim,
+  .demo-captions .demo-anim,
+  .demo-bars i {
+    animation-play-state: paused;
+  }
+}

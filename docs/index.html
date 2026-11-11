@@ -57,8 +57,8 @@
     ]
   }
   </script>
-  <script type="module" crossorigin src="./assets/main-D4zcY92Q.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/main-CVBS1okw.css">
+  <script type="module" crossorigin src="./assets/main-DWCiydVl.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/main-BsoTInbF.css">
 </head>
 <body class="bg-stone-50 text-zinc-900 antialiased overflow-x-hidden">
 
@@ -97,7 +97,58 @@
   </section>
 
   <section class="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
-    <img src="./screenshot.png" width="1120" height="480" alt="Lafz Prompter showing a script with stage directions in brackets" class="w-full h-auto rounded-2xl shadow-xl" />
+    <div class="demo" id="demo" role="img" aria-label="Animation of a MacBook. The script drops down from the notch, scrolls while you speak and waits when you pause, and is left out of the screen recording.">
+      <div class="demo-stage">
+        <div class="demo-camera demo-anim">
+          <div class="demo-lid">
+            <div class="demo-screen">
+              <div class="demo-menubar">
+                <div class="demo-menubar-left"><b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span></div>
+                <div class="demo-menubar-right"><span class="logo-mark demo-menubar-icon">L</span><span>Wed 11 Nov</span><span>9:41</span></div>
+              </div>
+              <div class="demo-window">
+                <div class="demo-window-bar"><i></i><i></i><i></i><span>Camera</span></div>
+                <div class="demo-window-body">
+                  <div class="demo-person"><div class="demo-person-head"><i></i><i></i></div><div class="demo-person-body"></div></div>
+                </div>
+              </div>
+              <div class="demo-prompter demo-anim">
+                <div class="demo-script demo-anim">
+                  Hi, I'm Sara. <em>[smile]</em> Today I'll show you how I light a small room for video. <em>[pause]</em>
+                  First, sit facing a window. Daylight from the front is soft and costs nothing. <em>[look at the lens]</em>
+                  Second, put a lamp behind you, so that you stand out from the wall. <em>[pause]</em>
+                  Third, turn off the ceiling light. It casts shadows under your eyes.
+                </div>
+                <div class="demo-progress"><div class="demo-progress-fill demo-anim"></div></div>
+              </div>
+              <div class="demo-rec demo-anim"></div>
+            </div>
+            <div class="demo-notch"><div class="demo-lens"></div><div class="demo-led demo-anim"></div></div>
+          </div>
+          <div class="demo-base"></div>
+        </div>
+      </div>
+      <div class="demo-overlay" aria-hidden="true">
+        <div class="demo-voice demo-anim">
+          <div class="demo-bars demo-anim"><i></i><i></i><i></i><i></i><i></i></div>
+          <span class="demo-voice-on demo-anim">You speak, it scrolls</span>
+          <span class="demo-voice-off demo-anim">You pause, it waits</span>
+        </div>
+        <div class="demo-eyeline demo-anim">
+          <div class="demo-eyeline-rule"></div>
+          <span class="demo-eyeline-cam">Camera</span>
+          <span class="demo-eyeline-text">Your script</span>
+        </div>
+        <div class="demo-rec-label demo-anim"><i></i>What the recording sees</div>
+      </div>
+    </div>
+    <div class="demo-captions" aria-hidden="true">
+      <p class="demo-anim">Lafz Prompter lives in the notch, next to your camera.</p>
+      <p class="demo-anim">Press Play and your script drops down from the notch.</p>
+      <p class="demo-anim">It scrolls while you speak and waits when you pause.</p>
+      <p class="demo-anim">You read just below the lens, so you keep eye contact with your viewers.</p>
+      <p class="demo-anim">Screen recordings and screen shares do not show it.</p>
+    </div>
   </section>
 
   <section id="features" class="max-w-4xl mx-auto px-4 sm:px-6 pb-20">
