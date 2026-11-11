@@ -1,9 +1,17 @@
 import AVFoundation
 
+/// Where a session's finalized utterances come from. CallListener in the
+/// app; tests feed scripted ones.
+protocol UtteranceSource: AnyObject {
+    var utterances: AsyncStream<Utterance> { get }
+    func start() async throws
+    func stop() async
+}
+
 /// Listens to both sides of a call: the mic is "me", everything the Mac plays
 /// is "them". Each side has its own transcription channel, merged into one
 /// stream of finalized utterances.
-final class CallListener {
+final class CallListener: UtteranceSource {
     let utterances: AsyncStream<Utterance>
 
     private let continuation: AsyncStream<Utterance>.Continuation

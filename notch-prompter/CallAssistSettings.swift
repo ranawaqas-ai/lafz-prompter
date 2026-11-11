@@ -50,13 +50,14 @@ final class CallAssistSettings: ObservableObject {
         static func model(_ p: AssistProvider) -> String { "AssistModel.\(p.rawValue)" }
     }
 
-    init(defaults: UserDefaults = .standard) {
+    /// `hasKey` is for tests, which must not depend on the real Keychain.
+    init(defaults: UserDefaults = .standard, hasKey: (AssistProvider) -> Bool = KeychainStore.hasKey) {
         self.defaults = defaults
         provider = AssistProvider(rawValue: defaults.string(forKey: Keys.provider) ?? "") ?? .anthropic
         instructions = defaults.string(forKey: Keys.instructions) ?? Self.defaultInstructions
         includeScreen = defaults.object(forKey: Keys.includeScreen) as? Bool ?? true
         saveHistory = defaults.object(forKey: Keys.saveHistory) as? Bool ?? true
-        providersWithKey = Set(AssistProvider.allCases.filter(KeychainStore.hasKey))
+        providersWithKey = Set(AssistProvider.allCases.filter(hasKey))
         knowledgeSources = (defaults.stringArray(forKey: Keys.knowledgeSources) ?? []).map {
             URL(fileURLWithPath: $0)
         }

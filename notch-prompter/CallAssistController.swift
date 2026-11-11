@@ -46,8 +46,27 @@ final class CallAssistController: ObservableObject {
 
     var isActive: Bool { state != .idle }
 
+    /// What a session talks to outside the app. `live` in the app; tests
+    /// swap in fakes for the mic, the transcriber and the provider.
+    struct Dependencies {
+        var requestMicAccess: () async -> Bool
+        var makeListener: () -> UtteranceSource
+        var makeClient: (CallAssistSettings) -> AnswerProvider?
+        var history: AnswerHistoryStore
+        var registersHotKeys: Bool
+
+        static func live() -> Dependencies {
+            Dependencies(requestMicAccess: { await AVCaptureDevice.requestAccess(for: .audio) },
+                         makeListener: { CallListener() },
+                         makeClient: { $0.makeClient() },
+                         history: AnswerHistoryStore(),
+                         registersHotKeys: true)
+        }
+    }
+
     private let settings: CallAssistSettings
-    private var listener: CallListener?
+    private let dependencies: Dependencies
+    private var listener: UtteranceSource?
     private var knowledge = ""
     /// Made once per session, so the Keychain is read at start and never mid-call.
     private var client: AnswerProvider?
@@ -58,7 +77,7 @@ final class CallAssistController: ObservableObject {
     private var answerNowHotKey: HotKey?
     private var previousHotKey: HotKey?
     private var nextHotKey: HotKey?
-    let history = AnswerHistoryStore()
+    var history: AnswerHistoryStore { dependencies.history }
     private var sessionID = ""
     /// The answer still streaming, as an index into answers.
     private var streamingIndex: Int?
@@ -69,8 +88,10 @@ final class CallAssistController: ObservableObject {
     private let log = callAssistLog
     private static let transcriptSpan: TimeInterval = 5 * 60
 
-    init(settings: CallAssistSettings) {
+    init(settings: CallAssistSettings, dependencies: Dependencies = .live()) {
         self.settings = settings
+        self.dependencies = dependencies
+        guard dependencies.registersHotKeys else { return }
         toggleHotKey = HotKey(key: .a, modifiers: [.control, .option])
         toggleHotKey?.keyDownHandler = { [weak self] in self?.toggle() }
         answerNowHotKey = HotKey(key: .return, modifiers: [.control, .option])
@@ -101,7 +122,7 @@ final class CallAssistController: ObservableObject {
 
         listenTask = Task {
             do {
-                guard await AVCaptureDevice.requestAccess(for: .audio) else {
+                guard await dependencies.requestMicAccess() else {
                     throw CaptureError("Microphone access is off. Turn it on in System Settings > Privacy & Security > Microphone.")
                 }
                 let sources = settings.knowledgeSources
@@ -111,12 +132,12 @@ final class CallAssistController: ObservableObject {
                         ?? "The knowledge base is larger than the model's context window.")
                 }
                 knowledge = loaded.text
-                guard let client = settings.makeClient() else {
+                guard let client = dependencies.makeClient(settings) else {
                     throw CaptureError("No API key saved for \(settings.provider.displayName).")
                 }
                 self.client = client
 
-                let listener = CallListener()
+                let listener = dependencies.makeListener()
                 self.listener = listener
                 try await listener.start()
                 guard state == .starting else { return }

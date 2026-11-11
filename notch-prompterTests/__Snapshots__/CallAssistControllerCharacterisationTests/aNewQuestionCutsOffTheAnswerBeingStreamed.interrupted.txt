@@ -1,0 +1,32 @@
+state: listening
+notice: none
+error: none
+transcript:
+  them: What is your experience with Swift so far?
+  them: How would you design a rate limiter for an API?
+answers on screen:
+  [1] Q: What is your experience with Swift so far?
+      A: Well, the first 
+      model claude-haiku-5-5, latency measured, cut short true, saved true
+  [2] Q: What is your experience with Swift so far? How would you design a rate limiter for an API?
+      A: Second answer.
+      model claude-haiku-5-5, latency measured, cut short false, saved true
+requests to the provider:
+  [1] question: What is your experience with Swift so far?
+      screenshot: false, knowledge: none, ends with formatting rule: true
+      | Conversation so far:
+      | Them: What is your experience with Swift so far?
+      | 
+      | Answer this now:
+      | What is your experience with Swift so far?
+  [2] question: What is your experience with Swift so far? How would you design a rate limiter for an API?
+      screenshot: false, knowledge: none, ends with formatting rule: true
+      | Conversation so far:
+      | Them: What is your experience with Swift so far?
+      | Them: How would you design a rate limiter for an API?
+      | 
+      | Answer this now:
+      | What is your experience with Swift so far? How would you design a rate limiter for an API?
+history rows:
+  Q: What is your experience with Swift so far? | A: Well, the first  | cut short true
+  Q: What is your experience with Swift so far? How would you design a rate limiter for an API? | A: Second answer. | cut short false

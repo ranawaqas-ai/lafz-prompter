@@ -1,0 +1,7 @@
+state: idle
+notice: none
+error: none
+transcript:
+answers on screen:
+requests to the provider:
+history rows:

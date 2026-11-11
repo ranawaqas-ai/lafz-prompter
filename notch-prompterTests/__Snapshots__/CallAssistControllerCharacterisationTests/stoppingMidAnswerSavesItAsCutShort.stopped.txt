@@ -1,0 +1,19 @@
+state: idle
+notice: none
+error: none
+transcript:
+  them: What is your experience with Swift so far?
+answers on screen:
+  [1] Q: What is your experience with Swift so far?
+      A: Half an 
+      model claude-haiku-5-5, latency measured, cut short true, saved true
+requests to the provider:
+  [1] question: What is your experience with Swift so far?
+      screenshot: false, knowledge: none, ends with formatting rule: true
+      | Conversation so far:
+      | Them: What is your experience with Swift so far?
+      | 
+      | Answer this now:
+      | What is your experience with Swift so far?
+history rows:
+  Q: What is your experience with Swift so far? | A: Half an  | cut short true

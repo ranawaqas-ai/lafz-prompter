@@ -1,0 +1,18 @@
+state: listening
+notice: none
+error: none
+transcript:
+  them: What is your experience with Swift so far?
+answers on screen:
+  [1] Q: What is your experience with Swift so far?
+      A: Kept in memory only.
+      model claude-haiku-5-5, latency measured, cut short false, saved false
+requests to the provider:
+  [1] question: What is your experience with Swift so far?
+      screenshot: false, knowledge: none, ends with formatting rule: true
+      | Conversation so far:
+      | Them: What is your experience with Swift so far?
+      | 
+      | Answer this now:
+      | What is your experience with Swift so far?
+history rows:

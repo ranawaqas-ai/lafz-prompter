@@ -1,0 +1,6 @@
+start: 2/2 "What is your experience with Swift so far? How would you design a rate limiter for an API?" following newest: true
+previous: 1/2 "What is your experience with Swift so far?" following newest: false
+previous again: 1/2 "What is your experience with Swift so far?" following newest: false
+next: 2/2 "What is your experience with Swift so far? How would you design a rate limiter for an API?" following newest: true
+next again: 2/2 "What is your experience with Swift so far? How would you design a rate limiter for an API?" following newest: true
+new question while looking back: 3/3 "What is your experience with Swift so far? How would you design a rate limiter for an API? Why did you pick that approach over the others?" following newest: true

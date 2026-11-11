@@ -1,0 +1,7 @@
+state: idle
+notice: Call Assist could not start: Microphone access is off. Turn it on in System Settings > Privacy & Security > Microphone.
+error: Microphone access is off. Turn it on in System Settings > Privacy & Security > Microphone.
+transcript:
+answers on screen:
+requests to the provider:
+history rows:

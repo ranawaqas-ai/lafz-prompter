@@ -1,0 +1,10 @@
+state: listening
+notice: none
+error: none
+transcript:
+  them: Thanks, that was really great to hear from you.
+  me: What is your experience with Swift so far?
+  them: Okay.
+answers on screen:
+requests to the provider:
+history rows:
