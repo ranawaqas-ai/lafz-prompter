@@ -19,11 +19,13 @@ struct AnthropicProvider: AnswerProvider {
         var system: [[String: Any]] = [["type": "text", "text": request.instructions]]
         if !request.knowledge.isEmpty {
             // The breakpoint sits after the knowledge base, so every question
-            // in a call reuses the cached instructions and files.
+            // in a call reuses the cached instructions and files. One hour,
+            // because questions on a call can be more than the default five
+            // minutes apart.
             system.append([
                 "type": "text",
                 "text": "<knowledge_base>\n\(request.knowledge)\n</knowledge_base>",
-                "cache_control": ["type": "ephemeral"],
+                "cache_control": ["type": "ephemeral", "ttl": "1h"],
             ])
         }
         return [
