@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import Dependencies
 
 struct Script: Identifiable, Codable, Equatable {
     let id: UUID
@@ -19,19 +20,12 @@ final class ScriptLibrary: ObservableObject {
     /// The last import that failed, shown to the user until dismissed.
     @Published var importError: String?
 
-    private let fileURL: URL
+    @Dependency(\.scriptFiles) private var files
     private weak var viewModel: PrompterViewModel?
     private var textObserver: AnyCancellable?
     private var saveTask: Task<Void, Never>?
 
-    nonisolated static var defaultURL: URL {
-        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return support.appendingPathComponent("Lafz Prompter", isDirectory: true)
-            .appendingPathComponent("scripts.json")
-    }
-
-    init(fileURL: URL = ScriptLibrary.defaultURL) {
-        self.fileURL = fileURL
+    init() {
         load()
     }
 
@@ -95,13 +89,12 @@ final class ScriptLibrary: ObservableObject {
 
     /// A copied file is imported; copied text becomes a new script.
     func importClipboard() {
-        let pasteboard = NSPasteboard.general
-        if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL],
-           !urls.isEmpty {
-            importFiles(urls)
+        let clipboard = files.readClipboard()
+        if !clipboard.files.isEmpty {
+            importFiles(clipboard.files)
             return
         }
-        let text = ScriptImporter.normalise(pasteboard.string(forType: .string) ?? "")
+        let text = ScriptImporter.normalise(clipboard.text ?? "")
         guard !text.isEmpty else {
             importError = "The clipboard has no text in it. Copy your script first."
             return
@@ -111,15 +104,8 @@ final class ScriptLibrary: ObservableObject {
     }
 
     func showOpenPanel() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = ScriptImporter.contentTypes
-        panel.allowsMultipleSelection = true
-        panel.message = "Choose a script: text, Markdown, Word, RTF, HTML or PDF."
-        panel.prompt = "Load"
-        // The app is usually in the background behind the menu bar.
-        NSApp.activate()
-        guard panel.runModal() == .OK else { return }
-        importFiles(panel.urls)
+        guard let urls = files.chooseFiles() else { return }
+        importFiles(urls)
     }
 
     // MARK: Managing scripts
@@ -190,7 +176,7 @@ final class ScriptLibrary: ObservableObject {
     }
 
     private func load() {
-        guard let data = try? Data(contentsOf: fileURL),
+        guard let data = files.load(),
               let stored = try? JSONDecoder().decode(Stored.self, from: data) else { return }
         scripts = stored.scripts.sorted { $0.updatedAt > $1.updatedAt }
         currentID = stored.currentID
@@ -210,9 +196,7 @@ final class ScriptLibrary: ObservableObject {
     func flush() {
         saveTask?.cancel()
         do {
-            try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            let data = try JSONEncoder().encode(Stored(currentID: currentID, scripts: scripts))
-            try data.write(to: fileURL, options: .atomic)
+            try files.save(JSONEncoder().encode(Stored(currentID: currentID, scripts: scripts)))
         } catch {
             NSLog("Lafz Prompter could not save scripts: \(error.localizedDescription)")
         }

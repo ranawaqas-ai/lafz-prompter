@@ -1,14 +1,30 @@
+import Dependencies
 import Foundation
 import Testing
 @testable import LafzPrompter
 
 @MainActor
 struct ScriptLibraryTests {
-    private let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("scripts-\(UUID().uuidString).json")
+    /// The library file, the clipboard and the open panel, kept in memory.
+    /// Used only from the main actor.
+    final class MemoryFiles: @unchecked Sendable {
+        var data: Data?
+        var clipboard: (files: [URL], text: String?) = ([], nil)
+
+        var client: ScriptFilesClient {
+            ScriptFilesClient(load: { self.data }, save: { self.data = $0 },
+                              readClipboard: { self.clipboard }, chooseFiles: { nil })
+        }
+    }
+
+    private let files = MemoryFiles()
+
+    private func makeLibrary() -> ScriptLibrary {
+        withDependencies { $0.scriptFiles = files.client } operation: { ScriptLibrary() }
+    }
 
     @Test func addingMakesTheScriptCurrentAndSkipsDuplicates() {
-        let library = ScriptLibrary(fileURL: url)
+        let library = makeLibrary()
         let first = library.add(text: "Hello\nworld", title: nil)
         library.add(text: "Second", title: "Talk")
         #expect(library.current?.title == "Talk")
@@ -19,7 +35,7 @@ struct ScriptLibraryTests {
     }
 
     @Test func editsUpdateTheCurrentScriptAndItsDerivedTitle() {
-        let library = ScriptLibrary(fileURL: url)
+        let library = makeLibrary()
         library.add(text: "Old opening", title: nil)
         library.updateCurrent(text: "New opening\nmore")
         #expect(library.current?.title == "New opening")
@@ -31,7 +47,7 @@ struct ScriptLibraryTests {
     }
 
     @Test func deletingTheCurrentScriptMovesToTheNextAndNeverEmpties() {
-        let library = ScriptLibrary(fileURL: url)
+        let library = makeLibrary()
         let a = library.add(text: "A", title: nil)
         let b = library.add(text: "B", title: nil)
         library.delete(b.id)
@@ -42,12 +58,23 @@ struct ScriptLibraryTests {
     }
 
     @Test func survivesARestart() {
-        let library = ScriptLibrary(fileURL: url)
+        let library = makeLibrary()
         library.add(text: "Kept", title: "Keeper")
         library.flush()
-        let reopened = ScriptLibrary(fileURL: url)
+        let reopened = makeLibrary()
         #expect(reopened.current?.title == "Keeper")
-        try? FileManager.default.removeItem(at: url)
+    }
+
+    @Test func copiedTextBecomesANewScriptAndEmptyClipboardExplainsWhy() {
+        let library = makeLibrary()
+        files.clipboard = ([], "Copied opening\nmore")
+        library.importClipboard()
+        #expect(library.current?.title == "Copied opening")
+        #expect(library.importError == nil)
+        files.clipboard = ([], "   ")
+        library.importClipboard()
+        #expect(library.importError == "The clipboard has no text in it. Copy your script first.")
+        #expect(library.current?.title == "Copied opening")
     }
 
     @Test func titlesComeFromTheFirstLine() {
