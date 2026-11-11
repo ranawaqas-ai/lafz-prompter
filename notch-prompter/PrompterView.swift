@@ -286,7 +286,8 @@ struct PrompterContentView: View {
                             .fill(Color.black.opacity(0.6))
                             .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
                     )
-                    .padding(.bottom, 2)
+                    // Clear of the 24 px resize handle along the bottom edge.
+                    .padding(.bottom, 30)
                 }
                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 .animation(.easeInOut(duration: 0.2), value: showControls)
