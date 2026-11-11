@@ -23,14 +23,20 @@ final class PrompterWindow {
         hosting.wantsLayer = true
         hosting.layer?.masksToBounds = true
 
-        window = NSWindow(
+        // A non-activating panel: clicking or dragging the prompter leaves the
+        // app the user is in (a call, an editor) active, and does not bring
+        // the Settings window forward with it.
+        let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0,
                                 width: viewModel.prompterWidth,
                                 height: viewModel.prompterHeight),
-            styleMask: [.borderless],
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
+        panel.hidesOnDeactivate = false
+        panel.becomesKeyOnlyIfNeeded = true
+        window = panel
 
         window.isOpaque = false
         window.backgroundColor = .clear
