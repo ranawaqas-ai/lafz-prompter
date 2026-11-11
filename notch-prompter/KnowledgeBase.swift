@@ -23,6 +23,17 @@ enum KnowledgeBase {
         ".next", "target", "vendor", "__pycache__", ".venv", "venv",
     ]
 
+    /// Generated files that cost many tokens and answer no questions.
+    static let skippedFileNames: Set<String> = [
+        "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "Package.resolved",
+        "Podfile.lock", "Cargo.lock", "poetry.lock", "Gemfile.lock", "composer.lock", "go.sum",
+    ]
+
+    static func isGenerated(_ url: URL) -> Bool {
+        let name = url.lastPathComponent
+        return skippedFileNames.contains(name) || name.contains(".min.") || name.hasSuffix(".map")
+    }
+
     /// About four characters per token for English and code; good enough to
     /// warn before a context window overflows.
     static func estimateTokens(_ text: String) -> Int { (text.count + 3) / 4 }
@@ -61,8 +72,7 @@ enum KnowledgeBase {
             throw ProviderError(message: "Not found")
         }
         guard isDirectory.boolValue else { return [url] }
-        if let tracked = gitFiles(in: url) { return tracked }
-        return walk(url)
+        return (gitFiles(in: url) ?? walk(url)).filter { !isGenerated($0) }
     }
 
     /// Text of a file, or nil when it is binary or unreadable.

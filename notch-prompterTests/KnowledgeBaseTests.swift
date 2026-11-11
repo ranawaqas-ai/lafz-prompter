@@ -65,6 +65,18 @@ struct KnowledgeBaseTests {
         #expect(files == ["docs/guide.txt", "notes.md"])
     }
 
+    @Test func lockfilesAndMinifiedFilesAreSkipped() throws {
+        let fixture = try Fixture([
+            "app.js": Self.text,
+            "package-lock.json": Self.text,
+            "vendor.min.js": Self.text,
+            "app.js.map": Self.text,
+        ])
+
+        let files = fixture.names(try KnowledgeBase.files(in: fixture.root))
+        #expect(files == ["app.js"])
+    }
+
     @Test func binaryFilesAreLeftOutOfTheText() throws {
         let fixture = try Fixture([
             "a.txt": Data("alpha".utf8),
