@@ -20,6 +20,11 @@ final class Playback {
         didSet { if !isPrompterVisible, oldValue { stopListening() } }
     }
     var showMicrophoneAlert = false
+    /// Whether the prompter's global shortcuts are held; the app's setting,
+    /// passed on by AppCoordinator.
+    var shortcutsEnabled = true {
+        didSet { if shortcutsEnabled != oldValue { applyShortcutsSetting() } }
+    }
 
     /// While set, the scroll controls move this instead of the script; Call
     /// Assist uses it for its answer. Takes the distance, negative is up.
@@ -37,7 +42,7 @@ final class Playback {
     @ObservationIgnored private var timerCancellable: AnyCancellable?
     @ObservationIgnored private var lastTick: CFTimeInterval?
     @ObservationIgnored private var audioLevelCancellable: AnyCancellable?
-    @ObservationIgnored private var preferenceTasks: [Task<Void, Never>] = []
+    @ObservationIgnored private var voiceActivationTask: Task<Void, Never>?
 
     init(preferences: Preferences) {
         self.preferences = preferences
@@ -202,28 +207,19 @@ final class Playback {
     }
 
     private func applyShortcutsSetting() {
-        shortcuts.set(prompterShortcuts, on: preferences.enableGlobalKeyboardShortcuts)
+        shortcuts.set(prompterShortcuts, on: shortcutsEnabled)
     }
 
-    /// Voice activation and the global shortcuts setting, changed in Settings.
-    /// The first value of each is skipped: init already acted on it.
+    /// Voice activation, switched in Settings. The first value is skipped:
+    /// init already acted on it.
     private func followPreferences() {
         let preferences = preferences
-        preferenceTasks = [
-            Task { [weak self] in
-                var last = preferences.voiceActivation
-                for await enabled in Observations({ preferences.voiceActivation }) where enabled != last {
-                    last = enabled
-                    self?.voiceActivationChanged()
-                }
-            },
-            Task { [weak self] in
-                var last = preferences.enableGlobalKeyboardShortcuts
-                for await enabled in Observations({ preferences.enableGlobalKeyboardShortcuts }) where enabled != last {
-                    last = enabled
-                    self?.applyShortcutsSetting()
-                }
-            },
-        ]
+        voiceActivationTask = Task { [weak self] in
+            var last = preferences.voiceActivation
+            for await enabled in Observations({ preferences.voiceActivation }) where enabled != last {
+                last = enabled
+                self?.voiceActivationChanged()
+            }
+        }
     }
 }

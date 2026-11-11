@@ -24,10 +24,19 @@ final class AppCoordinator {
     /// Starts applying the rules. Each rule follows the state it depends on
     /// and acts when that state changes.
     func start() {
+        let preferences = preferences
         let playback = playback
         let scripts = scripts
         let callAssist = callAssist
+        // 5. One setting holds or releases every global shortcut, the
+        //    prompter's and Call Assist's. Applied now, then on each change.
+        applyShortcutsSetting()
         tasks = [
+            Task { [weak self] in
+                for await _ in Observations({ preferences.enableGlobalKeyboardShortcuts }) {
+                    self?.applyShortcutsSetting()
+                }
+            },
             // 1. Hiding the prompter ends a Call Assist session. (Playback
             //    stops voice listening itself when it is hidden.)
             Task {
@@ -51,5 +60,11 @@ final class AppCoordinator {
                 }
             },
         ]
+    }
+
+    private func applyShortcutsSetting() {
+        let enabled = preferences.enableGlobalKeyboardShortcuts
+        playback.shortcutsEnabled = enabled
+        callAssist.shortcutsEnabled = enabled
     }
 }

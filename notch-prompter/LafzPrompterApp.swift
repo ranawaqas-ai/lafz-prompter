@@ -50,23 +50,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let scripts = ScriptLibrary()
     private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
     private var prompterWindow: PrompterWindow!
-    private var shortcutsSettingTask: Task<Void, Never>?
     private var coordinator: AppCoordinator!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         scripts.ensureCurrentScript()
         prompterWindow = PrompterWindow(preferences: preferences, playback: playback,
                                         callAssist: callAssistController, scripts: scripts)
-        let preferences = preferences
         coordinator = AppCoordinator(preferences: preferences, playback: playback,
                                      scripts: scripts, callAssist: callAssistController)
         coordinator.start()
-        // One setting turns off every global shortcut, Call Assist's too.
-        shortcutsSettingTask = Task { [callAssistController] in
-            for await enabled in Observations({ preferences.enableGlobalKeyboardShortcuts }) {
-                callAssistController.shortcutsEnabled = enabled
-            }
-        }
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)
     }

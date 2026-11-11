@@ -17,6 +17,7 @@ struct GlobalShortcutsTests {
         let playback: Playback
         let settings: CallAssistSettings
         let controller: CallAssistController
+        let coordinator: AppCoordinator
         private let suite = "lafz-shortcut-tests-\(UUID().uuidString)"
 
         @MainActor
@@ -42,14 +43,18 @@ struct GlobalShortcutsTests {
                 return (settings, CallAssistController(settings: settings))
             }
             settings.includeScreen = false
+            let files = ScriptLibraryTests.MemoryFiles()
+            let scripts = withDependencies { $0.scriptFiles = files.client } operation: { ScriptLibrary() }
+            coordinator = AppCoordinator(preferences: preferences, playback: playback,
+                                         scripts: scripts, callAssist: controller)
+            coordinator.start()
         }
 
         deinit { UserDefaults().removePersistentDomain(forName: suite) }
 
-        /// The Settings switch, as AppDelegate passes it on to Call Assist.
+        /// The Settings switch; the coordinator passes it on.
         @MainActor func setShortcutsSetting(_ on: Bool) {
             preferences.enableGlobalKeyboardShortcuts = on
-            controller.shortcutsEnabled = on
         }
     }
 
