@@ -41,9 +41,9 @@ details summary {
   list-style: none;
 }
 
-/* One focus style for every control; the browser default is easy to miss on stone. */
+/* One focus style for every control; the browser default is easy to miss on paper. */
 :focus-visible {
-  outline: 2px solid #18181b;
+  outline: 2px solid theme('colors.accent');
   outline-offset: 3px;
 }
 
@@ -74,22 +74,22 @@ summary {
   align-items: center;
   justify-content: center;
   border-radius: 22%;
-  background: #18181b;
-  color: #fafaf9;
+  background: theme('colors.ink.DEFAULT');
+  color: theme('colors.paper');
   line-height: 1;
   font-weight: 800;
 }
 
 .feature {
-  @apply bg-white rounded-xl border border-zinc-200 p-6;
+  @apply bg-white rounded-xl border border-line p-6;
 }
 
 .feature h3 {
-  @apply text-sm font-semibold text-zinc-900 mb-1;
+  @apply text-sm font-semibold text-ink mb-1;
 }
 
 .feature p {
-  @apply text-sm text-zinc-500 leading-relaxed;
+  @apply text-sm text-muted leading-relaxed;
 }
 
 /* How-it-works animation.
@@ -114,7 +114,7 @@ summary {
   aspect-ratio: 2000 / 1260;
   overflow: hidden;
   border-radius: 1rem;
-  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f5f5f4 55%, #e7e5e4 100%);
+  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f3eee2 60%, #e8e0cc 100%);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 40px -12px rgb(0 0 0 / 0.18);
 }
 
@@ -163,9 +163,8 @@ summary {
   overflow: hidden;
   border-radius: 12px 12px 0 0;
   background:
-    radial-gradient(45% 55% at 18% 78%, rgb(255 255 255 / 0.45), transparent 70%),
-    radial-gradient(40% 50% at 85% 25%, rgb(255 214 170 / 0.75), transparent 70%),
-    linear-gradient(160deg, #f4d3b5 0%, #e8b6c4 38%, #a9bde6 72%, #7fa6cf 100%);
+    radial-gradient(45% 55% at 20% 75%, rgb(255 255 255 / 0.5), transparent 70%),
+    linear-gradient(160deg, #f1e6c8 0%, #cfe3c4 45%, #8fbf9f 75%, #5f9c7f 100%);
 }
 
 .demo-menubar {
@@ -435,7 +434,7 @@ summary {
   pointer-events: none;
   font-size: 11px;
   line-height: 1.2;
-  color: #3f3f46;
+  color: theme('colors.ink.DEFAULT');
 }
 
 @media (min-width: 640px) {
@@ -471,7 +470,7 @@ summary {
   width: 3px;
   height: 100%;
   border-radius: 2px;
-  background: #18181b;
+  background: theme('colors.accent');
   animation: demo-bar 0.9s ease-in-out infinite alternate;
 }
 
@@ -504,7 +503,7 @@ summary {
   left: 76%;
   top: 25.4%;
   height: 29.6%;
-  border-left: 1.5px dashed #52525b;
+  border-left: 1.5px dashed theme('colors.accent');
 }
 
 .demo-eyeline-rule::before,
@@ -513,7 +512,7 @@ summary {
   position: absolute;
   left: -4px;
   width: 7px;
-  border-top: 1.5px solid #52525b;
+  border-top: 1.5px solid theme('colors.accent');
 }
 
 .demo-eyeline-rule::before { top: 0; }
@@ -558,7 +557,7 @@ summary {
   margin-top: 1rem;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: #52525b;
+  color: theme('colors.muted');
   text-align: center;
 }
 
@@ -725,7 +724,7 @@ summary {
   height: 40px;
   border-radius: 999px;
   background: rgb(255 255 255 / 0.92);
-  color: #18181b;
+  color: theme('colors.ink.DEFAULT');
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 6px 18px -6px rgb(0 0 0 / 0.25);
   cursor: pointer;
   transition: background-color 150ms ease-out, transform 100ms ease-out;
