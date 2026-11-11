@@ -147,21 +147,6 @@ struct MenuContent: View {
 
         Divider()
 
-//        Button("Help translate") {
-//            if let url = URL(string: "https://simplelocalize.io/suggestions/?id=f1f11f9305dc44a2872b6a154dea6edc") {
-//                NSWorkspace.shared.open(url)
-//            }
-//        }
-//        #if !APP_STORE_VERSION
-        Button("Sponsor the project") {
-            if let url = URL(string: "https://jpomykala.gumroad.com/l/notchprompter") {
-                NSWorkspace.shared.open(url)
-            }
-        }
-//        #endif
-        
-        Divider()
-
         Button(role: .destructive) {
             NSApp.terminate(nil)
         } label: {
