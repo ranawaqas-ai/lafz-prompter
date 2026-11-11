@@ -15,7 +15,11 @@ final class CallAssistController: ObservableObject {
         case answering
     }
 
-    @Published private(set) var state: State = .idle
+    @Published private(set) var state: State = .idle {
+        didSet {
+            if state != oldValue { callAssistLog.info("state: \(String(describing: self.state), privacy: .public)") }
+        }
+    }
     @Published private(set) var transcript: [Utterance] = []
     @Published private(set) var question = ""
     @Published private(set) var answer = ""
@@ -49,7 +53,7 @@ final class CallAssistController: ObservableObject {
     private let screen = ScreenSnapshotter()
     /// Why screenshots are not being attached, for the Assist tab.
     @Published private(set) var screenProblem: String?
-    private let log = Logger(subsystem: "space.waqasrana.LafzPrompter", category: "CallAssist")
+    private let log = callAssistLog
     private static let transcriptSpan: TimeInterval = 5 * 60
 
     init(settings: CallAssistSettings) {
@@ -106,6 +110,7 @@ final class CallAssistController: ObservableObject {
             } catch is CancellationError {
             } catch {
                 self.error = error.localizedDescription
+                log.error("could not start: \(error.localizedDescription, privacy: .public)")
                 stop()
                 show(notice: "Call Assist could not start: \(error.localizedDescription)")
             }
@@ -157,7 +162,10 @@ final class CallAssistController: ObservableObject {
     }
 
     private func receive(_ utterance: Utterance) {
-        if QuestionDetector.isEcho(utterance, of: transcript) { return }
+        if QuestionDetector.isEcho(utterance, of: transcript) {
+            log.info("dropped mic echo of the speakers: \(utterance.text, privacy: .public)")
+            return
+        }
         if utterance.speaker == .them {
             // The mic copy of their words can land first.
             transcript.removeAll { QuestionDetector.isEcho($0, of: [utterance]) }
@@ -166,7 +174,10 @@ final class CallAssistController: ObservableObject {
         transcript.removeAll { utterance.endedAt.timeIntervalSince($0.endedAt) > Self.transcriptSpan }
 
         if let question = QuestionDetector.question(afterNew: utterance, in: transcript) {
+            log.info("question detected: \(question, privacy: .public)")
             answer(question, endedAt: utterance.endedAt, screenshot: currentScreenshot())
+        } else if utterance.speaker == .them {
+            log.info("not a question, no answer: \(utterance.text, privacy: .public)")
         }
     }
 
@@ -202,6 +213,7 @@ final class CallAssistController: ObservableObject {
             question: question,
             screenshot: screenshot)
 
+        log.info("asking \(self.settings.provider.displayName, privacy: .public) \(self.settings.model.id, privacy: .public): screenshot \(screenshot.map { "\($0.count / 1024) KB" } ?? "none", privacy: .public), knowledge \(self.knowledge.count / 4) tokens, transcript \(self.transcript.count) lines")
         answerTask = Task {
             var firstWord = true
             do {
@@ -219,9 +231,14 @@ final class CallAssistController: ObservableObject {
                 }
             } catch {
                 guard !Task.isCancelled else { return }
+                log.error("answer failed: \(error.localizedDescription, privacy: .public)")
                 answer = "Could not get an answer: \(error.localizedDescription)"
             }
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled else {
+                log.info("answer superseded by a newer question")
+                return
+            }
+            log.info("answer done, \(self.answer.count) characters")
             if state == .answering { state = .listening }
         }
     }

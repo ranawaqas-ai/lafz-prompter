@@ -2,6 +2,12 @@ import AVFoundation
 import CoreMedia
 import Speech
 import os
+import Accelerate
+
+/// One log per Call Assist session stage, readable live with
+/// `log stream --predicate 'subsystem == "space.waqasrana.LafzPrompter"'`.
+/// Transcript text is logged as public so it shows there; the log stays on this Mac.
+let callAssistLog = Logger(subsystem: "space.waqasrana.LafzPrompter", category: "CallAssist")
 
 enum Speaker: String {
     case me
@@ -34,6 +40,10 @@ final class TranscriptionChannel {
     /// Where the next buffer starts, in analyzer samples. Contiguous: the
     /// analyzer rejects overlaps and restarts recognition on any gap.
     private var nextSample: Int64 = 0
+    /// Audio level over the last few seconds, logged so a silent source shows.
+    private var levelPeak: Float = 0
+    private var levelBuffers = 0
+    private var levelSince = Date()
     /// The end of the audio fed so far and when it was fed, to map a result's
     /// audio time back to the clock. Written on the audio queue, read when a
     /// result arrives.
@@ -75,10 +85,12 @@ final class TranscriptionChannel {
                     // Their words ended this long before the newest audio fed.
                     let fed = fedUntil.withLock { $0 }
                     let end = fed.at.addingTimeInterval(result.range.end.seconds - fed.seconds)
+                    let lag = Date().timeIntervalSince(end)
+                    callAssistLog.info("transcript [\(speaker.rawValue, privacy: .public)] \(text, privacy: .public) (arrived \(lag, format: .fixed(precision: 2)) s after speech)")
                     continuation.yield(Utterance(speaker: speaker, text: text, endedAt: end))
                 }
             } catch {
-                // Analysis ended with an error; the channel just goes quiet.
+                callAssistLog.error("transcription [\(speaker.rawValue, privacy: .public)] stopped: \(error.localizedDescription, privacy: .public)")
             }
         }
         try await analyzer.start(inputSequence: inputs)
@@ -88,6 +100,7 @@ final class TranscriptionChannel {
     /// is only valid during the call: it is converted into a new buffer here.
     func append(_ buffer: AVAudioPCMBuffer) {
         guard let analyzerFormat, buffer.frameLength > 0 else { return }
+        recordLevel(buffer)
         if converter?.inputFormat != buffer.format {
             converter = AVAudioConverter(from: buffer.format, to: analyzerFormat)
         }
@@ -115,6 +128,23 @@ final class TranscriptionChannel {
         let fedSeconds = Double(nextSample) / rate
         fedUntil.withLock { $0 = (fedSeconds, Date()) }
         inputContinuation.yield(AnalyzerInput(buffer: output, bufferStartTime: start))
+    }
+
+    /// Logs the peak level every 5 seconds: 0 means this side hears nothing.
+    private func recordLevel(_ buffer: AVAudioPCMBuffer) {
+        if let samples = buffer.floatChannelData?[0] {
+            let count = buffer.format.isInterleaved
+                ? Int(buffer.frameLength) * Int(buffer.format.channelCount) : Int(buffer.frameLength)
+            var rms: Float = 0
+            vDSP_rmsqv(samples, 1, &rms, vDSP_Length(count))
+            levelPeak = max(levelPeak, rms)
+        }
+        levelBuffers += 1
+        guard Date().timeIntervalSince(levelSince) >= 5 else { return }
+        callAssistLog.info("audio [\(self.speaker.rawValue, privacy: .public)] last 5 s: \(self.levelBuffers) buffers, peak level \(self.levelPeak, format: .fixed(precision: 3)) (\(buffer.format.sampleRate, format: .fixed(precision: 0)) Hz, \(buffer.format.channelCount) ch)")
+        levelPeak = 0
+        levelBuffers = 0
+        levelSince = Date()
     }
 
     func stop() async {

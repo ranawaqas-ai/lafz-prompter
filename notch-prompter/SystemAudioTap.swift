@@ -85,6 +85,7 @@ final class SystemAudioTap {
             onBuffer(buffer)
         }, "attach to the capture device")
         try check(AudioDeviceStart(aggregateID, procID), "start system audio capture")
+        callAssistLog.info("system audio tap started: \(format.description, privacy: .public), following output device \(outputUID as String, privacy: .public)")
     }
 
     private func stopDevice() {
