@@ -15,6 +15,11 @@ enum KeychainStore {
         return String(data: data, encoding: .utf8)
     }
 
+    /// Checks for a key without reading it, so no Keychain prompt appears.
+    static func hasKey(for provider: AssistProvider) -> Bool {
+        SecItemCopyMatching(baseQuery(provider) as CFDictionary, nil) == errSecSuccess
+    }
+
     static func save(_ key: String, for provider: AssistProvider) throws {
         delete(for: provider)
         var item = baseQuery(provider)

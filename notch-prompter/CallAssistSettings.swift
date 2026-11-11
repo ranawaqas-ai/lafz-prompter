@@ -45,7 +45,7 @@ final class CallAssistSettings: ObservableObject {
         self.defaults = defaults
         provider = AssistProvider(rawValue: defaults.string(forKey: Keys.provider) ?? "") ?? .anthropic
         instructions = defaults.string(forKey: Keys.instructions) ?? Self.defaultInstructions
-        providersWithKey = Set(AssistProvider.allCases.filter { KeychainStore.key(for: $0) != nil })
+        providersWithKey = Set(AssistProvider.allCases.filter(KeychainStore.hasKey))
         knowledgeSources = (defaults.stringArray(forKey: Keys.knowledgeSources) ?? []).map {
             URL(fileURLWithPath: $0)
         }
