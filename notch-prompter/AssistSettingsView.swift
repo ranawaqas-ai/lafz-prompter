@@ -21,9 +21,13 @@ struct AssistTabView: View {
 
                 Divider()
 
-                InstructionsSection(settings: settings)
-                    .disabled(!settings.isAvailable)
-                    .opacity(settings.isAvailable ? 1 : 0.5)
+                Group {
+                    InstructionsSection(settings: settings)
+                    Divider()
+                    KnowledgeSection(settings: settings)
+                }
+                .disabled(!settings.isAvailable)
+                .opacity(settings.isAvailable ? 1 : 0.5)
             }
             .padding(16)
         }
@@ -172,5 +176,81 @@ private struct InstructionsSection: View {
                 .padding(6)
                 .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 6))
         }
+    }
+}
+
+private struct KnowledgeSection: View {
+    @ObservedObject var settings: CallAssistSettings
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Knowledge base")
+                    .font(.system(size: 13, weight: .medium))
+                Spacer()
+                Button("Add Files…") { choose(folders: false) }
+                Button("Add Folder…") { choose(folders: true) }
+            }
+            Text("Documents (text, Markdown, PDF) or a code folder. Folders in a git repo follow its .gitignore; binary files are skipped. Everything is sent with each question and cached by the provider.")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+
+            ForEach(settings.knowledgeSources, id: \.self) { url in
+                HStack {
+                    Image(systemName: url.hasDirectoryPath ? "folder" : "doc")
+                        .foregroundStyle(.secondary)
+                    Text(url.lastPathComponent)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .help(url.path)
+                    Spacer()
+                    Text(detail(for: url))
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                    Button {
+                        settings.removeKnowledgeSource(url)
+                    } label: {
+                        Image(systemName: "minus.circle")
+                    }
+                    .buttonStyle(.borderless)
+                }
+                .font(.system(size: 12))
+            }
+
+            HStack {
+                Text("Total")
+                Spacer()
+                if let tokens = settings.knowledgeTokens {
+                    Text("≈\(tokens.formatted()) of \(settings.contextWindow.formatted()) tokens")
+                        .monospacedDigit()
+                } else {
+                    ProgressView().controlSize(.small)
+                }
+            }
+            .font(.system(size: 12, weight: .medium))
+
+            if let overflow = settings.knowledgeOverflowMessage {
+                Text(overflow)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
+    private func detail(for url: URL) -> String {
+        guard let source = settings.knowledgeSummary?.first(where: { $0.url == url }) else { return "counting…" }
+        if let error = source.error { return error }
+        let files = source.fileCount == 1 ? "1 file" : "\(source.fileCount) files"
+        return "\(files), ≈\(source.tokens.formatted()) tokens"
+    }
+
+    private func choose(folders: Bool) {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = !folders
+        panel.canChooseDirectories = folders
+        panel.allowsMultipleSelection = true
+        guard panel.runModal() == .OK else { return }
+        settings.addKnowledgeSources(panel.urls)
     }
 }
