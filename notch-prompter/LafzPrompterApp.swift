@@ -42,6 +42,9 @@ struct LafzPrompterApp: App {
     }
 }
 
+/// Creates the feature models, the prompter window and the coordinator that
+/// applies the rules between them. Services come from the dependency
+/// container (notch-prompter/Services).
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let preferences = Preferences()
@@ -49,13 +52,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let callAssist = CallAssistSettings()
     let scripts = ScriptLibrary()
     private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
-    private var prompterWindow: PrompterWindow!
+    private var prompterWindow: PrompterWindowController!
     private var coordinator: AppCoordinator!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         scripts.ensureCurrentScript()
-        prompterWindow = PrompterWindow(preferences: preferences, playback: playback,
-                                        callAssist: callAssistController, scripts: scripts)
+        prompterWindow = PrompterWindowController(preferences: preferences, playback: playback,
+                                                  callAssist: callAssistController, scripts: scripts)
         coordinator = AppCoordinator(preferences: preferences, playback: playback,
                                      scripts: scripts, callAssist: callAssistController,
                                      panel: prompterWindow)

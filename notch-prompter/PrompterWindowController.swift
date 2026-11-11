@@ -8,20 +8,19 @@ protocol PrompterPanel: AnyObject {
     var isHiddenFromScreenSharing: Bool { get set }
 }
 
+/// Sizes, places, shows and hides the prompter's panel under the notch.
+/// What it shows and when is decided elsewhere.
 @MainActor
-final class PrompterWindow: PrompterPanel {
+final class PrompterWindowController: PrompterPanel {
     private var window: NSWindow!
     private let preferences: Preferences
     private let playback: Playback
-    private let callAssist: CallAssistController
     private var layoutTask: Task<Void, Never>?
     private var visibilityTask: Task<Void, Never>?
 
-    @MainActor
     init(preferences: Preferences, playback: Playback, callAssist: CallAssistController, scripts: ScriptLibrary) {
         self.preferences = preferences
         self.playback = playback
-        self.callAssist = callAssist
 
         let contentView = PrompterRootView()
             .environment(preferences)
