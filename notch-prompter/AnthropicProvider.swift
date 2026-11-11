@@ -39,7 +39,7 @@ struct AnthropicProvider: AnswerProvider {
             // Low effort keeps thinking short: the user is waiting mid-call.
             "output_config": ["effort": "low"],
             "system": system,
-            "messages": [["role": "user", "content": request.userMessage]],
+            "messages": [["role": "user", "content": Self.userContent(for: request)]],
         ]
         if Self.hasServerFallback(model) {
             // If a safety classifier declines, the API reruns the request on a
@@ -47,6 +47,17 @@ struct AnthropicProvider: AnswerProvider {
             body["fallbacks"] = "default"
         }
         return body
+    }
+
+    /// The question as text, after the screenshot when there is one.
+    static func userContent(for request: AnswerRequest) -> Any {
+        guard let screenshot = request.screenshot else { return request.userMessage }
+        return [
+            ["type": "image", "source": [
+                "type": "base64", "media_type": "image/jpeg", "data": screenshot.base64EncodedString(),
+            ]],
+            ["type": "text", "text": request.userMessage],
+        ]
     }
 
     /// Sonnet 5.5, Opus 5.5 and Fable 5.2 support server-side fallback;

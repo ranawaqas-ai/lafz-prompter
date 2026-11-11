@@ -66,11 +66,16 @@ struct AnswerRequest {
     var knowledge: String
     var transcript: String
     var question: String
+    /// A JPEG of the user's screen at the time of the question, if enabled.
+    var screenshot: Data? = nil
 
     var userMessage: String {
         var parts: [String] = []
         if !transcript.isEmpty {
             parts.append("Conversation so far:\n\(transcript)")
+        }
+        if screenshot != nil {
+            parts.append("A screenshot of my screen right now is attached; use it if the question refers to what is on screen.")
         }
         parts.append("Answer this now:\n\(question)")
         return parts.joined(separator: "\n\n")

@@ -26,8 +26,20 @@ struct OpenAIProvider: AnswerProvider {
             "stream": true,
             "max_output_tokens": 4096,
             "instructions": instructions,
-            "input": request.userMessage,
+            "input": Self.input(for: request),
         ]
+    }
+
+    /// The question as text, with the screenshot as an image part when there is one.
+    static func input(for request: AnswerRequest) -> Any {
+        guard let screenshot = request.screenshot else { return request.userMessage }
+        return [[
+            "role": "user",
+            "content": [
+                ["type": "input_image", "image_url": "data:image/jpeg;base64,\(screenshot.base64EncodedString())"],
+                ["type": "input_text", "text": request.userMessage],
+            ],
+        ]]
     }
 
     /// Text from a `response.output_text.delta` event; throws on failure events.

@@ -100,3 +100,28 @@ struct AnswerRequestTests {
         #expect(withTranscript.userMessage.hasPrefix("Conversation so far:\nthem: hi"))
     }
 }
+
+struct ScreenshotRequestTests {
+    private let request = AnswerRequest(instructions: "i", knowledge: "", transcript: "", question: "q",
+                                        screenshot: Data([0xFF, 0xD8]))
+
+    @Test func anthropicSendsTheImageBeforeTheText() {
+        let blocks = AnthropicProvider.userContent(for: request) as? [[String: Any]]
+        #expect(blocks?.map { $0["type"] as? String } == ["image", "text"])
+        let source = blocks?.first?["source"] as? [String: Any]
+        #expect(source?["data"] as? String == Data([0xFF, 0xD8]).base64EncodedString())
+    }
+
+    @Test func openAISendsTheImageAsADataURL() {
+        let input = OpenAIProvider.input(for: request) as? [[String: Any]]
+        let parts = input?.first?["content"] as? [[String: Any]]
+        #expect((parts?.first?["image_url"] as? String)?.hasPrefix("data:image/jpeg;base64,") == true)
+    }
+
+    @Test func withoutAScreenshotTheQuestionStaysPlainText() {
+        let plain = AnswerRequest(instructions: "i", knowledge: "", transcript: "", question: "q")
+        #expect(AnthropicProvider.userContent(for: plain) as? String == plain.userMessage)
+        #expect(OpenAIProvider.input(for: plain) as? String == plain.userMessage)
+        #expect(!plain.userMessage.contains("screenshot"))
+    }
+}
