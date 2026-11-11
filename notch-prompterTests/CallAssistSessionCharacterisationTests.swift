@@ -58,7 +58,7 @@ struct CallAssistSessionCharacterisationTests {
         }
     }
 
-    /// Screen capture that never has a screenshot.
+    /// Screen capture holding whatever screenshot or problem the test sets.
     @MainActor
     final class FakeScreen: ScreenCapture {
         var latest: ScreenSnapshotter.Snapshot?
@@ -72,7 +72,7 @@ struct CallAssistSessionCharacterisationTests {
     /// providers with an API key saved.
     static func useFakes(_ values: inout DependencyValues, defaults: UserDefaults, keys: Set<AssistProvider>,
                          micAllowed: Bool = true, listener: FakeListener, provider: FakeProvider,
-                         history: AnswerHistoryStore, shortcuts: GlobalShortcuts) {
+                         history: AnswerHistoryStore, shortcuts: GlobalShortcuts, screen: FakeScreen? = nil) {
         values.settingsStorage = defaults
         values.keychain = KeychainClient(
             hasKey: { keys.contains($0) },
@@ -83,7 +83,7 @@ struct CallAssistSessionCharacterisationTests {
         values.micPermission = MicPermissionClient(status: { micAllowed ? .authorized : .denied },
                                                    request: { micAllowed })
         values.utteranceSource = UtteranceSourceClient(make: { listener })
-        values.screenCapture = ScreenCaptureClient(make: { FakeScreen() })
+        values.screenCapture = ScreenCaptureClient(make: { screen ?? FakeScreen() })
         values.answerHistory = history
         values.globalShortcuts = shortcuts
     }
@@ -92,6 +92,7 @@ struct CallAssistSessionCharacterisationTests {
     /// throwaway history file.
     final class Harness {
         let listener = FakeListener()
+        let screen = FakeScreen()
         let provider: FakeProvider
         let settings: CallAssistSettings
         let controller: CallAssistSession
@@ -101,23 +102,24 @@ struct CallAssistSessionCharacterisationTests {
 
         @MainActor
         init(_ replies: [FakeProvider.Reply] = [], hasKey: Bool = true, micAllowed: Bool = true,
-             saveHistory: Bool = true) {
+             saveHistory: Bool = true, includeScreen: Bool = false) {
             let provider = FakeProvider(replies)
             self.provider = provider
             let defaults = UserDefaults(suiteName: suiteName)!
             let listener = listener
+            let screen = screen
             let historyURL = historyURL
             (settings, controller) = withDependencies {
                 CallAssistSessionCharacterisationTests.useFakes(
                     &$0, defaults: defaults, keys: hasKey ? Set(AssistProvider.allCases) : [],
                     micAllowed: micAllowed, listener: listener, provider: provider,
                     history: AnswerHistoryStore(url: historyURL),
-                    shortcuts: GlobalShortcuts(registersWithSystem: false))
+                    shortcuts: GlobalShortcuts(registersWithSystem: false), screen: screen)
             } operation: {
                 let settings = CallAssistSettings()
                 return (settings, CallAssistSession(settings: settings))
             }
-            settings.includeScreen = false
+            settings.includeScreen = includeScreen
             settings.saveHistory = saveHistory
         }
 
@@ -218,6 +220,26 @@ struct CallAssistSessionCharacterisationTests {
         h.listener.say("What is your experience with Swift so far?")
         await until { h.controller.answers.first?.answer.hasSuffix("only.") == true && h.controller.state == .listening }
         assertSnapshot(of: Self.report(h), as: .lines, named: "history-off")
+    }
+
+    @Test func answersCarryTheScreenshotWhenScreenIsOn() async {
+        let h = Harness([.answer(["Use a hash map."]), .answer(["Solved."])], includeScreen: true)
+        h.screen.latest = ScreenSnapshotter.Snapshot(jpeg: Data(repeating: 7, count: 2048), capturedAt: Date())
+        await started(h)
+        h.listener.say("How would you solve the problem on your screen?")
+        await until { h.controller.answers.first?.answer == "Use a hash map." && h.controller.state == .listening }
+        h.controller.solveScreen()
+        await until { h.controller.answers.count == 2 && h.controller.answers[1].answer == "Solved." && h.controller.state == .listening }
+        assertSnapshot(of: Self.report(h), as: .lines, named: "screenshot")
+    }
+
+    @Test func solvingTheScreenWithoutAScreenshotExplainsWhy() async {
+        let h = Harness()
+        h.screen.problem = "Screen capture is off. Allow Lafz Prompter in System Settings."
+        await started(h)
+        h.controller.solveScreen()
+        await until { h.controller.notice != nil }
+        assertSnapshot(of: Self.report(h), as: .lines, named: "no-screenshot")
     }
 
     @Test func withoutAKeyStartDoesNothing() async {

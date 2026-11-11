@@ -1,0 +1,34 @@
+state: listening
+notice: none
+error: none
+transcript:
+  them: How would you solve the problem on your screen?
+answers on screen:
+  [1] Q: How would you solve the problem on your screen?
+      A: Use a hash map.
+      model claude-haiku-5-5, latency measured, cut short false, saved true
+  [2] Q: Answer or solve what is on my screen.
+      A: Solved.
+      model claude-haiku-5-5, latency measured, cut short false, saved true
+requests to the provider:
+  [1] question: How would you solve the problem on your screen?
+      screenshot: true, knowledge: none, ends with formatting rule: true
+      | Conversation so far:
+      | Them: How would you solve the problem on your screen?
+      | 
+      | A screenshot of my screen right now is attached; use it if the question refers to what is on screen.
+      | 
+      | Answer this now:
+      | How would you solve the problem on your screen?
+  [2] question: Answer or solve what is on my screen.
+      screenshot: true, knowledge: none, ends with formatting rule: true
+      | Conversation so far:
+      | Them: How would you solve the problem on your screen?
+      | 
+      | A screenshot of my screen right now is attached; use it if the question refers to what is on screen.
+      | 
+      | Answer this now:
+      | Answer or solve what is on my screen.
+history rows:
+  Q: How would you solve the problem on your screen? | A: Use a hash map. | cut short false
+  Q: Answer or solve what is on my screen. | A: Solved. | cut short false

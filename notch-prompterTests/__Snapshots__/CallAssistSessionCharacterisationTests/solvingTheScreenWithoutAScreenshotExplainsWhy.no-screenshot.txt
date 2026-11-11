@@ -1,0 +1,7 @@
+state: listening
+notice: Screen capture is off. Allow Lafz Prompter in System Settings.
+error: none
+transcript:
+answers on screen:
+requests to the provider:
+history rows:
