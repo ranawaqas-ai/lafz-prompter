@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreMedia
 import Speech
+import os
 
 enum Speaker: String {
     case me
@@ -30,13 +31,13 @@ final class TranscriptionChannel {
     // Touched only on the audio queue that calls append(_:).
     private var analyzerFormat: AVAudioFormat?
     private var converter: AVAudioConverter?
-    /// Wall-clock time of audio position zero; buffers are stamped against it
-    /// so result ranges map back to when words were spoken.
-    private let clockStart = Date()
-    /// Where the next buffer starts, in analyzer samples. The analyzer rejects
-    /// overlapping timestamps, so positions advance by sample count and only
-    /// jump ahead when the clock shows a real gap in the audio.
+    /// Where the next buffer starts, in analyzer samples. Contiguous: the
+    /// analyzer rejects overlaps and restarts recognition on any gap.
     private var nextSample: Int64 = 0
+    /// The end of the audio fed so far and when it was fed, to map a result's
+    /// audio time back to the clock. Written on the audio queue, read when a
+    /// result arrives.
+    private let fedUntil = OSAllocatedUnfairLock(initialState: (seconds: 0.0, at: Date()))
 
     init(speaker: Speaker) {
         self.speaker = speaker
@@ -64,14 +65,16 @@ final class TranscriptionChannel {
         let analyzer = SpeechAnalyzer(modules: [transcriber])
         self.analyzer = analyzer
         let speaker = speaker
-        let clockStart = clockStart
+        let fedUntil = fedUntil
         let continuation = utteranceContinuation
         resultsTask = Task {
             do {
                 for try await result in transcriber.results {
                     let text = String(result.text.characters).trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !text.isEmpty else { continue }
-                    let end = clockStart.addingTimeInterval(result.range.end.seconds)
+                    // Their words ended this long before the newest audio fed.
+                    let fed = fedUntil.withLock { $0 }
+                    let end = fed.at.addingTimeInterval(result.range.end.seconds - fed.seconds)
                     continuation.yield(Utterance(speaker: speaker, text: text, endedAt: end))
                 }
             } catch {
@@ -107,11 +110,10 @@ final class TranscriptionChannel {
         guard error == nil, output.frameLength > 0 else { return }
 
         let rate = analyzerFormat.sampleRate
-        let arrivedAt = Date().timeIntervalSince(clockStart)
-        let clockSample = Int64((arrivedAt - Double(output.frameLength) / rate) * rate)
-        if clockSample - nextSample > Int64(rate / 4) { nextSample = clockSample }
         let start = CMTime(value: nextSample, timescale: CMTimeScale(rate))
         nextSample += Int64(output.frameLength)
+        let fedSeconds = Double(nextSample) / rate
+        fedUntil.withLock { $0 = (fedSeconds, Date()) }
         inputContinuation.yield(AnalyzerInput(buffer: output, bufferStartTime: start))
     }
 
