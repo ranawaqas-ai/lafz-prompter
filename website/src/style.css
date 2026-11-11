@@ -82,6 +82,29 @@ summary {
   @apply text-sm text-muted leading-relaxed;
 }
 
+/* The hero text and the animation share the first screen. Stacked on narrow
+   windows, where 33rem is the text above the animation plus its caption; side
+   by side from 1024px, where 10rem is the nav, the caption and the margins.
+   The animation is sized from the window height as well as its width. */
+.demo-fit {
+  width: min(100%, max(22rem, calc((100svh - 33rem) * 2000 / 1260)));
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: center;
+    gap: 3rem;
+    min-height: 100svh;
+  }
+
+  .demo-fit {
+    width: min(100%, calc((100svh - 10rem) * 2000 / 1260));
+  }
+}
+
 /* How-it-works animation.
    The stage is drawn in the logical points of a 16-inch MacBook Pro at its
    default scale (1728 x 1117 screen, 185 x 32 notch), and the prompter uses
