@@ -21,8 +21,15 @@ final class CallAssistController: ObservableObject {
         }
     }
     @Published private(set) var transcript: [Utterance] = []
-    @Published private(set) var question = ""
-    @Published private(set) var answer = ""
+    /// This session's answers, oldest first, including ones a newer question
+    /// cut short. Each is also saved to the history file when that is on.
+    @Published private(set) var answers: [AnswerRecord] = []
+    /// The answer being shown when the user has gone back; nil follows the newest.
+    @Published private(set) var viewing: Int?
+
+    var displayedIndex: Int? { answers.isEmpty ? nil : min(viewing ?? answers.count - 1, answers.count - 1) }
+    var question: String { displayedIndex.map { answers[$0].question } ?? "" }
+    var answer: String { displayedIndex.map { answers[$0].answer } ?? "" }
     @Published private(set) var error: String?
     /// Seconds from the end of their question to the first answer word, for
     /// the latest answer. The plan's target is a median of 3 s or less.
@@ -49,6 +56,12 @@ final class CallAssistController: ObservableObject {
     private var answerTask: Task<Void, Never>?
     private var toggleHotKey: HotKey?
     private var answerNowHotKey: HotKey?
+    private var previousHotKey: HotKey?
+    private var nextHotKey: HotKey?
+    let history = AnswerHistoryStore()
+    private var sessionID = ""
+    /// The answer still streaming, as an index into answers.
+    private var streamingIndex: Int?
     private var solveScreenHotKey: HotKey?
     private let screen = ScreenSnapshotter()
     /// Why screenshots are not being attached, for the Assist tab.
@@ -64,6 +77,10 @@ final class CallAssistController: ObservableObject {
         answerNowHotKey?.keyDownHandler = { [weak self] in self?.answerNow() }
         solveScreenHotKey = HotKey(key: .s, modifiers: [.control, .option])
         solveScreenHotKey?.keyDownHandler = { [weak self] in self?.solveScreen() }
+        previousHotKey = HotKey(key: .leftBracket, modifiers: [.control, .option])
+        previousHotKey?.keyDownHandler = { [weak self] in self?.showPrevious() }
+        nextHotKey = HotKey(key: .rightBracket, modifiers: [.control, .option])
+        nextHotKey?.keyDownHandler = { [weak self] in self?.showNext() }
     }
 
     func toggle() {
@@ -75,8 +92,10 @@ final class CallAssistController: ObservableObject {
         state = .starting
         error = nil
         transcript = []
-        question = ""
-        answer = ""
+        answers = []
+        viewing = nil
+        streamingIndex = nil
+        sessionID = UUID().uuidString
         lastLatency = nil
         clearNotice()
 
@@ -118,6 +137,7 @@ final class CallAssistController: ObservableObject {
     }
 
     func stop() {
+        finishStreaming(interrupted: true)
         answerTask?.cancel()
         answerTask = nil
         listenTask?.cancel()
@@ -200,11 +220,43 @@ final class CallAssistController: ObservableObject {
         notice = nil
     }
 
+    /// Shows the answer before the one on screen.
+    func showPrevious() {
+        guard let index = displayedIndex, index > 0 else { return }
+        viewing = index - 1
+    }
+
+    /// Shows the answer after the one on screen; past the newest, follows it.
+    func showNext() {
+        guard let index = displayedIndex, index < answers.count - 1 else { return }
+        viewing = index + 1 == answers.count - 1 ? nil : index + 1
+    }
+
+    /// Saves the streaming answer as it stands and stops tracking it.
+    private func finishStreaming(interrupted: Bool) {
+        guard let index = streamingIndex, answers.indices.contains(index) else { return }
+        answers[index].interrupted = interrupted
+        save(answers[index])
+        streamingIndex = nil
+    }
+
+    private func save(_ record: AnswerRecord) {
+        guard settings.saveHistory, record.id != 0 else { return }
+        history.update(record)
+    }
+
     private func answer(_ question: String, endedAt: Date, screenshot: Data?) {
-        answerTask?.cancel()
         guard let client else { return }
-        self.question = question
-        answer = ""
+        // The one being replaced stays in the history, marked as cut short.
+        finishStreaming(interrupted: true)
+        answerTask?.cancel()
+        var record = AnswerRecord(id: 0, sessionID: sessionID, askedAt: Date(), question: question,
+                                  answer: "", model: settings.model.id, latency: nil, interrupted: false)
+        if settings.saveHistory { record = history.insert(record) }
+        answers.append(record)
+        let index = answers.count - 1
+        streamingIndex = index
+        viewing = nil
         state = .answering
         let request = AnswerRequest(
             instructions: settings.instructions + "\n\n" + AnswerFormatting.formattingRule,
@@ -225,20 +277,22 @@ final class CallAssistController: ObservableObject {
                         firstWord = false
                         let latency = Date().timeIntervalSince(endedAt)
                         lastLatency = latency
+                        answers[index].latency = latency
                         log.info("first answer word \(latency, format: .fixed(precision: 2)) s after question ended")
                     }
-                    answer += text
+                    answers[index].answer += text
                 }
             } catch {
                 guard !Task.isCancelled else { return }
                 log.error("answer failed: \(error.localizedDescription, privacy: .public)")
-                answer = "Could not get an answer: \(error.localizedDescription)"
+                answers[index].answer = "Could not get an answer: \(error.localizedDescription)"
             }
             guard !Task.isCancelled else {
                 log.info("answer superseded by a newer question")
                 return
             }
-            log.info("answer done, \(self.answer.count) characters")
+            log.info("answer done, \(self.answers[index].answer.count) characters")
+            finishStreaming(interrupted: false)
             if state == .answering { state = .listening }
         }
     }

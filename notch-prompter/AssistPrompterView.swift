@@ -36,12 +36,19 @@ private struct AssistPrompterView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: viewModel.lineHeight) {
                     if !callAssist.question.isEmpty {
-                        // One line, keeping the end, which is the actual question.
-                        Text(callAssist.question)
-                            .font(font(for: callAssist.question, scale: 0.8))
-                            .foregroundStyle(theme.textColor.opacity(0.45))
-                            .lineLimit(1)
-                            .truncationMode(.head)
+                        HStack(spacing: 6) {
+                            // One line, keeping the end, which is the actual question.
+                            Text(callAssist.question)
+                                .font(font(for: callAssist.question, scale: 0.8))
+                                .foregroundStyle(theme.textColor.opacity(0.45))
+                                .lineLimit(1)
+                                .truncationMode(.head)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            if callAssist.answers.count > 1 {
+                                AnswerPager(callAssist: callAssist, color: theme.textColor,
+                                            size: viewModel.fontSize * 0.75)
+                            }
+                        }
                     }
                     ForEach(Array(AnswerFormatting.segments(body(theme: theme)).enumerated()), id: \.offset) { _, segment in
                         switch segment {
@@ -70,7 +77,7 @@ private struct AssistPrompterView: View {
             .onChange(of: callAssist.scrollNudge) { _, nudge in
                 position.scrollTo(y: max(0, offsetY + nudge.delta))
             }
-            .onChange(of: callAssist.question) { position.scrollTo(edge: .top) }
+            .onChange(of: callAssist.displayedIndex) { position.scrollTo(edge: .top) }
         }
         .ignoresSafeArea()
     }
@@ -128,5 +135,32 @@ private struct CodeBlockView: View {
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(theme.textColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
+    }
+}
+
+/// "‹ 2 / 5 ›": steps through this session's answers. Control-Option-[ and
+/// Control-Option-] do the same from the keyboard.
+private struct AnswerPager: View {
+    @ObservedObject var callAssist: CallAssistController
+    let color: Color
+    let size: Double
+
+    var body: some View {
+        let index = callAssist.displayedIndex ?? 0
+        let count = callAssist.answers.count
+        HStack(spacing: 4) {
+            Button { callAssist.showPrevious() } label: { Image(systemName: "chevron.left") }
+                .disabled(index == 0)
+                .help("Previous answer (⌃⌥[)")
+            Text("\(index + 1) / \(count)")
+                .monospacedDigit()
+            Button { callAssist.showNext() } label: { Image(systemName: "chevron.right") }
+                .disabled(index == count - 1)
+                .help("Next answer (⌃⌥])")
+        }
+        .buttonStyle(.plain)
+        .font(.system(size: max(size, 9), weight: .medium))
+        .foregroundStyle(color.opacity(callAssist.viewing == nil ? 0.5 : 0.9))
+        .fixedSize()
     }
 }
