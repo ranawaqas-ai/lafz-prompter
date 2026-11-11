@@ -7,6 +7,7 @@ enum SettingsTab: CaseIterable, Identifiable {
     case layout
     case behavior
     case voice
+    case assist
     case shortcuts
     
     var id: Self { self }
@@ -18,6 +19,7 @@ enum SettingsTab: CaseIterable, Identifiable {
             case .layout: return "Layout"
             case .behavior: return "Behavior"
             case .voice: return "Voice"
+            case .assist: return "Assist"
             case .shortcuts: return "Shortcuts"
             }
         }
@@ -29,6 +31,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .layout: return "macwindow"
         case .behavior: return "gearshape"
         case .voice: return "microphone"
+        case .assist: return "sparkles"
         case .shortcuts: return "keyboard"
         }
     }
@@ -36,6 +39,7 @@ enum SettingsTab: CaseIterable, Identifiable {
 
 struct SettingsView: View {
     @ObservedObject var viewModel: PrompterViewModel
+    let callAssist: CallAssistSettings
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: SettingsTab = .script
     @State private var showResetConfirmation = false
@@ -125,6 +129,8 @@ struct SettingsView: View {
                     BehaviorTabView(viewModel: viewModel)
                 case .voice:
                     VoiceTabView(viewModel: viewModel)
+                case .assist:
+                    AssistTabView(settings: callAssist)
                 case .layout:
                     LayoutTabView(viewModel: viewModel)
                 case .shortcuts:

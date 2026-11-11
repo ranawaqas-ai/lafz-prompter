@@ -8,7 +8,7 @@ struct LafzPrompterApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsView(viewModel: appDelegate.viewModel)
+            SettingsView(viewModel: appDelegate.viewModel, callAssist: appDelegate.callAssist)
                 .onAppear(perform: {
                     NSApp.setActivationPolicy(.regular)
                 })
@@ -37,6 +37,7 @@ struct LafzPrompterApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let viewModel = PrompterViewModel()
+    let callAssist = CallAssistSettings()
     private var prompterWindow: PrompterWindow!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
