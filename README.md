@@ -1,7 +1,7 @@
 # Lafz Prompter for macOS
 
-An always-on-top teleprompter that sits under the MacBook notch, with first-class
-Urdu support.
+An always-on-top teleprompter that sits under the MacBook notch and also displays
+Urdu in Nastaliq.
 
 ## Features
 - Always on top, under the notch
@@ -16,18 +16,18 @@ Urdu support.
 
 ## Why this exists
 NotchPrompter was released under the MIT License until May 2026, when its
-license changed to personal, non-commercial use only. Lafz Prompter continues
+license changed to personal non-commercial use only. Lafz Prompter continues
 from the last MIT-licensed version (commit `3602155`), so it stays free and open
 source for everyone, including for commercial use.
 
 ## Install
 Download the zip from [Releases](https://github.com/ranawaqas-ai/lafz-prompter/releases/latest)
 or [lafz.waqasrana.space](https://lafz.waqasrana.space) and drag the app into Applications.
-It is not signed with an Apple Developer ID, so the first time, right-click it and choose
-Open (or allow it in System Settings, Privacy & Security).
+The app is not signed with an Apple Developer ID, so on the first launch you right-click it
+and choose Open, or allow it under Privacy & Security in System Settings.
 
 ## Build
-Needs Xcode or the Xcode command line tools.
+Building requires Xcode or the Xcode command line tools.
 
 ```sh
 scripts/build-app.sh   # writes build/Lafz Prompter.app and build/LafzPrompter.zip
