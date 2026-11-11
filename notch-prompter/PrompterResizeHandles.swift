@@ -10,8 +10,9 @@ struct PrompterResizeHandles: View {
     /// Same limits as the Width and Height sliders in Settings.
     static let widthRange: ClosedRange<CGFloat> = 150...600
     static let heightRange: ClosedRange<CGFloat> = 80...500
-    private static let edge: CGFloat = 8
-    private static let corner: CGFloat = 16
+    private static let edge: CGFloat = 12
+    private static let corner: CGFloat = 24
+    @State private var hovering = false
 
     var body: some View {
         // A left-aligned prompter is pinned at its left edge and a right-aligned
@@ -19,6 +20,10 @@ struct PrompterResizeHandles: View {
         let left = viewModel.horizontalAlignment != .left
         let right = viewModel.horizontalAlignment != .right
         ZStack {
+            ResizeGrips(left: left, right: right, color: viewModel.prompterTheme.textColor)
+                .opacity(hovering ? 0.7 : 0.25)
+                .animation(.easeInOut(duration: 0.15), value: hovering)
+                .allowsHitTesting(false)
             VStack {
                 Spacer()
                 handle(.bottom).frame(height: Self.edge)
@@ -38,6 +43,7 @@ struct PrompterResizeHandles: View {
                 }
             }
         }
+        .onHover { hovering = $0 }
     }
 
     private func handle(_ position: NSCursor.FrameResizePosition) -> some View {
@@ -62,6 +68,52 @@ struct PrompterResizeHandles: View {
         } ended: {
             viewModel.isResizing = false
         }
+    }
+}
+
+/// Visible hints for the handles: a bar centred on each draggable edge and an
+/// L-shaped mark in each draggable corner. Faint until the pointer is over the
+/// prompter.
+private struct ResizeGrips: View {
+    let left: Bool
+    let right: Bool
+    let color: Color
+
+    var body: some View {
+        ZStack {
+            VStack {
+                Spacer()
+                Capsule().fill(color).frame(width: 36, height: 4).padding(.bottom, 3)
+            }
+            HStack {
+                if left { Capsule().fill(color).frame(width: 4, height: 28).padding(.leading, 3) }
+                Spacer()
+                if right { Capsule().fill(color).frame(width: 4, height: 28).padding(.trailing, 3) }
+            }
+            VStack {
+                Spacer()
+                HStack {
+                    if left { CornerMark().stroke(color, style: Self.stroke).scaleEffect(x: -1).frame(width: 10, height: 10) }
+                    Spacer()
+                    if right { CornerMark().stroke(color, style: Self.stroke).frame(width: 10, height: 10) }
+                }
+                .padding(5)
+            }
+        }
+    }
+
+    private static let stroke = StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round)
+}
+
+/// The bottom-right corner of a frame: a line down the right side and along
+/// the bottom.
+private struct CornerMark: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        return path
     }
 }
 
