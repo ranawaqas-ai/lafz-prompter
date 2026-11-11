@@ -12,6 +12,7 @@ struct PrompterRootView: View {
             if callAssist.isActive || callAssist.notice != nil {
                 AssistPrompterView(viewModel: viewModel, callAssist: callAssist)
             }
+            PrompterResizeHandle(viewModel: viewModel)
         }
     }
 }

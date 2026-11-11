@@ -105,7 +105,7 @@ final class PrompterWindow {
         guard let screen = getSelectedScreen() else { return }
         let frame = topCenterFrame(width: width, height: height, screen: screen)
 
-        window.setFrame(frame, display: true, animate: true)
+        window.setFrame(frame, display: true, animate: !viewModel.isResizing)
     }
     
     private func getSelectedScreen() -> NSScreen? {

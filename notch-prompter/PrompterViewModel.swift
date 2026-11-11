@@ -48,6 +48,9 @@ final class PrompterViewModel: ObservableObject {
     @Published var pauseOnHover: Bool = true
     @Published var prompterWidth: CGFloat = 184
     @Published var prompterHeight: CGFloat = 150
+    /// True while the user drags the prompter's bottom edge; the window then
+    /// follows the pointer without animating.
+    var isResizing = false
     @Published var voiceActivation: Bool = false
     /// With voice activation on, whether the mic is running. Play starts it,
     /// Pause, hiding the prompter, Reset, or reaching the end stops it.
