@@ -146,10 +146,17 @@ final class PrompterViewModel: ObservableObject {
         static let manualScrollAmount = "ManualScrollAmount"
     }
     
+    private let defaults: UserDefaults
+    private let registersHotKeys: Bool
+
     // MARK: Init
-    init() {
+    /// The parameters exist for tests: a separate defaults suite, no display
+    /// link (tests call `tick` with their own timestamps) and no global hotkeys.
+    init(defaults: UserDefaults = .standard, startsDisplayLink: Bool = true, registersHotKeys: Bool = true) {
+        self.defaults = defaults
+        self.registersHotKeys = registersHotKeys
         loadSettings()
-        startTimer()
+        if startsDisplayLink { startTimer() }
         observeSettingsChanges()
 //        setupKeyboardShortcuts()
         $voiceActivation
@@ -175,7 +182,7 @@ final class PrompterViewModel: ObservableObject {
         $enableGlobalKeyboardShortcuts
             .removeDuplicates()
             .sink { [weak self] enabled in
-                guard let self = self else { return }
+                guard let self = self, self.registersHotKeys else { return }
                 if enabled {
                     print("Global shortcuts enabled")
                     self.registerGlobalKeyboardShortcuts()
@@ -399,7 +406,7 @@ final class PrompterViewModel: ObservableObject {
             }
     }
     
-    private func tick(current: CFTimeInterval) {
+    func tick(current: CFTimeInterval) {
         guard isPlaying else { return }
         
         let dt: CFTimeInterval
@@ -426,7 +433,6 @@ final class PrompterViewModel: ObservableObject {
     }
     
     private func loadSettings() {
-        let defaults = UserDefaults.standard
         
         text = defaults.string(forKey: Keys.text) ?? text
         speed = defaults.double(forKey: Keys.speed)
@@ -483,7 +489,6 @@ final class PrompterViewModel: ObservableObject {
     }
     
     func saveSettings() {
-        let defaults = UserDefaults.standard
         defaults.set(text, forKey: Keys.text)
         defaults.set(speed, forKey: Keys.speed)
         defaults.set(fontSize, forKey: Keys.fontSize)
