@@ -7,7 +7,7 @@ import os
 /// Runs one Call Assist session: listens, keeps the transcript, detects
 /// questions and streams answers for the prompter to show.
 @MainActor @Observable
-final class CallAssistController {
+final class CallAssistSession {
     enum State: Equatable {
         case idle
         case starting

@@ -12,7 +12,7 @@ struct LafzPrompterApp: App {
                 .environment(appDelegate.playback)
                 .environment(appDelegate.scripts)
                 .environment(appDelegate.callAssist)
-                .environment(appDelegate.callAssistController)
+                .environment(appDelegate.callAssistSession)
                 .onAppear(perform: {
                     NSApp.setActivationPolicy(.regular)
                 })
@@ -51,16 +51,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var playback = Playback(preferences: preferences)
     let callAssist = CallAssistSettings()
     let scripts = ScriptLibrary()
-    private(set) lazy var callAssistController = CallAssistController(settings: callAssist)
+    private(set) lazy var callAssistSession = CallAssistSession(settings: callAssist)
     private var prompterWindow: PrompterWindowController!
     private var coordinator: AppCoordinator!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         scripts.ensureCurrentScript()
         prompterWindow = PrompterWindowController(preferences: preferences, playback: playback,
-                                                  callAssist: callAssistController, scripts: scripts)
+                                                  callAssist: callAssistSession, scripts: scripts)
         coordinator = AppCoordinator(preferences: preferences, playback: playback,
-                                     scripts: scripts, callAssist: callAssistController,
+                                     scripts: scripts, callAssist: callAssistSession,
                                      panel: prompterWindow)
         coordinator.start()
         prompterWindow.show()

@@ -4,7 +4,7 @@ Run everything with `swift test`.
 
 ## Characterisation and approval tests
 
-`PrompterViewModelCharacterisationTests` and `CallAssistControllerCharacterisationTests`
+`PrompterViewModelCharacterisationTests` and `CallAssistSessionCharacterisationTests`
 record what the app does today, so a refactor that changes behaviour fails. They are
 not a statement that today's behaviour is right. A test named `currently…` pins
 something that may be a bug: change that behaviour in its own commit and update the
@@ -31,7 +31,7 @@ differences.
 defaults suite, no display link (tests call `tick(current:)` with their own times), and
 no global hotkeys.
 
-`CallAssistController(settings:dependencies:)` takes the mic permission, the utterance
+`CallAssistSession(settings:dependencies:)` takes the mic permission, the utterance
 source, the AI client and the history database. The tests use a scripted
 `FakeListener`, a `FakeProvider` that answers, stalls or fails on cue, and a temporary
 SQLite file. Nothing touches the mic, the network, the Keychain or the real history.

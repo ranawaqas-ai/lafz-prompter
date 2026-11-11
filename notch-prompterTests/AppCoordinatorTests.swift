@@ -9,7 +9,7 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct AppCoordinatorTests {
-    typealias Fakes = CallAssistControllerCharacterisationTests
+    typealias Fakes = CallAssistSessionCharacterisationTests
 
     /// The prompter window, recording what the rules set on it.
     final class FakePanel: PrompterPanel {
@@ -22,7 +22,7 @@ struct AppCoordinatorTests {
         let preferences: Preferences
         let playback: Playback
         let scripts: ScriptLibrary
-        let callAssist: CallAssistController
+        let callAssist: CallAssistSession
         let coordinator: AppCoordinator
         let panel = FakePanel()
         private let suite = "lafz-coordinator-tests-\(UUID().uuidString)"
@@ -46,7 +46,7 @@ struct AppCoordinatorTests {
                 let settings = CallAssistSettings()
                 settings.includeScreen = false
                 return (preferences, Playback(preferences: preferences), ScriptLibrary(),
-                        CallAssistController(settings: settings))
+                        CallAssistSession(settings: settings))
             }
             coordinator = AppCoordinator(preferences: preferences, playback: playback,
                                          scripts: scripts, callAssist: callAssist, panel: panel)

@@ -10,7 +10,7 @@ import Testing
 /// to the provider, and what was saved to the history database.
 @MainActor
 @Suite(.serialized)
-struct CallAssistControllerCharacterisationTests {
+struct CallAssistSessionCharacterisationTests {
 
     // MARK: Fakes
 
@@ -94,7 +94,7 @@ struct CallAssistControllerCharacterisationTests {
         let listener = FakeListener()
         let provider: FakeProvider
         let settings: CallAssistSettings
-        let controller: CallAssistController
+        let controller: CallAssistSession
         private let suiteName = "lafz-assist-tests-\(UUID().uuidString)"
         private let historyURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("history-\(UUID().uuidString).sqlite")
@@ -108,14 +108,14 @@ struct CallAssistControllerCharacterisationTests {
             let listener = listener
             let historyURL = historyURL
             (settings, controller) = withDependencies {
-                CallAssistControllerCharacterisationTests.useFakes(
+                CallAssistSessionCharacterisationTests.useFakes(
                     &$0, defaults: defaults, keys: hasKey ? Set(AssistProvider.allCases) : [],
                     micAllowed: micAllowed, listener: listener, provider: provider,
                     history: AnswerHistoryStore(url: historyURL),
                     shortcuts: GlobalShortcuts(registersWithSystem: false))
             } operation: {
                 let settings = CallAssistSettings()
-                return (settings, CallAssistController(settings: settings))
+                return (settings, CallAssistSession(settings: settings))
             }
             settings.includeScreen = false
             settings.saveHistory = saveHistory

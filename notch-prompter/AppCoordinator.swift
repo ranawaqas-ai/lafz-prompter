@@ -7,12 +7,12 @@ final class AppCoordinator {
     private let preferences: Preferences
     private let playback: Playback
     private let scripts: ScriptLibrary
-    private let callAssist: CallAssistController
+    private let callAssist: CallAssistSession
     private let panel: PrompterPanel
     private var tasks: [Task<Void, Never>] = []
 
     init(preferences: Preferences, playback: Playback, scripts: ScriptLibrary,
-         callAssist: CallAssistController, panel: PrompterPanel) {
+         callAssist: CallAssistSession, panel: PrompterPanel) {
         self.preferences = preferences
         self.playback = playback
         self.scripts = scripts

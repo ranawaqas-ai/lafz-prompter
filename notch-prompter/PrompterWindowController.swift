@@ -18,7 +18,7 @@ final class PrompterWindowController: PrompterPanel {
     private var layoutTask: Task<Void, Never>?
     private var visibilityTask: Task<Void, Never>?
 
-    init(preferences: Preferences, playback: Playback, callAssist: CallAssistController, scripts: ScriptLibrary) {
+    init(preferences: Preferences, playback: Playback, callAssist: CallAssistSession, scripts: ScriptLibrary) {
         self.preferences = preferences
         self.playback = playback
 

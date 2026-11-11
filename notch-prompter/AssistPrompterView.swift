@@ -3,7 +3,7 @@ import SwiftUI
 /// The prompter's content: the script normally, the Call Assist answer while
 /// a session is running. The script keeps its place underneath.
 struct PrompterRootView: View {
-    @Environment(CallAssistController.self) private var callAssist
+    @Environment(CallAssistSession.self) private var callAssist
 
     var body: some View {
         let showingAssist = callAssist.isActive || callAssist.notice != nil
@@ -24,7 +24,7 @@ struct PrompterRootView: View {
 /// the prompter's own font and theme.
 private struct AssistPrompterView: View {
     @Environment(Preferences.self) private var preferences
-    @Environment(CallAssistController.self) private var callAssist
+    @Environment(CallAssistSession.self) private var callAssist
     @State private var position = SwiftUI.ScrollPosition(edge: .top)
     @State private var offsetY: CGFloat = 0
 
@@ -140,7 +140,7 @@ private struct CodeBlockView: View {
 /// "‹ 2 / 5 ›": steps through this session's answers. Control-Option-[ and
 /// Control-Option-] do the same from the keyboard.
 private struct AnswerPager: View {
-    @Environment(CallAssistController.self) private var callAssist
+    @Environment(CallAssistSession.self) private var callAssist
     let color: Color
     let size: Double
 

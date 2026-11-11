@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Assist Tab
 struct AssistTabView: View {
     @Environment(CallAssistSettings.self) private var settings
-    @Environment(CallAssistController.self) private var controller
+    @Environment(CallAssistSession.self) private var controller
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -261,7 +261,7 @@ private struct KnowledgeSection: View {
 /// Start and stop, plus the live transcript so capture problems show while testing.
 private struct SessionSection: View {
     @Bindable var settings: CallAssistSettings
-    let controller: CallAssistController
+    let controller: CallAssistSession
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -324,7 +324,7 @@ private struct SessionSection: View {
 /// a switch to stop saving and a way to delete everything.
 private struct HistorySection: View {
     @Bindable var settings: CallAssistSettings
-    let controller: CallAssistController
+    let controller: CallAssistSession
     @State private var records: [AnswerRecord] = []
     @State private var confirmDelete = false
 

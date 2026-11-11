@@ -9,14 +9,14 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct GlobalShortcutsTests {
-    typealias Fakes = CallAssistControllerCharacterisationTests
+    typealias Fakes = CallAssistSessionCharacterisationTests
 
     private final class App {
         let shortcuts = GlobalShortcuts(registersWithSystem: false)
         let preferences: Preferences
         let playback: Playback
         let settings: CallAssistSettings
-        let controller: CallAssistController
+        let controller: CallAssistSession
         let coordinator: AppCoordinator
         private let suite = "lafz-shortcut-tests-\(UUID().uuidString)"
 
@@ -40,7 +40,7 @@ struct GlobalShortcutsTests {
                                shortcuts: shortcuts)
             } operation: {
                 let settings = CallAssistSettings()
-                return (settings, CallAssistController(settings: settings))
+                return (settings, CallAssistSession(settings: settings))
             }
             settings.includeScreen = false
             let files = ScriptLibraryTests.MemoryFiles()
