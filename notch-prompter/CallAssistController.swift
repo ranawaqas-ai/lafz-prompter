@@ -45,6 +45,10 @@ final class CallAssistController: ObservableObject {
     private var answerTask: Task<Void, Never>?
     private var toggleHotKey: HotKey?
     private var answerNowHotKey: HotKey?
+    private var solveScreenHotKey: HotKey?
+    private let screen = ScreenSnapshotter()
+    /// Why screenshots are not being attached, for the Assist tab.
+    @Published private(set) var screenProblem: String?
     private let log = Logger(subsystem: "space.waqasrana.LafzPrompter", category: "CallAssist")
     private static let transcriptSpan: TimeInterval = 5 * 60
 
@@ -54,6 +58,8 @@ final class CallAssistController: ObservableObject {
         toggleHotKey?.keyDownHandler = { [weak self] in self?.toggle() }
         answerNowHotKey = HotKey(key: .return, modifiers: [.control, .option])
         answerNowHotKey?.keyDownHandler = { [weak self] in self?.answerNow() }
+        solveScreenHotKey = HotKey(key: .s, modifiers: [.control, .option])
+        solveScreenHotKey?.keyDownHandler = { [weak self] in self?.solveScreen() }
     }
 
     func toggle() {
@@ -92,6 +98,7 @@ final class CallAssistController: ObservableObject {
                 try await listener.start()
                 guard state == .starting else { return }
                 state = .listening
+                if settings.includeScreen { screen.start() }
                 warmCache()
                 for await utterance in listener.utterances {
                     receive(utterance)
@@ -114,6 +121,8 @@ final class CallAssistController: ObservableObject {
             Task { await listener.stop() }
         }
         listener = nil
+        screen.stop()
+        screenProblem = nil
         knowledge = ""
         client = nil
         state = .idle
@@ -123,7 +132,28 @@ final class CallAssistController: ObservableObject {
     func answerNow() {
         guard isActive, let turn = QuestionDetector.lastTurn(in: transcript),
               let endedAt = transcript.last(where: { $0.speaker == .them })?.endedAt else { return }
-        answer(turn, endedAt: endedAt)
+        answer(turn, endedAt: endedAt, screenshot: currentScreenshot())
+    }
+
+    /// Answers from a fresh screenshot alone, for a problem that is shown but
+    /// never read out. Works even with screenshots off for spoken questions.
+    func solveScreen() {
+        guard isActive else { return }
+        Task {
+            await screen.refresh()
+            screenProblem = screen.problem
+            guard let shot = screen.latest?.jpeg else {
+                show(notice: screen.problem ?? "Could not capture the screen.")
+                return
+            }
+            answer("Answer or solve what is on my screen.", endedAt: Date(), screenshot: shot)
+        }
+    }
+
+    private func currentScreenshot() -> Data? {
+        guard settings.includeScreen else { return nil }
+        screenProblem = screen.problem
+        return screen.latest?.jpeg
     }
 
     private func receive(_ utterance: Utterance) {
@@ -136,7 +166,7 @@ final class CallAssistController: ObservableObject {
         transcript.removeAll { utterance.endedAt.timeIntervalSince($0.endedAt) > Self.transcriptSpan }
 
         if let question = QuestionDetector.question(afterNew: utterance, in: transcript) {
-            answer(question, endedAt: utterance.endedAt)
+            answer(question, endedAt: utterance.endedAt, screenshot: currentScreenshot())
         }
     }
 
@@ -159,7 +189,7 @@ final class CallAssistController: ObservableObject {
         notice = nil
     }
 
-    private func answer(_ question: String, endedAt: Date) {
+    private func answer(_ question: String, endedAt: Date, screenshot: Data?) {
         answerTask?.cancel()
         guard let client else { return }
         self.question = question
@@ -169,7 +199,8 @@ final class CallAssistController: ObservableObject {
             instructions: settings.instructions,
             knowledge: knowledge,
             transcript: transcriptText(),
-            question: question)
+            question: question,
+            screenshot: screenshot)
 
         answerTask = Task {
             var firstWord = true

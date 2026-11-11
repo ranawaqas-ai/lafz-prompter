@@ -17,6 +17,10 @@ final class CallAssistSettings: ObservableObject {
     @Published var instructions: String {
         didSet { defaults.set(instructions, forKey: Keys.instructions) }
     }
+    /// Attach a screenshot of the front display to each answer.
+    @Published var includeScreen: Bool {
+        didSet { defaults.set(includeScreen, forKey: Keys.includeScreen) }
+    }
     /// Providers that have a key in the Keychain. Mirrors the Keychain so views
     /// can react without reading it on every render.
     @Published private(set) var providersWithKey: Set<AssistProvider>
@@ -36,6 +40,7 @@ final class CallAssistSettings: ObservableObject {
     private enum Keys {
         static let provider = "AssistProvider"
         static let instructions = "AssistInstructions"
+        static let includeScreen = "AssistIncludeScreen"
         static let knowledgeSources = "AssistKnowledgeSources"
         static func model(_ p: AssistProvider) -> String { "AssistModel.\(p.rawValue)" }
     }
@@ -44,6 +49,7 @@ final class CallAssistSettings: ObservableObject {
         self.defaults = defaults
         provider = AssistProvider(rawValue: defaults.string(forKey: Keys.provider) ?? "") ?? .anthropic
         instructions = defaults.string(forKey: Keys.instructions) ?? Self.defaultInstructions
+        includeScreen = defaults.object(forKey: Keys.includeScreen) as? Bool ?? true
         providersWithKey = Set(AssistProvider.allCases.filter(KeychainStore.hasKey))
         knowledgeSources = (defaults.stringArray(forKey: Keys.knowledgeSources) ?? []).map {
             URL(fileURLWithPath: $0)

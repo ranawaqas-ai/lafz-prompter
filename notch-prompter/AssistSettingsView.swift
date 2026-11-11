@@ -274,9 +274,18 @@ private struct SessionSection: View {
                     .foregroundStyle(.secondary)
                 Spacer()
             }
-            Text("⌃⌥A starts or stops it. ⌃⌥Return answers their last words when no question was detected. The prompter is hidden from screen sharing while it runs.")
+            Text("⌃⌥A starts or stops it. ⌃⌥Return answers their last words when no question was detected. ⌃⌥S answers from what is on screen. The prompter is hidden from screen sharing while it runs.")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
+            Toggle("Include a screenshot with each answer", isOn: $settings.includeScreen)
+                .font(.system(size: 12))
+                .disabled(controller.isActive)
+            Text("Takes a screenshot of the display you are working on every 2 seconds and keeps only the newest, in memory. It is sent with each answer, so everything on that display at the time goes to the provider.")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+            if let problem = controller.screenProblem {
+                Text(problem).font(.system(size: 11)).foregroundStyle(.orange)
+            }
             if let error = controller.error {
                 Text(error).font(.system(size: 11)).foregroundStyle(.red)
             }
