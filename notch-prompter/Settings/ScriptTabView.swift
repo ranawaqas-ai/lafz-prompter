@@ -12,10 +12,14 @@ struct ScriptTabView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            HStack(spacing: 12) {
-                scriptList
-                    .frame(width: 168)
-                editor
+            if library.scripts.isEmpty {
+                EmptyLibraryView()
+            } else {
+                HStack(spacing: 12) {
+                    scriptList
+                        .frame(width: 168)
+                    editor
+                }
             }
             if let error = library.importError {
                 HStack(alignment: .top, spacing: 6) {

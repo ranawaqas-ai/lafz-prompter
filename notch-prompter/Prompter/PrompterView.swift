@@ -206,12 +206,12 @@ struct PrompterContentView: View {
                 }
             }
             // Kept laid out while finished, so its measured height stays put.
-            .opacity(playback.isFinished ? 0 : 1)
+            .opacity(pill == nil ? 1 : 0)
 
-            if playback.isFinished {
+            if let pill {
                 VStack {
                     Spacer()
-                    FinishedPill().padding(.bottom, 16)
+                    PrompterPill(kind: pill).padding(.bottom, 16)
                 }
             } else {
                 VStack(spacing: 12) {
@@ -237,6 +237,12 @@ struct PrompterContentView: View {
         .onHover { isHovered = $0 }
     }
 
+    /// Shown in place of the script when there is nothing to read.
+    private var pill: PrompterPill.Kind? {
+        if library.current == nil { return .noScript }
+        return playback.isFinished ? .finished : nil
+    }
+
     /// Paused, listening, or hovered with hover controls on.
     private var showsStatusRow: Bool {
         playback.isListening || !playback.isPlaying || (isHovered && preferences.showHoverControls)
@@ -244,7 +250,7 @@ struct PrompterContentView: View {
 
     /// Bottom padding, plus the progress line, plus the status row above it.
     private var reservedBottom: CGFloat {
-        guard !playback.isFinished else { return 0 }
+        guard pill == nil else { return 0 }
         var height: CGFloat = 0
         if preferences.showProgressBar { height += 12 + 3 }
         if showsStatusRow || guide.hint != nil { height += 12 + 36 + (preferences.showProgressBar ? 12 : 0) }

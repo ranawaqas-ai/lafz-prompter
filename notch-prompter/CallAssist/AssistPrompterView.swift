@@ -6,6 +6,7 @@ struct PrompterRootView: View {
     @Environment(CallAssistSession.self) private var callAssist
     @Environment(Playback.self) private var playback
     @Environment(ShortcutGuide.self) private var guide
+    @Environment(ScriptLibrary.self) private var library
 
     var body: some View {
         let showingAssist = callAssist.isActive || callAssist.notice != nil
@@ -21,8 +22,8 @@ struct PrompterRootView: View {
             }
             if showingList {
                 ShortcutOverlay()
-            } else if showingAssist || !playback.isFinished {
-                // The Done pill is a fixed size, so it has nothing to resize.
+            } else if showingAssist || !(playback.isFinished || library.current == nil) {
+                // The pills are a fixed size, so they have nothing to resize.
                 PrompterResizeHandles()
             }
         }

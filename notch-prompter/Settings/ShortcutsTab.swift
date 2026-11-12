@@ -113,7 +113,7 @@ struct KeycapLabel: View {
             .foregroundStyle(.secondary)
             .padding(.horizontal, 6)
             .padding(.vertical, 1)
-            .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.secondary.opacity(0.5), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 4).stroke(.tertiary, lineWidth: 1))
             .fixedSize()
             .accessibilityLabel("Shortcut \(label)")
     }

@@ -175,13 +175,13 @@ final class ScriptLibrary {
         save()
     }
 
-    /// Deleting the current script moves to the next one; the library is
-    /// never left empty.
+    /// Deleting the current script moves to the next one. Deleting the last
+    /// leaves the library empty, with no script current.
     func delete(_ id: UUID) {
         guard let index = scripts.firstIndex(where: { $0.id == id }) else { return }
         scripts.remove(at: index)
         if scripts.isEmpty {
-            newScript()
+            currentID = nil
         } else if currentID == id {
             select(scripts[min(index, scripts.count - 1)].id)
         }

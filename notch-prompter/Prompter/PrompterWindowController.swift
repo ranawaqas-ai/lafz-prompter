@@ -17,6 +17,7 @@ final class PrompterWindowController: PrompterPanel {
     private let playback: Playback
     private let callAssist: CallAssistSession
     private let guide: ShortcutGuide
+    private let scripts: ScriptLibrary
     private var layoutTask: Task<Void, Never>?
     private var visibilityTask: Task<Void, Never>?
 
@@ -26,6 +27,7 @@ final class PrompterWindowController: PrompterPanel {
         self.playback = playback
         self.callAssist = callAssist
         self.guide = guide
+        self.scripts = scripts
 
         let contentView = NotchPanel { PrompterRootView() }
             .environment(preferences)
@@ -71,11 +73,12 @@ final class PrompterWindowController: PrompterPanel {
         window.contentView = hosting
 
         // Size and place the panel when any of its layout settings change.
-        layoutTask = Task { [weak self, preferences, playback, callAssist, guide] in
+        layoutTask = Task { [weak self, preferences, playback, callAssist, guide, scripts] in
             for await _ in Observations({
                 _ = (preferences.prompterWidth, preferences.prompterHeight,
                      preferences.selectedScreenIndex, preferences.horizontalAlignment,
-                     playback.isFinished, callAssist.isActive, callAssist.notice, guide.isOverlayShown)
+                     playback.isFinished, callAssist.isActive, callAssist.notice, guide.isOverlayShown,
+                     scripts.currentID)
             }) {
                 guard let self else { return }
                 self.resizeWindow(width: self.contentSize.width, height: self.contentSize.height)
@@ -109,8 +112,8 @@ final class PrompterWindowController: PrompterPanel {
     }
     
     /// The size the prompter's content needs: room for the shortcut list
-    /// while it is open, the "Done" pill once the script has finished (unless
-    /// Call Assist is showing), else the size setting.
+    /// while it is open, a pill once the script has finished or when there is
+    /// no script (unless Call Assist is showing), else the size setting.
     private var contentSize: CGSize {
         let size = CGSize(width: preferences.prompterWidth, height: preferences.prompterHeight)
         if guide.isOverlayShown {
@@ -118,7 +121,7 @@ final class PrompterWindowController: PrompterPanel {
             return CGSize(width: max(size.width, minimum.width), height: max(size.height, minimum.height))
         }
         let assistShowing = callAssist.isActive || callAssist.notice != nil
-        if playback.isFinished, !assistShowing { return Self.pillSize }
+        if playback.isFinished || scripts.current == nil, !assistShowing { return Self.pillSize }
         return size
     }
 

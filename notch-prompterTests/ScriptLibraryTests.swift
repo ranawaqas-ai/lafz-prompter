@@ -53,15 +53,27 @@ struct ScriptLibraryTests {
         #expect(library.current?.title == "From file")
     }
 
-    @Test func deletingTheCurrentScriptMovesToTheNextAndNeverEmpties() {
+    @Test func deletingTheCurrentScriptMovesToTheNextAndTheLastLeavesItEmpty() {
         let library = makeLibrary()
         let a = library.add(text: "A", title: nil)
         let b = library.add(text: "B", title: nil)
         library.delete(b.id)
         #expect(library.currentID == a.id)
         library.delete(a.id)
-        #expect(library.scripts.count == 1)
-        #expect(library.current?.text == "")
+        #expect(library.scripts.isEmpty)
+        #expect(library.current == nil)
+        #expect(library.text == "")
+    }
+
+    @Test func anEmptiedLibraryStaysEmptyOnTheNextLaunch() {
+        let first = makeLibrary()
+        first.ensureCurrentScript()
+        first.delete(ScriptLibrary.tutorialID)
+        first.flush()
+        let library = makeLibrary()
+        library.ensureCurrentScript()
+        #expect(library.scripts.isEmpty)
+        #expect(library.current == nil)
     }
 
     @Test func survivesARestart() {

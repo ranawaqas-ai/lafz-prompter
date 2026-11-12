@@ -236,6 +236,25 @@ struct PrompterCharacterisationTests {
                     preferences: preferences, playback: playback, library: library, named: "keycap")
     }
 
+    @Test func approvedNoScriptPillImage() {
+        let suite = Suite()
+        let (preferences, playback) = makeModels(suite)
+        let files = ScriptLibraryTests.MemoryFiles()
+        let library = withDependencies { $0.scriptFiles = files.client } operation: { ScriptLibrary() }
+        assertImage(of: NotchPanel { PrompterView() }, size: PrompterWindowController.pillSize,
+                    preferences: preferences, playback: playback, library: library, named: "no-script")
+    }
+
+    @Test func approvedEmptyScriptTabImage() {
+        let files = ScriptLibraryTests.MemoryFiles()
+        let library = withDependencies { $0.scriptFiles = files.client } operation: { ScriptLibrary() }
+        let hosting = NSHostingView(rootView: EmptyLibraryView().environment(library)
+            .padding(16).frame(width: 560, height: 380))
+        hosting.frame = NSRect(x: 0, y: 0, width: 560, height: 380)
+        hosting.appearance = NSAppearance(named: .aqua)
+        assertSnapshot(of: hosting, as: .image(precision: 0.98), named: "empty")
+    }
+
     @Test func approvedFinishedPillImage() {
         let suite = Suite()
         let (preferences, playback) = makeModels(suite)

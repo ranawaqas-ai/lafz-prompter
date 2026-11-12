@@ -187,19 +187,30 @@ private struct LevelMeter: View {
     }
 }
 
-/// What the prompter shrinks to at the end of the script.
-struct FinishedPill: View {
+/// What the prompter shrinks to when there is nothing to read: "Done" at
+/// the end of the script, or "No script" with an empty library.
+struct PrompterPill: View {
+    enum Kind { case finished, noScript }
     @Environment(Preferences.self) private var preferences
+    let kind: Kind
 
     var body: some View {
         let color = preferences.prompterTheme.textColor
         HStack(spacing: 8) {
-            Image(systemName: "checkmark.circle.fill")
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(.white, Color(red: 0.12, green: 0.54, blue: 0.3))
-            Text("Done").foregroundStyle(color)
-            Text("·  ⌃⌥P again").foregroundStyle(color.opacity(0.62))
+            switch kind {
+            case .finished:
+                Image(systemName: "checkmark.circle.fill")
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(.white, Color(red: 0.12, green: 0.54, blue: 0.3))
+                Text("Done").foregroundStyle(color)
+                Text("·  ⌃⌥P again").foregroundStyle(color.opacity(0.62))
+            case .noScript:
+                Image(systemName: "doc.text").foregroundStyle(color.opacity(0.62))
+                Text("No script").foregroundStyle(color)
+                Text("·  ⌃⌥O to load").foregroundStyle(color.opacity(0.62))
+            }
         }
         .font(.system(size: 13, weight: .medium))
+        .accessibilityElement(children: .combine)
     }
 }
