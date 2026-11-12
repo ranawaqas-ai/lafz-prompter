@@ -20,6 +20,7 @@ struct GlobalShortcutsTests {
         let coordinator: AppCoordinator
         let files = ScriptLibraryTests.MemoryFiles()
         let scripts: ScriptLibrary
+        let loader: ScriptLoader
         private let suite = "lafz-shortcut-tests-\(UUID().uuidString)"
 
         @MainActor
@@ -51,7 +52,7 @@ struct GlobalShortcutsTests {
                 $0.settingsStorage = defaults
             } operation: { ScriptLibrary() }
             let (playback, scripts) = (playback, scripts)
-            let loader = withDependencies { $0.globalShortcuts = shortcuts } operation: {
+            loader = withDependencies { $0.globalShortcuts = shortcuts } operation: {
                 ScriptLoader(library: scripts, playback: playback, showError: { _ in })
             }
             coordinator = AppCoordinator(preferences: preferences, playback: playback,
@@ -134,6 +135,17 @@ struct GlobalShortcutsTests {
         app.files.clipboard = ([], "Copied script")
         app.shortcuts.press(.loadClipboard)
         #expect(app.scripts.text == "Copied script")
+        #expect(app.playback.isPrompterVisible)
+    }
+
+    @Test func showTutorialAgainPlaysTheTutorialFromTheTop() {
+        let app = App(keys: [])
+        app.scripts.add(text: "My talk", title: nil)
+        app.playback.offset = 300
+        app.playback.isPrompterVisible = false
+        app.loader.showTutorial()
+        #expect(app.scripts.current?.id == ScriptLibrary.tutorialID)
+        #expect(app.playback.offset == 0)
         #expect(app.playback.isPrompterVisible)
     }
 }

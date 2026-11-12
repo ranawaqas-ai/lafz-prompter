@@ -70,6 +70,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Keeps the stored settings complete, and covers a quit inside the
     // script library's save debounce.
+    /// Opening the app again (from Finder, Spotlight or the Dock) opens
+    /// Settings: the one way back in when the menu bar icon is hidden.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        SettingsWindow.open()
+        return false
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         preferences.saveAll()
         scripts.flush()
@@ -141,10 +148,15 @@ struct MenuContent: View {
 
         Divider()
 
-        SettingsLink {
-            Label("Settings", systemImage: "gearshape")
+        Button {
+            loader.showTutorial()
+        } label: {
+            Label("Show Tutorial Again", systemImage: "graduationcap")
         }
-        
+
+        SettingsLink {
+            Label("Settings…", systemImage: "gearshape")
+        }
         .keyboardShortcut(",", modifiers: [.command])
 
         Divider()
@@ -152,7 +164,7 @@ struct MenuContent: View {
         Button(role: .destructive) {
             NSApp.terminate(nil)
         } label: {
-            Label("Exit", systemImage: "xmark.circle")
+            Label("Quit Lafz Prompter", systemImage: "xmark.circle")
         }
         .keyboardShortcut("q", modifiers: [.command])
     }

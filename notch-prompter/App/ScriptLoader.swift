@@ -25,6 +25,13 @@ final class ScriptLoader {
     func loadClipboard() { load { library.importClipboard() } }
     func select(_ id: UUID) { load { library.select(id) } }
 
+    /// Adds the tutorial back if it was deleted, and plays it from the top.
+    func showTutorial() {
+        library.restoreTutorial()
+        playback.reset()
+        playback.isPrompterVisible = true
+    }
+
     private func load(_ action: () -> Void) {
         let before = library.currentID
         action()
