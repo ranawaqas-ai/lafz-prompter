@@ -217,20 +217,47 @@ struct PrompterCharacterisationTests {
     func approvedPrompterImage(theme: PrompterTheme) {
         let suite = Suite()
         let (preferences, playback) = makeModels(suite)
-        let files = ScriptLibraryTests.MemoryFiles()
-        let library = withDependencies { $0.scriptFiles = files.client } operation: { ScriptLibrary() }
-        library.add(text: "Good morning everyone. [smile]\nToday I want to share three points.", title: nil)
+        let library = makeLibrary(text: "Good morning everyone. [smile]\nToday I want to share three points.\nFirst, the design.")
         preferences.prompterTheme = theme
         preferences.fontSize = 14
-        preferences.showProgressBar = false
-        let view = NSHostingView(rootView: PrompterView()
+        playback.offset = 40
+        assertImage(of: NotchPanel { PrompterView() }, size: CGSize(width: 320, height: 200),
+                    preferences: preferences, playback: playback, library: library, named: theme.rawValue)
+    }
+
+    @Test func approvedFinishedPillImage() {
+        let suite = Suite()
+        let (preferences, playback) = makeModels(suite)
+        let library = makeLibrary(text: "The end.")
+        playback.offset = 500
+        playback.finishScript()
+        assertImage(of: NotchPanel { PrompterView() }, size: PrompterWindowController.pillSize,
+                    preferences: preferences, playback: playback, library: library, named: "finished")
+    }
+
+    private func makeLibrary(text: String) -> ScriptLibrary {
+        let files = ScriptLibraryTests.MemoryFiles()
+        let library = withDependencies { $0.scriptFiles = files.client } operation: { ScriptLibrary() }
+        library.add(text: text, title: nil)
+        return library
+    }
+
+    /// Renders a prompter view at a content size, with the notch shoulders
+    /// added on each side, and compares it with its approved image.
+    private func assertImage<V: View>(of view: V, size: CGSize, preferences: Preferences, playback: Playback,
+                                      library: ScriptLibrary, named name: String,
+                                      fileID: StaticString = #fileID, file: StaticString = #filePath,
+                                      testName: String = #function, line: UInt = #line, column: UInt = #column) {
+        let width = size.width + 2 * NotchShape.shoulder
+        let hosting = NSHostingView(rootView: view
             .environment(preferences)
             .environment(playback)
             .environment(library)
-            .frame(width: 320, height: 160))
-        view.frame = NSRect(x: 0, y: 0, width: 320, height: 160)
-        view.appearance = NSAppearance(named: .aqua)
-        assertSnapshot(of: view, as: .image(precision: 0.98), named: theme.rawValue)
+            .frame(width: width, height: size.height))
+        hosting.frame = NSRect(x: 0, y: 0, width: width, height: size.height)
+        hosting.appearance = NSAppearance(named: .aqua)
+        assertSnapshot(of: hosting, as: .image(precision: 0.98), named: name,
+                       fileID: fileID, file: file, testName: testName, line: line, column: column)
     }
 
     // MARK: Rendering the state as text

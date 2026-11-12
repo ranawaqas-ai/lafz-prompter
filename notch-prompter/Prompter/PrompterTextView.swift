@@ -95,35 +95,3 @@ struct HeightReader: View {
         }
     }
 }
-
-
-// MARK: - Progress bar
-struct ProgressBarView: View {
-    let currentOffset: CGFloat
-    let totalHeight: CGFloat
-    let theme: PrompterTheme
-    
-    private var progress: Double {
-        guard totalHeight > 0 else { return 0 }
-        return min(max(Double(currentOffset / totalHeight), 0), 1.0)
-    }
-    
-    var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .top) {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(theme.textColor.opacity(0.15))
-                    .frame(width: 4)
-                RoundedRectangle(cornerRadius: 2) // Progres
-                    .fill(theme.textColor.opacity(0.6))
-                    .frame(width: 4, height: geo.size.height * progress)
-            }
-            .frame(maxHeight: .infinity)
-        }
-        .frame(width: 4)
-        .padding(.trailing, 6)
-        .padding(.bottom, 8)
-        .padding(.vertical, 8)
-        .allowsHitTesting(false)
-    }
-}

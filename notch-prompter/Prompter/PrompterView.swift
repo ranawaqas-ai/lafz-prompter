@@ -172,11 +172,12 @@ struct PrompterContentView: View {
     @Environment(Playback.self) private var playback
     @Environment(ScriptLibrary.self) private var library
     @Binding var contentHeight: CGFloat
-    @State private var showControls = false
+    @State private var isHovered = false
 
     var body: some View {
+        let theme = preferences.prompterTheme
         ZStack {
-            preferences.prompterTheme.backgroundColor.opacity(preferences.backgroundOpacity)
+            theme.backgroundColor.opacity(preferences.backgroundOpacity)
             GeometryReader { geo in
                 VStack(spacing: 0) {
                     Spacer(minLength: 0)
@@ -187,6 +188,7 @@ struct PrompterContentView: View {
                     Spacer(minLength: 0)
                 }
                 .clipped()
+                .mask(ReadingFocusMask(reservedBottom: reservedBottom))
                 .onChange(of: playback.offset) { _, newValue in
                     if contentHeight > 0, newValue >= contentHeight {
                         // We've scrolled past the end - stop at the end
@@ -199,148 +201,50 @@ struct PrompterContentView: View {
                     playback.offset = 0
                 }
             }
-            
-            // Fade overlays
-            VStack(spacing: 0) {
-                if preferences.enableTopFade {
-                    LinearGradient(
-                        gradient: Gradient(colors: [preferences.prompterTheme.fadeColor.opacity(preferences.backgroundOpacity), .clear]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: preferences.topFadeHeight)
-                    .allowsHitTesting(false)
-                }
-                
-                Spacer()
-                
-                if preferences.enableBottomFade {
-                    LinearGradient(
-                        gradient: Gradient(colors: [.clear, preferences.prompterTheme.fadeColor.opacity(preferences.backgroundOpacity)]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: preferences.bottomFadeHeight)
-                    .allowsHitTesting(false)
-                }
-            }
-            
-            // Progress bar on the right side
-            if preferences.showProgressBar {
-                HStack {
-                    Spacer()
-                    ProgressBarView(
-                        currentOffset: playback.offset,
-                        totalHeight: contentHeight,
-                        theme: preferences.prompterTheme
-                    )
-                }
-            }
-            
-            // Hover controls overlay
-            if showControls && preferences.showHoverControls {
+            // Kept laid out while finished, so its measured height stays put.
+            .opacity(playback.isFinished ? 0 : 1)
+
+            if playback.isFinished {
                 VStack {
                     Spacer()
-                    
-                    HStack(spacing: 8) {
-                        // Play
-                        if preferences.voiceActivation {
-                            Button(action: {
-                                playback.togglePlayback()
-                            }) {
-                                Image(systemName: playback.isListening ? "microphone.circle.fill" : "microphone.slash.circle.fill")
-                                    .font(.system(size: 22))
-                                    .foregroundColor(playback.isListening ? .orange : .white)
-                                    .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
-                            }
-                            .buttonStyle(.plain)
-                            .help(playback.isListening ? "Stop listening" : "Start listening")
-                        } else {
-                            Button(action: {
-                                playback.togglePlayback()
-                            }) {
-                                Image(systemName: playback.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                    .font(.system(size: 22))
-                                    .foregroundColor(.white)
-                                    .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        // SCroll back
-                        Button(action: {
-                            playback.scrollBack()
-                        }) {
-                            Image(systemName: "backward.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
-                        }
-                        .buttonStyle(.plain)
-                        .help("Scroll back a few lines")
-                        
-                        // Settings
-                        Button(action: {
-                            openSettingsWindow()
-                        }) {
-                            Image(systemName: "gearshape.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
-                        }
-                        .buttonStyle(.plain)
-                        .help("Open Settings")
-                    }
-                    .padding(6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.black.opacity(0.6))
-                            .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
-                    )
-                    // Clear of the 24 px resize handle along the bottom edge.
-                    .padding(.bottom, 30)
+                    FinishedPill().padding(.bottom, 16)
                 }
-                .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                .animation(.easeInOut(duration: 0.2), value: showControls)
+            } else {
+                VStack(spacing: 12) {
+                    Spacer()
+                    if showsStatusRow {
+                        StatusRow().transition(.opacity)
+                    }
+                    if preferences.showProgressBar {
+                        ProgressLine(progress: progress, color: theme.textColor)
+                    }
+                }
+                .padding(.horizontal, 16)
+                // The progress line may sit over the bottom resize strip (it
+                // takes no clicks); the buttons stay above its 24 px.
+                .padding(.bottom, 12)
+                .animation(.easeInOut(duration: 0.2), value: showsStatusRow)
             }
         }
         .ignoresSafeArea()
-        .onHover { hovering in
-            withAnimation {
-                showControls = hovering
-            }
-        }
+        .onHover { isHovered = $0 }
     }
-    
-    private func openSettingsWindow() {
-        // Activate the app
-        NSApp.activate(ignoringOtherApps: true)
- 
-        // Try to find existing settings window first
-        for window in NSApp.windows {
-            // SwiftUI's identifier for the Settings scene window; unlike the
-            // title, it does not change with the app name.
-            if window.identifier?.rawValue == "com_apple_SwiftUI_Settings_window" {
-                window.makeKeyAndOrderFront(nil)
-                return
-            }
-        }
-        
-        // Simulate the Command+, keyboard shortcut which opens Settings
-        let keyDown = NSEvent.keyEvent(
-            with: .keyDown,
-            location: NSPoint.zero,
-            modifierFlags: .command,
-            timestamp: ProcessInfo.processInfo.systemUptime,
-            windowNumber: 0,
-            context: nil,
-            characters: ",",
-            charactersIgnoringModifiers: ",",
-            isARepeat: false,
-            keyCode: 43 // Key code for comma
-        )
-        
-        if let event = keyDown {
-            NSApp.postEvent(event, atStart: true)
-        }
+
+    /// Paused, listening, or hovered with hover controls on.
+    private var showsStatusRow: Bool {
+        playback.isListening || !playback.isPlaying || (isHovered && preferences.showHoverControls)
+    }
+
+    /// Bottom padding, plus the progress line, plus the status row above it.
+    private var reservedBottom: CGFloat {
+        guard !playback.isFinished else { return 0 }
+        var height: CGFloat = 0
+        if preferences.showProgressBar { height += 12 + 3 }
+        if showsStatusRow { height += 12 + 36 + (preferences.showProgressBar ? 12 : 0) }
+        return height
+    }
+
+    private var progress: Double {
+        contentHeight > 0 ? Double(playback.offset / contentHeight) : 0
     }
 }
