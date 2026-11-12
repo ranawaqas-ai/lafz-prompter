@@ -341,9 +341,11 @@ struct NotchShapeTests {
         let rect = CGRect(x: 0, y: 0, width: 200, height: 100)
         let path = NotchShape().path(in: rect)
         let s = NotchShape.shoulder
+        let top = NotchShape.hiddenTop
         #expect(path.contains(CGPoint(x: 100, y: 50)))
-        #expect(path.contains(CGPoint(x: s - 1, y: 1)))
-        #expect(!path.contains(CGPoint(x: 2, y: s - 2)))
+        #expect(path.contains(CGPoint(x: 1, y: 1)))          // the hidden strip is filled
+        #expect(path.contains(CGPoint(x: s - 1, y: top + 1)))
+        #expect(!path.contains(CGPoint(x: 2, y: top + s - 2)))
         #expect(!path.contains(CGPoint(x: 1, y: 99)))
     }
 }

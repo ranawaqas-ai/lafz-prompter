@@ -146,8 +146,7 @@ final class PrompterWindowController: PrompterPanel {
         let availableWidth = screen.frame.width - width - (padding * 2)
         let x = screen.frame.minX + padding + (availableWidth * alignmentPosition)
         
-        let heightOfBorderTopWithRadiusToHide: CGFloat = 4
-        let y = screen.frame.maxY - height + heightOfBorderTopWithRadiusToHide
+        let y = screen.frame.maxY - height + NotchShape.hiddenTop
         // MARK: slight offset to hide border under notch, this probably causes the issue with moving the notch view to another display when another display is on bottom/top
         return NotchShape.windowFrame(forContent: CGRect(x: x, y: y, width: width, height: height))
     }

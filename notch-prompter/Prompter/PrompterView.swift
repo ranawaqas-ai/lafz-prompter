@@ -227,8 +227,8 @@ struct PrompterContentView: View {
                 }
                 .padding(.horizontal, 16)
                 // The progress line may sit over the bottom resize strip (it
-                // takes no clicks); the buttons stay above its 24 px.
-                .padding(.bottom, 12)
+                // takes no clicks); the buttons always stay above its 24 px.
+                .padding(.bottom, controlsBottom)
                 .animation(.easeInOut(duration: 0.2), value: showsStatusRow)
                 .animation(.easeInOut(duration: 0.2), value: guide.hint)
             }
@@ -248,12 +248,18 @@ struct PrompterContentView: View {
         playback.isListening || !playback.isPlaying || (isHovered && preferences.showHoverControls)
     }
 
+    /// Space under the bottom controls: above the resize strip for the row,
+    /// or closer for the progress line, which takes no clicks.
+    private var controlsBottom: CGFloat { preferences.showProgressBar ? 12 : 28 }
+
     /// Bottom padding, plus the progress line, plus the status row above it.
     private var reservedBottom: CGFloat {
         guard pill == nil else { return 0 }
-        var height: CGFloat = 0
-        if preferences.showProgressBar { height += 12 + 3 }
-        if showsStatusRow || guide.hint != nil { height += 12 + 36 + (preferences.showProgressBar ? 12 : 0) }
+        let rowShown = showsStatusRow || guide.hint != nil
+        guard preferences.showProgressBar || rowShown else { return 0 }
+        var height = controlsBottom
+        if preferences.showProgressBar { height += 3 }
+        if rowShown { height += 36 + (preferences.showProgressBar ? 12 : 0) }
         return height
     }
 

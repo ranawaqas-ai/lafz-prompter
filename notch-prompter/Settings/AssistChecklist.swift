@@ -7,13 +7,15 @@ import SwiftUI
 struct AssistChecklist: View {
     let controller: CallAssistSession
     let providerName: String
-    /// Permissions change outside the app, so the checklist is read again
-    /// whenever the app comes forward or a button here is used.
-    @State private var readiness: AssistReadiness?
+    /// Permissions change outside the app and are not observable, so this
+    /// counter re-reads them whenever the app comes forward or a button here
+    /// is used. The key and the heard-audio flag are observed directly.
+    @State private var permissionReads = 0
     @State private var explainingMicrophone = false
 
     var body: some View {
-        let state = readiness ?? controller.readiness
+        let _ = permissionReads
+        let state = controller.readiness
         Group {
             if !state.isComplete {
                 VStack(alignment: .leading, spacing: 8) {
@@ -94,6 +96,6 @@ struct AssistChecklist: View {
     }
 
     private func refresh() {
-        readiness = controller.readiness
+        permissionReads += 1
     }
 }
