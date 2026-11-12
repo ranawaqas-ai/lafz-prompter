@@ -15,12 +15,14 @@ final class PrompterWindowController: PrompterPanel {
     private var window: NSWindow!
     private let preferences: Preferences
     private let playback: Playback
+    private let callAssist: CallAssistSession
     private var layoutTask: Task<Void, Never>?
     private var visibilityTask: Task<Void, Never>?
 
     init(preferences: Preferences, playback: Playback, callAssist: CallAssistSession, scripts: ScriptLibrary) {
         self.preferences = preferences
         self.playback = playback
+        self.callAssist = callAssist
 
         let contentView = NotchPanel { PrompterRootView() }
             .environment(preferences)
@@ -65,12 +67,14 @@ final class PrompterWindowController: PrompterPanel {
         window.contentView = hosting
 
         // Size and place the panel when any of its layout settings change.
-        layoutTask = Task { [weak self, preferences] in
+        layoutTask = Task { [weak self, preferences, playback, callAssist] in
             for await _ in Observations({
                 _ = (preferences.prompterWidth, preferences.prompterHeight,
-                     preferences.selectedScreenIndex, preferences.horizontalAlignment)
+                     preferences.selectedScreenIndex, preferences.horizontalAlignment,
+                     playback.isFinished, callAssist.isActive, callAssist.notice)
             }) {
-                self?.resizeWindow(width: preferences.prompterWidth, height: preferences.prompterHeight)
+                guard let self else { return }
+                self.resizeWindow(width: self.contentSize.width, height: self.contentSize.height)
             }
         }
         visibilityTask = Task { [weak self, playback] in
@@ -87,7 +91,7 @@ final class PrompterWindowController: PrompterPanel {
             return
         }
 
-        let frame = topCenterFrame(width: preferences.prompterWidth, height: preferences.prompterHeight, screen: screen)
+        let frame = topCenterFrame(width: contentSize.width, height: contentSize.height, screen: screen)
         window.setFrame(frame, display: true)
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -100,6 +104,16 @@ final class PrompterWindowController: PrompterPanel {
         window.setFrame(frame, display: true, animate: !preferences.isResizing)
     }
     
+    /// The size the prompter's content needs: the "Done" pill once the
+    /// script has finished, unless Call Assist is showing, else the setting.
+    private var contentSize: CGSize {
+        let assistShowing = callAssist.isActive || callAssist.notice != nil
+        if playback.isFinished, !assistShowing { return Self.pillSize }
+        return CGSize(width: preferences.prompterWidth, height: preferences.prompterHeight)
+    }
+
+    static let pillSize = CGSize(width: 220, height: 84)
+
     private func getSelectedScreen() -> NSScreen? {
         preferences.prompterScreen
     }
@@ -135,7 +149,7 @@ final class PrompterWindowController: PrompterPanel {
     
     private func animateShow() {
         guard let screen = getSelectedScreen() else { return }
-        let finalFrame = topCenterFrame(width: preferences.prompterWidth, height: preferences.prompterHeight, screen: screen)
+        let finalFrame = topCenterFrame(width: contentSize.width, height: contentSize.height, screen: screen)
 
         var startFrame = finalFrame
         startFrame.origin.y = screen.frame.maxY

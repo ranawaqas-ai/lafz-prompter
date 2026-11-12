@@ -4,6 +4,7 @@ import SwiftUI
 /// a session is running. The script keeps its place underneath.
 struct PrompterRootView: View {
     @Environment(CallAssistSession.self) private var callAssist
+    @Environment(Playback.self) private var playback
 
     var body: some View {
         let showingAssist = callAssist.isActive || callAssist.notice != nil
@@ -15,7 +16,10 @@ struct PrompterRootView: View {
             if showingAssist {
                 AssistPrompterView()
             }
-            PrompterResizeHandles()
+            // The Done pill is a fixed size, so it has nothing to resize.
+            if showingAssist || !playback.isFinished {
+                PrompterResizeHandles()
+            }
         }
     }
 }
@@ -34,20 +38,31 @@ private struct AssistPrompterView: View {
             theme.backgroundColor.opacity(preferences.backgroundOpacity)
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: preferences.lineHeight) {
-                    if !callAssist.question.isEmpty {
+                    if callAssist.isActive || callAssist.answers.count > 1 {
                         HStack(spacing: 6) {
-                            // One line, keeping the end, which is the actual question.
-                            Text(callAssist.question)
-                                .font(font(for: callAssist.question, scale: 0.8))
-                                .foregroundStyle(theme.textColor.opacity(0.45))
-                                .lineLimit(1)
-                                .truncationMode(.head)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            if callAssist.isActive {
+                                Circle()
+                                    .fill(Color(red: 1, green: 0.42, blue: 0.37))
+                                    .frame(width: 7, height: 7)
+                                    .accessibilityHidden(true)
+                                Text("Call Assist")
+                            }
+                            Spacer(minLength: 0)
                             if callAssist.answers.count > 1 {
-                                AnswerPager(color: theme.textColor,
-                                            size: preferences.fontSize * 0.75)
+                                AnswerPager()
                             }
                         }
+                        .font(.system(size: max(preferences.fontSize * 0.55, 11), weight: .medium))
+                        .foregroundStyle(theme.textColor.opacity(0.62))
+                    }
+                    if !callAssist.question.isEmpty {
+                        // One line, keeping the end, which is the actual question.
+                        Text(callAssist.question)
+                            .font(font(for: callAssist.question, scale: 0.7))
+                            .foregroundStyle(theme.textColor.opacity(0.62))
+                            .lineLimit(1)
+                            .truncationMode(.head)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     ForEach(Array(AnswerFormatting.segments(body(theme: theme)).enumerated()), id: \.offset) { _, segment in
                         switch segment {
@@ -137,12 +152,10 @@ private struct CodeBlockView: View {
     }
 }
 
-/// "‹ 2 / 5 ›": steps through this session's answers. Control-Option-[ and
+/// "‹ 2 of 5 ›": steps through this session's answers. Control-Option-[ and
 /// Control-Option-] do the same from the keyboard.
 private struct AnswerPager: View {
     @Environment(CallAssistSession.self) private var callAssist
-    let color: Color
-    let size: Double
 
     var body: some View {
         let index = callAssist.displayedIndex ?? 0
@@ -151,15 +164,14 @@ private struct AnswerPager: View {
             Button { callAssist.showPrevious() } label: { Image(systemName: "chevron.left") }
                 .disabled(index == 0)
                 .help("Previous answer (⌃⌥[)")
-            Text("\(index + 1) / \(count)")
+            Text("\(index + 1) of \(count)")
                 .monospacedDigit()
             Button { callAssist.showNext() } label: { Image(systemName: "chevron.right") }
                 .disabled(index == count - 1)
                 .help("Next answer (⌃⌥])")
         }
         .buttonStyle(.plain)
-        .font(.system(size: max(size, 9), weight: .medium))
-        .foregroundStyle(color.opacity(callAssist.viewing == nil ? 0.5 : 0.9))
+        .opacity(callAssist.viewing == nil ? 0.8 : 1)
         .fixedSize()
     }
 }
