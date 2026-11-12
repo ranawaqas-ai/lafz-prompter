@@ -22,6 +22,12 @@
     <string>26.0</string>
     <key>LSUIElement</key>
     <true/>
+    <key>SUFeedURL</key>
+    <string>https://lafz.waqasrana.space/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>gYdo3+wpa8psDQwIxolk847+WHVpsGZ3RCHRW9/KjYg=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
     <key>NSAudioCaptureUsageDescription</key>
     <string>Call Assist listens to the other side of your call to suggest answers. Audio stays on this Mac.</string>
     <key>NSSpeechRecognitionUsageDescription</key>

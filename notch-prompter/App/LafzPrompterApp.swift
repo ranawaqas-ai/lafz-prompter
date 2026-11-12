@@ -13,6 +13,7 @@ struct LafzPrompterApp: App {
                 .environment(appDelegate.scripts)
                 .environment(appDelegate.callAssist)
                 .environment(appDelegate.callAssistSession)
+                .environment(appDelegate.updater)
                 .onAppear(perform: {
                     NSApp.setActivationPolicy(.regular)
                 })
@@ -26,6 +27,7 @@ struct LafzPrompterApp: App {
                 .environment(appDelegate.playback)
                 .environment(appDelegate.preferences)
                 .environment(appDelegate.scripts)
+                .environment(appDelegate.updater)
         } label: {
             let image: NSImage = {
                 let ratio = $0.size.height / $0.size.width
@@ -51,6 +53,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var playback = Playback(preferences: preferences)
     let callAssist = CallAssistSettings()
     let scripts = ScriptLibrary()
+    let updater = Updater()
     private(set) lazy var callAssistSession = CallAssistSession(settings: callAssist)
     private(set) lazy var scriptLoader = ScriptLoader(library: scripts, playback: playback)
     private(set) lazy var shortcutGuide = ShortcutGuide(playback: playback)
@@ -89,6 +92,7 @@ struct MenuContent: View {
     @Environment(Playback.self) private var playback
     @Environment(Preferences.self) private var preferences
     @Environment(ScriptLibrary.self) private var library
+    @Environment(Updater.self) private var updater
     let loader: ScriptLoader
     let guide: ShortcutGuide
 
@@ -174,6 +178,15 @@ struct MenuContent: View {
             Label("Settings…", systemImage: "gearshape")
         }
         .keyboardShortcut(",", modifiers: [.command])
+
+        if updater.isAvailable {
+            Button {
+                updater.checkForUpdates()
+            } label: {
+                Label("Check for Updates…", systemImage: "arrow.down.circle")
+            }
+            .disabled(!updater.canCheckForUpdates)
+        }
 
         Divider()
 

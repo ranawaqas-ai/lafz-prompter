@@ -7,11 +7,14 @@ cd "$(dirname "$0")/.."
 APP="build/Lafz Prompter.app"
 
 swift build -c release --arch arm64 --arch x86_64
-BIN="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/LafzPrompter"
+PRODUCTS="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)"
+FRAMEWORK="$APP/Contents/Frameworks/Sparkle.framework"
 
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$BIN" "$APP/Contents/MacOS/LafzPrompter"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
+cp "$PRODUCTS/LafzPrompter" "$APP/Contents/MacOS/LafzPrompter"
+# ditto keeps the framework's Versions symlinks, which codesign requires.
+ditto "$PRODUCTS/Sparkle.framework" "$FRAMEWORK"
 cp packaging/Info.plist "$APP/Contents/Info.plist"
 xcrun actool notch-prompter/Assets.xcassets \
     --compile "$APP/Contents/Resources" \
@@ -25,6 +28,14 @@ xcrun actool notch-prompter/Assets.xcassets \
 # downloaded copies open without a Gatekeeper warning. Otherwise it is signed
 # ad hoc, which runs locally but needs right-click > Open after a download.
 if [ -n "${SIGN_IDENTITY:-}" ]; then
+    # Sparkle's helpers are signed inside out, as Sparkle's docs describe for
+    # apps not built with Xcode. Downloader keeps its own entitlements.
+    sign() { codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$@"; }
+    sign "$FRAMEWORK/Versions/B/XPCServices/Installer.xpc"
+    sign --preserve-metadata=entitlements "$FRAMEWORK/Versions/B/XPCServices/Downloader.xpc"
+    sign "$FRAMEWORK/Versions/B/Autoupdate"
+    sign "$FRAMEWORK/Versions/B/Updater.app"
+    sign "$FRAMEWORK"
     codesign --force --options runtime --timestamp \
         --entitlements packaging/LafzPrompter.entitlements \
         --sign "$SIGN_IDENTITY" "$APP"

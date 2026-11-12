@@ -10,6 +10,8 @@ let package = Package(
         // The dependency container: services are registered once and swapped
         // for fakes in tests (see notch-prompter/Services).
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.9.0"),
+        // In-app updates from the appcast on the website (see scripts/release.sh).
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.10.0"),
         // Tests only: approval files and view images (see notch-prompterTests/README.md).
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.0"),
     ],
@@ -19,11 +21,14 @@ let package = Package(
             dependencies: [
                 "HotKey",
                 .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "Sparkle", package: "Sparkle"),
             ],
             path: "notch-prompter",
             // Compiled into the app bundle by scripts/build-app.sh with actool.
             exclude: ["Assets.xcassets"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            // scripts/build-app.sh copies Sparkle.framework into Contents/Frameworks.
+            linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
         ),
         .testTarget(
             name: "LafzPrompterTests",

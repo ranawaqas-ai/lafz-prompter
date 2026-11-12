@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Behavior Tab
 struct BehaviorTabView: View {
     @Environment(Preferences.self) private var preferences
+    @Environment(Updater.self) private var updater
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -68,6 +69,24 @@ struct BehaviorTabView: View {
                     }
                 }
                 .toggleStyle(.checkbox)
+
+                if updater.isAvailable {
+                    Divider()
+
+                    Text("Updates")
+                        .font(.system(size: 13, weight: .medium))
+
+                    Toggle(isOn: Bindable(updater).checksAutomatically) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Check for updates automatically")
+                                .font(.system(size: 13))
+                            Text("Once a day, the app asks lafz.waqasrana.space whether a new version exists")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .toggleStyle(.checkbox)
+                }
             }
             .padding(16)
         }
