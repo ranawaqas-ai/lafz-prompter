@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lafz Prompter: free Mac teleprompter under the notch</title>
-  <meta name="description" content="A free open-source teleprompter for Mac that sits under the notch and can be hidden from screen recordings, Zoom and Google Meet. It is an MIT-licensed alternative to NotchPrompter.">
+  <meta name="description" content="A free Mac teleprompter that reads under the notch by your camera, scrolls as you speak, opens Word and PDF scripts, and can hide from recordings.">
   <link rel="canonical" href="https://lafz.waqasrana.space/">
   <link rel="icon" href="./favicon.ico" sizes="any">
   <link rel="icon" href="./logo.svg" type="image/svg+xml">
@@ -13,50 +13,138 @@
 
   <meta property="og:site_name" content="Lafz Prompter">
   <meta property="og:title" content="Lafz Prompter: free Mac teleprompter under the notch">
-  <meta property="og:description" content="A free open-source teleprompter for Mac that sits under the notch and can be hidden from screen recordings.">
+  <meta property="og:description" content="A free open-source teleprompter for Mac that sits under the notch, scrolls as you speak and can be hidden from screen recordings.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://lafz.waqasrana.space/">
-  <meta property="og:image" content="https://lafz.waqasrana.space/screenshot.png">
-  <meta property="og:image:width" content="1120">
-  <meta property="og:image:height" content="480">
-  <meta property="og:image:alt" content="Lafz Prompter showing a script with stage directions in brackets">
+  <meta property="og:image" content="https://lafz.waqasrana.space/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Lafz Prompter showing a script under the notch of a MacBook, with the reading line highlighted">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Lafz Prompter: free Mac teleprompter under the notch">
-  <meta name="twitter:description" content="A free open-source teleprompter for Mac that sits under the notch and can be hidden from screen recordings.">
+  <meta name="twitter:description" content="A free open-source teleprompter for Mac that sits under the notch, scrolls as you speak and can be hidden from screen recordings.">
+  <meta name="twitter:image" content="https://lafz.waqasrana.space/og.png">
+  <meta name="twitter:image:alt" content="Lafz Prompter showing a script under the notch of a MacBook, with the reading line highlighted">
+  <meta name="theme-color" content="#faf7f0">
 
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Lafz Prompter",
-    "description": "A free open-source teleprompter for Mac that sits under the notch and can be hidden from screen recordings and screen sharing.",
-    "applicationCategory": "MultimediaApplication",
-    "operatingSystem": "macOS 26 or newer",
-    "softwareVersion": "1.1",
-    "url": "https://lafz.waqasrana.space/",
-    "downloadUrl": "https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip",
-    "screenshot": "https://lafz.waqasrana.space/screenshot.png",
-    "license": "https://opensource.org/licenses/MIT",
-    "isBasedOn": "https://github.com/jpomykala/NotchPrompter",
-    "author": { "@type": "Person", "name": "Rana Muhammad Waqas" },
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Lafz Prompter",
+  "description": "A free open-source teleprompter for Mac that sits under the notch, scrolls as you speak and can be hidden from screen recordings and screen sharing.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "macOS 26 or newer",
+  "softwareVersion": "1.1",
+  "softwareRequirements": "macOS 26 or newer, Apple Silicon or Intel",
+  "featureList": [
+    "Teleprompter under the MacBook notch, next to the camera",
+    "Voice-activated scrolling",
+    "Can be hidden from screen recordings and screen sharing",
+    "Opens text, Markdown, Word, OpenDocument, RTF, HTML, PDF and Fountain scripts",
+    "Global keyboard shortcuts",
+    "Dark and light themes, any installed font, Urdu in Nastaliq",
+    "Call Assist (experimental): suggested answers during calls"
+  ],
+  "url": "https://lafz.waqasrana.space/",
+  "downloadUrl": "https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip",
+  "releaseNotes": "https://github.com/ranawaqas-ai/lafz-prompter/releases/tag/v1.1",
+  "dateModified": "2026-11-12",
+  "screenshot": "https://lafz.waqasrana.space/og.png",
+  "image": "https://lafz.waqasrana.space/og.png",
+  "license": "https://opensource.org/licenses/MIT",
+  "isBasedOn": "https://github.com/jpomykala/NotchPrompter",
+  "author": {
+    "@type": "Person",
+    "name": "Rana Muhammad Waqas",
+    "url": "https://github.com/ranawaqas-ai"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
   }
+}
   </script>
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      { "@type": "Question", "name": "Is Lafz Prompter free?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Lafz Prompter is free to download and use, and its source code is published on GitHub under the MIT License." } },
-      { "@type": "Question", "name": "Is the teleprompter visible in Zoom or in screen recordings?",
-        "acceptedAnswer": { "@type": "Answer", "text": "The prompter can be hidden from screen recordings and from screen sharing in Zoom, Google Meet and other apps, so that only you see the script. Turn it on under Settings › Behavior." } },
-      { "@type": "Question", "name": "Which Macs does Lafz Prompter run on?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Lafz Prompter runs on macOS 26 or newer with Apple Silicon or Intel. It sits under the notch on a MacBook and at the top of the screen on other displays." } },
-      { "@type": "Question", "name": "How does Lafz Prompter relate to NotchPrompter?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Lafz Prompter is a fork of NotchPrompter by Jakub Pomyka\u0142a, based on the last version released under the MIT License. It is not affiliated with or endorsed by NotchPrompter." } }
-    ]
-  }
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is Lafz Prompter free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lafz Prompter is free to download and use, and its source code is published on GitHub under the MIT License."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the teleprompter visible in Zoom or in screen recordings?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The prompter can be hidden from screen recordings and from screen sharing in Zoom, Google Meet and other apps, so that only you see the script. Turn it on under Settings › Behavior."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work with Zoom, Google Meet and Microsoft Teams?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lafz Prompter is a window at the top of your screen, so it works alongside Zoom, Google Meet, Microsoft Teams and any other video or recording app. You read just below the camera, so you keep eye contact."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the script scroll by itself while I talk?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "With voice activation on, the script scrolls while you speak and waits when you pause. Otherwise it scrolls at a speed you set, which ⌃⌥← and ⌃⌥→ change from any app."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I load a script from Word, PDF or a screenplay?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lafz Prompter opens plain text, Markdown, Word, OpenDocument, RTF, HTML, PDF and Fountain files. Press ⌃⌥O to open one, drop it on the prompter, or press ⌃⌥V to use text you have copied."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it support Urdu?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Automatic font shows Urdu in a Nastaliq font, and you can choose any font installed on your Mac for other languages."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which Macs does Lafz Prompter run on?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lafz Prompter runs on macOS 26 or newer with Apple Silicon or Intel. It sits under the notch on a MacBook and at the top of the screen on other displays."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does Lafz Prompter relate to NotchPrompter?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lafz Prompter is a fork of NotchPrompter by Jakub Pomykała, based on the last version released under the MIT License. It is not affiliated with or endorsed by NotchPrompter."
+      }
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Lafz Prompter",
+  "url": "https://lafz.waqasrana.space/"
+}
   </script>
   <script type="module" crossorigin src="./assets/main-Baye0EXb.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/main-l7NwvUTL.css">
@@ -207,6 +295,22 @@
       <details class="faq bg-white rounded-xl border border-line">
         <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Is the teleprompter visible in Zoom or in screen recordings?<svg class="faq-chevron w-4 h-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
         <p class="max-w-3xl text-sm text-muted leading-relaxed px-5 pb-5 -mt-2">The prompter can be hidden from screen recordings and from screen sharing in Zoom, Google Meet and other apps, so that only you see the script. Turn it on under Settings › Behavior.</p>
+      </details>
+      <details class="faq bg-white rounded-xl border border-line">
+        <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Does it work with Zoom, Google Meet and Microsoft Teams?<svg class="faq-chevron w-4 h-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p class="max-w-3xl text-sm text-muted leading-relaxed px-5 pb-5 -mt-2">Lafz Prompter is a window at the top of your screen, so it works alongside Zoom, Google Meet, Microsoft Teams and any other video or recording app. You read just below the camera, so you keep eye contact.</p>
+      </details>
+      <details class="faq bg-white rounded-xl border border-line">
+        <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Does the script scroll by itself while I talk?<svg class="faq-chevron w-4 h-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p class="max-w-3xl text-sm text-muted leading-relaxed px-5 pb-5 -mt-2">With voice activation on, the script scrolls while you speak and waits when you pause. Otherwise it scrolls at a speed you set, which ⌃⌥← and ⌃⌥→ change from any app.</p>
+      </details>
+      <details class="faq bg-white rounded-xl border border-line">
+        <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Can I load a script from Word, PDF or a screenplay?<svg class="faq-chevron w-4 h-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p class="max-w-3xl text-sm text-muted leading-relaxed px-5 pb-5 -mt-2">Lafz Prompter opens plain text, Markdown, Word, OpenDocument, RTF, HTML, PDF and Fountain files. Press ⌃⌥O to open one, drop it on the prompter, or press ⌃⌥V to use text you have copied.</p>
+      </details>
+      <details class="faq bg-white rounded-xl border border-line">
+        <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Does it support Urdu?<svg class="faq-chevron w-4 h-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p class="max-w-3xl text-sm text-muted leading-relaxed px-5 pb-5 -mt-2">The Automatic font shows Urdu in a Nastaliq font, and you can choose any font installed on your Mac for other languages.</p>
       </details>
       <details class="faq bg-white rounded-xl border border-line">
         <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Which Macs does Lafz Prompter run on?<svg class="faq-chevron w-4 h-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
