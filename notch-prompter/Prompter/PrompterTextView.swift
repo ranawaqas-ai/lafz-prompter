@@ -31,7 +31,7 @@ struct PrompterTextView: View {
     }
     
     /// A shortcut written in a script, such as ⌃⌥P, ⌃⌥← or ⌃⌥Return.
-    static let keycapPattern = #"⌃⌥(?:Return|Esc|[A-Z0-9]|[←→↑↓\[\]/,.])"#
+    static let keycapPattern = #"⌃⌥(?:Return|Esc|[A-Z0-9]|[←→↑↓\[\]/,.=−])"#
 
     /// Pads each shortcut with thin spaces so its key background has room.
     static func paddingKeycaps(in text: String) -> String {

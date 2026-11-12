@@ -82,7 +82,7 @@ struct AppearanceTabView: View {
                 SettingSlider(
                     label: "Size",
                     value: Bindable(preferences).fontSize,
-                    range: 8...80,
+                    range: Preferences.fontSizeRange,
                     step: 1,
                     unit: "pt"
                 )

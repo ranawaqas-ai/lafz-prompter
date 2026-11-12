@@ -398,3 +398,22 @@ extension PrompterCharacterisationTests {
         #expect(playback.microphoneUndecided)
     }
 }
+
+extension PrompterCharacterisationTests {
+    @Test func theSizeShortcutsStepTheTextWithinTheSliderRange() {
+        let suite = Suite()
+        let (preferences, playback) = makeModels(suite)
+        preferences.fontSize = 20
+        playback.increaseFontSize()
+        #expect(preferences.fontSize == 22)
+        playback.decreaseFontSize()
+        playback.decreaseFontSize()
+        #expect(preferences.fontSize == 18)
+        preferences.fontSize = 79
+        playback.increaseFontSize()
+        #expect(preferences.fontSize == Preferences.fontSizeRange.upperBound)
+        preferences.fontSize = 9
+        playback.decreaseFontSize()
+        #expect(preferences.fontSize == Preferences.fontSizeRange.lowerBound)
+    }
+}

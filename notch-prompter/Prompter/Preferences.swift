@@ -10,6 +10,8 @@ import SwiftUI
 final class Preferences {
     // MARK: Text
     var fontSize = 12.0 { didSet { save(fontSize, oldValue, Keys.fontSize) } }
+    /// The text sizes the Settings slider and the size shortcuts allow.
+    static let fontSizeRange = 8.0...80.0
     var lineHeight = 8.0 { didSet { save(lineHeight, oldValue, Keys.lineHeight) } }
     var fontDesign: Font.Design = .monospaced { didSet { save(fontDesign, oldValue, Keys.fontDesign) { $0.rawValue } } }
     var fontChoice: PrompterFontChoice = .automatic { didSet { save(fontChoice, oldValue, Keys.fontChoice) { $0.storageValue } } }

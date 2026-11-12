@@ -138,6 +138,17 @@ final class Playback {
         preferences.speed = max(1, preferences.speed - preferences.speedIncrement)
     }
 
+    /// Text size steps for the size shortcuts, within the Settings slider's range.
+    static let fontSizeStep = 2.0
+
+    func increaseFontSize() {
+        preferences.fontSize = min(Preferences.fontSizeRange.upperBound, preferences.fontSize + Self.fontSizeStep)
+    }
+
+    func decreaseFontSize() {
+        preferences.fontSize = max(Preferences.fontSizeRange.lowerBound, preferences.fontSize - Self.fontSizeStep)
+    }
+
     // MARK: Voice activation
 
     func startListening() {
@@ -220,6 +231,8 @@ final class Playback {
             .showHide: { [weak self] in self?.isPrompterVisible.toggle() },
             .faster: { [weak self] in self?.increaseSpeed() },
             .slower: { [weak self] in self?.decreaseSpeed() },
+            .biggerText: { [weak self] in self?.increaseFontSize() },
+            .smallerText: { [weak self] in self?.decreaseFontSize() },
             .scrollUp: { [weak self] in self?.scrollUp() },
             .scrollDown: { [weak self] in self?.scrollDown() },
         ]

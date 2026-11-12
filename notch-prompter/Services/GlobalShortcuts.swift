@@ -24,6 +24,8 @@ final class GlobalShortcuts {
         static let showHide = Shortcut(name: "Show or hide the prompter", key: .h, label: "⌃⌥H")
         static let faster = Shortcut(name: "Faster", key: .rightArrow, label: "⌃⌥→")
         static let slower = Shortcut(name: "Slower", key: .leftArrow, label: "⌃⌥←")
+        static let smallerText = Shortcut(name: "Smaller text", key: .minus, label: "⌃⌥−")
+        static let biggerText = Shortcut(name: "Bigger text", key: .equal, label: "⌃⌥=")
         static let scrollUp = Shortcut(name: "Scroll up", key: .upArrow, label: "⌃⌥↑")
         static let scrollDown = Shortcut(name: "Scroll down", key: .downArrow, label: "⌃⌥↓")
         static let showShortcuts = Shortcut(name: "Show all shortcuts", key: .slash, label: "⌃⌥/")
@@ -45,7 +47,8 @@ final class GlobalShortcuts {
         /// Every shortcut people use, in the order the shortcut list and
         /// Settings show them. Esc is left out: it only closes the list.
         static let all: [Shortcut] = [
-            .playPause, .showHide, .slower, .faster, .scrollUp, .scrollDown, .showShortcuts,
+            .playPause, .showHide, .slower, .faster, .smallerText, .biggerText, .scrollUp, .scrollDown,
+            .showShortcuts,
             .openScript, .loadClipboard,
             .assistToggle, .answerNow, .solveScreen, .previousAnswer, .nextAnswer,
         ]

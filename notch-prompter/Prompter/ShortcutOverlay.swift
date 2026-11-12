@@ -13,6 +13,7 @@ enum ShortcutList {
 
     private static let pairs: [(first: Shortcut, second: Shortcut, title: String, keys: String)] = [
         (.slower, .faster, "Slower, faster", "⌃⌥← →"),
+        (.smallerText, .biggerText, "Smaller, bigger text", "⌃⌥− ="),
         (.scrollUp, .scrollDown, "Back, ahead", "⌃⌥↑ ↓"),
         (.previousAnswer, .nextAnswer, "Earlier, later answer", "⌃⌥[ ]"),
     ]

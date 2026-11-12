@@ -111,6 +111,8 @@ extension GlobalShortcuts.Shortcut {
         case .showHide: "show or hide the prompter"
         case .slower: "slow down"
         case .faster: "speed up"
+        case .smallerText: "make the text smaller"
+        case .biggerText: "make the text bigger"
         case .scrollUp: "move back"
         case .scrollDown: "move ahead"
         case .openScript: "open a script"

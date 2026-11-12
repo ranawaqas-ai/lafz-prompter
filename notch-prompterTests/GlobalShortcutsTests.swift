@@ -124,7 +124,7 @@ struct GlobalShortcutsTests {
             "⌃⌥← Slower", "⌃⌥↑ Scroll up", "⌃⌥→ Faster", "⌃⌥↓ Scroll down",
             "⌃⌥H Show or hide the prompter", "⌃⌥P Play or pause",
             "⌃⌥O Open a script file", "⌃⌥V Load a script from the clipboard",
-            "⌃⌥/ Show all shortcuts",
+            "⌃⌥/ Show all shortcuts", "⌃⌥− Smaller text", "⌃⌥= Bigger text",
         ].sorted())
     }
 
