@@ -21,6 +21,7 @@ struct GlobalShortcutsTests {
         let files = ScriptLibraryTests.MemoryFiles()
         let scripts: ScriptLibrary
         let loader: ScriptLoader
+        let guide: ShortcutGuide
         private let suite = "lafz-shortcut-tests-\(UUID().uuidString)"
 
         @MainActor
@@ -52,12 +53,17 @@ struct GlobalShortcutsTests {
                 $0.settingsStorage = defaults
             } operation: { ScriptLibrary() }
             let (playback, scripts) = (playback, scripts)
-            loader = withDependencies { $0.globalShortcuts = shortcuts } operation: {
-                ScriptLoader(library: scripts, playback: playback, showError: { _ in })
+            (loader, guide) = withDependencies {
+                $0.globalShortcuts = shortcuts
+                $0.settingsStorage = defaults
+            } operation: {
+                (ScriptLoader(library: scripts, playback: playback, showError: { _ in }),
+                 ShortcutGuide(playback: playback))
             }
             coordinator = AppCoordinator(preferences: preferences, playback: playback,
                                          scripts: scripts, callAssist: controller,
-                                         scriptLoader: loader, panel: AppCoordinatorTests.FakePanel())
+                                         scriptLoader: loader, guide: guide,
+                                         panel: AppCoordinatorTests.FakePanel())
             coordinator.start()
         }
 
@@ -118,6 +124,7 @@ struct GlobalShortcutsTests {
             "⌃⌥← Slower", "⌃⌥↑ Scroll up", "⌃⌥→ Faster", "⌃⌥↓ Scroll down",
             "⌃⌥H Show or hide the prompter", "⌃⌥P Play or pause",
             "⌃⌥O Open a script file", "⌃⌥V Load a script from the clipboard",
+            "⌃⌥/ Show all shortcuts",
         ].sorted())
     }
 

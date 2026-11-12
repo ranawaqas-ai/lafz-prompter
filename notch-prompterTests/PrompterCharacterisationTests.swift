@@ -260,10 +260,17 @@ struct PrompterCharacterisationTests {
                                       fileID: StaticString = #fileID, file: StaticString = #filePath,
                                       testName: String = #function, line: UInt = #line, column: UInt = #column) {
         let width = size.width + 2 * NotchShape.shoulder
+        let guide = withDependencies {
+            $0.globalShortcuts = GlobalShortcuts(registersWithSystem: false)
+            $0.settingsStorage = UserDefaults(suiteName: "lafz-image-tests")!
+        } operation: {
+            ShortcutGuide(playback: playback)
+        }
         let hosting = NSHostingView(rootView: view
             .environment(preferences)
             .environment(playback)
             .environment(library)
+            .environment(guide)
             .frame(width: width, height: size.height))
         hosting.frame = NSRect(x: 0, y: 0, width: width, height: size.height)
         hosting.appearance = NSAppearance(named: .aqua)

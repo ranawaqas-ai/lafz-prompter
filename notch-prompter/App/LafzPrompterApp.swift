@@ -22,7 +22,7 @@ struct LafzPrompterApp: App {
         }
 
         MenuBarExtra {
-            MenuContent(loader: appDelegate.scriptLoader)
+            MenuContent(loader: appDelegate.scriptLoader, guide: appDelegate.shortcutGuide)
                 .environment(appDelegate.playback)
                 .environment(appDelegate.preferences)
                 .environment(appDelegate.scripts)
@@ -53,16 +53,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let scripts = ScriptLibrary()
     private(set) lazy var callAssistSession = CallAssistSession(settings: callAssist)
     private(set) lazy var scriptLoader = ScriptLoader(library: scripts, playback: playback)
+    private(set) lazy var shortcutGuide = ShortcutGuide(playback: playback)
     private var prompterWindow: PrompterWindowController!
     private var coordinator: AppCoordinator!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         scripts.ensureCurrentScript()
         prompterWindow = PrompterWindowController(preferences: preferences, playback: playback,
-                                                  callAssist: callAssistSession, scripts: scripts)
+                                                  callAssist: callAssistSession, scripts: scripts,
+                                                  guide: shortcutGuide)
         coordinator = AppCoordinator(preferences: preferences, playback: playback,
                                      scripts: scripts, callAssist: callAssistSession,
-                                     scriptLoader: scriptLoader, panel: prompterWindow)
+                                     scriptLoader: scriptLoader, guide: shortcutGuide, panel: prompterWindow)
         coordinator.start()
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)
@@ -88,10 +90,12 @@ struct MenuContent: View {
     @Environment(Preferences.self) private var preferences
     @Environment(ScriptLibrary.self) private var library
     let loader: ScriptLoader
+    let guide: ShortcutGuide
 
     var body: some View {
         Button {
             playback.isPrompterVisible.toggle()
+            guide.usedMouse(for: .showHide)
         } label: {
             Label(playback.isPrompterVisible ? "Hide Prompter" : "Show Prompter",
                   systemImage: playback.isPrompterVisible ? "eye.slash" : "eye")
@@ -102,8 +106,8 @@ struct MenuContent: View {
         
         Button {
             playback.togglePlayback()
-        }
-        label: {
+            guide.usedMouse(for: .playPause)
+        } label: {
             if preferences.voiceActivation {
                 Label(playback.isListening ? "Stop Listening" : "Start Listening",
                       systemImage: playback.isListening ? "mic.slash" : "mic")
@@ -124,6 +128,7 @@ struct MenuContent: View {
 
         Button {
             loader.loadClipboard()
+            guide.usedMouse(for: .loadClipboard)
         } label: {
             Label("Load Script from Clipboard", systemImage: "doc.on.clipboard")
         }
@@ -131,6 +136,7 @@ struct MenuContent: View {
 
         Button {
             loader.openFile()
+            guide.usedMouse(for: .openScript)
         } label: {
             Label("Open Script…", systemImage: "folder")
         }
@@ -153,6 +159,13 @@ struct MenuContent: View {
         } label: {
             Label("Show Tutorial Again", systemImage: "graduationcap")
         }
+
+        Button {
+            guide.toggleOverlay()
+        } label: {
+            Label("Keyboard Shortcuts", systemImage: "keyboard")
+        }
+        .keyboardShortcut("/", modifiers: [.control, .option])
 
         SettingsLink {
             Label("Settings…", systemImage: "gearshape")

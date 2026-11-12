@@ -24,6 +24,7 @@ struct AppCoordinatorTests {
         let scripts: ScriptLibrary
         let callAssist: CallAssistSession
         let coordinator: AppCoordinator
+        let guide: ShortcutGuide
         let panel = FakePanel()
         private let suite = "lafz-coordinator-tests-\(UUID().uuidString)"
         private var log: [String] = []
@@ -49,12 +50,17 @@ struct AppCoordinatorTests {
                         CallAssistSession(settings: settings))
             }
             let (preferences, playback, scripts) = (preferences, playback, scripts)
-            let loader = withDependencies { $0.globalShortcuts = shortcuts } operation: {
-                ScriptLoader(library: scripts, playback: playback, showError: { _ in })
+            let (loader, guide) = withDependencies {
+                $0.globalShortcuts = shortcuts
+                $0.settingsStorage = defaults
+            } operation: {
+                (ScriptLoader(library: scripts, playback: playback, showError: { _ in }),
+                 ShortcutGuide(playback: playback))
             }
+            self.guide = guide
             coordinator = AppCoordinator(preferences: preferences, playback: playback,
                                          scripts: scripts, callAssist: callAssist,
-                                         scriptLoader: loader, panel: panel)
+                                         scriptLoader: loader, guide: guide, panel: panel)
             coordinator.start()
         }
 

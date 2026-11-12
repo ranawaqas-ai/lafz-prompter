@@ -84,6 +84,7 @@ struct ProgressLine: View {
 struct StatusRow: View {
     @Environment(Preferences.self) private var preferences
     @Environment(Playback.self) private var playback
+    @Environment(ShortcutGuide.self) private var guide
 
     var body: some View {
         let color = preferences.prompterTheme.textColor
@@ -92,9 +93,15 @@ struct StatusRow: View {
                 LevelMeter(monitor: monitor, threshold: Double(preferences.audioThreshold), color: color)
             } else {
                 HStack(spacing: 8) {
-                    RoundButton(symbol: "minus", help: "Slower (⌃⌥←)", color: color) { playback.decreaseSpeed() }
+                    RoundButton(symbol: "minus", help: "Slower (⌃⌥←)", color: color) {
+                        playback.decreaseSpeed()
+                        guide.usedMouse(for: .slower)
+                    }
                     playButton(color: color)
-                    RoundButton(symbol: "plus", help: "Faster (⌃⌥→)", color: color) { playback.increaseSpeed() }
+                    RoundButton(symbol: "plus", help: "Faster (⌃⌥→)", color: color) {
+                        playback.increaseSpeed()
+                        guide.usedMouse(for: .faster)
+                    }
                 }
                 HStack {
                     Spacer()
@@ -112,7 +119,10 @@ struct StatusRow: View {
         let voice = preferences.voiceActivation
         let symbol = voice ? "mic.fill" : (playback.isPlaying ? "pause.fill" : "play.fill")
         let help = voice ? "Start listening (⌃⌥P)" : (playback.isPlaying ? "Pause (⌃⌥P)" : "Play (⌃⌥P)")
-        return Button { playback.togglePlayback() } label: {
+        return Button {
+            playback.togglePlayback()
+            guide.usedMouse(for: .playPause)
+        } label: {
             Image(systemName: symbol)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(preferences.prompterTheme.backgroundColor)

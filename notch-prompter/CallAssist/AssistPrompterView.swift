@@ -5,19 +5,24 @@ import SwiftUI
 struct PrompterRootView: View {
     @Environment(CallAssistSession.self) private var callAssist
     @Environment(Playback.self) private var playback
+    @Environment(ShortcutGuide.self) private var guide
 
     var body: some View {
         let showingAssist = callAssist.isActive || callAssist.notice != nil
+        let showingList = guide.isOverlayShown
         ZStack {
             // Hidden rather than covered: with a see-through background the
             // script would show through the answer.
             PrompterView()
-                .opacity(showingAssist ? 0 : 1)
+                .opacity(showingAssist || showingList ? 0 : 1)
             if showingAssist {
                 AssistPrompterView()
+                    .opacity(showingList ? 0 : 1)
             }
-            // The Done pill is a fixed size, so it has nothing to resize.
-            if showingAssist || !playback.isFinished {
+            if showingList {
+                ShortcutOverlay()
+            } else if showingAssist || !playback.isFinished {
+                // The Done pill is a fixed size, so it has nothing to resize.
                 PrompterResizeHandles()
             }
         }

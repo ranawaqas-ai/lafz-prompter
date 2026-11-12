@@ -4,6 +4,7 @@ struct PrompterView: View {
     @Environment(Preferences.self) private var preferences
     @Environment(Playback.self) private var playback
     @Environment(ScriptLibrary.self) private var library
+    @Environment(ShortcutGuide.self) private var guide
 
     // Measure content height to stop appropriately
     @State private var contentHeight: CGFloat = 0
@@ -14,7 +15,7 @@ struct PrompterView: View {
 
     var body: some View {
         ScrollablePrompterView(
-            models: PrompterModels(preferences: preferences, playback: playback, library: library),
+            models: PrompterModels(preferences: preferences, playback: playback, library: library, guide: guide),
             contentHeight: $contentHeight,
             isHovering: $isHovering,
             wasPlayingBeforeHover: $wasPlayingBeforeHover
@@ -29,6 +30,7 @@ struct PrompterModels {
     let preferences: Preferences
     let playback: Playback
     let library: ScriptLibrary
+    let guide: ShortcutGuide
 }
 
 // MARK: Scrollable Prompter View with NSView for scroll events
@@ -96,7 +98,8 @@ class PrompterHostingView: NSView {
         AnyView(PrompterContentView(contentHeight: contentHeight)
             .environment(models.preferences)
             .environment(models.playback)
-            .environment(models.library))
+            .environment(models.library)
+            .environment(models.guide))
     }
     
     override func updateTrackingAreas() {
@@ -171,6 +174,7 @@ struct PrompterContentView: View {
     @Environment(Preferences.self) private var preferences
     @Environment(Playback.self) private var playback
     @Environment(ScriptLibrary.self) private var library
+    @Environment(ShortcutGuide.self) private var guide
     @Binding var contentHeight: CGFloat
     @State private var isHovered = false
 
@@ -212,7 +216,9 @@ struct PrompterContentView: View {
             } else {
                 VStack(spacing: 12) {
                     Spacer()
-                    if showsStatusRow {
+                    if let hint = guide.hint {
+                        ShortcutHint(shortcut: hint, color: theme.textColor).transition(.opacity)
+                    } else if showsStatusRow {
                         StatusRow().transition(.opacity)
                     }
                     if preferences.showProgressBar {
@@ -224,6 +230,7 @@ struct PrompterContentView: View {
                 // takes no clicks); the buttons stay above its 24 px.
                 .padding(.bottom, 12)
                 .animation(.easeInOut(duration: 0.2), value: showsStatusRow)
+                .animation(.easeInOut(duration: 0.2), value: guide.hint)
             }
         }
         .ignoresSafeArea()
@@ -240,7 +247,7 @@ struct PrompterContentView: View {
         guard !playback.isFinished else { return 0 }
         var height: CGFloat = 0
         if preferences.showProgressBar { height += 12 + 3 }
-        if showsStatusRow { height += 12 + 36 + (preferences.showProgressBar ? 12 : 0) }
+        if showsStatusRow || guide.hint != nil { height += 12 + 36 + (preferences.showProgressBar ? 12 : 0) }
         return height
     }
 

@@ -1,4 +1,5 @@
 == launch, Anthropic key saved
+⌃⌥/ Show all shortcuts
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
 ⌃⌥O Open a script file
@@ -9,6 +10,7 @@
 ⌃⌥→ Faster
 ⌃⌥↓ Scroll down
 == OpenAI selected, no key for it
+⌃⌥/ Show all shortcuts
 ⌃⌥H Show or hide the prompter
 ⌃⌥O Open a script file
 ⌃⌥P Play or pause
@@ -18,6 +20,7 @@
 ⌃⌥→ Faster
 ⌃⌥↓ Scroll down
 == Anthropic selected again
+⌃⌥/ Show all shortcuts
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
 ⌃⌥O Open a script file
@@ -28,6 +31,7 @@
 ⌃⌥→ Faster
 ⌃⌥↓ Scroll down
 == session running, started with ⌃⌥A
+⌃⌥/ Show all shortcuts
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
 ⌃⌥O Open a script file
@@ -44,6 +48,7 @@
 == global shortcuts switched off during the session
 
 == switched back on
+⌃⌥/ Show all shortcuts
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
 ⌃⌥O Open a script file
@@ -58,6 +63,7 @@
 ⌃⌥→ Faster
 ⌃⌥↓ Scroll down
 == session stopped with ⌃⌥A
+⌃⌥/ Show all shortcuts
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
 ⌃⌥O Open a script file

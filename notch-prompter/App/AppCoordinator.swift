@@ -9,16 +9,19 @@ final class AppCoordinator {
     private let scripts: ScriptLibrary
     private let callAssist: CallAssistSession
     private let scriptLoader: ScriptLoader
+    private let guide: ShortcutGuide
     private let panel: PrompterPanel
     private var tasks: [Task<Void, Never>] = []
 
     init(preferences: Preferences, playback: Playback, scripts: ScriptLibrary,
-         callAssist: CallAssistSession, scriptLoader: ScriptLoader, panel: PrompterPanel) {
+         callAssist: CallAssistSession, scriptLoader: ScriptLoader, guide: ShortcutGuide,
+         panel: PrompterPanel) {
         self.preferences = preferences
         self.playback = playback
         self.scripts = scripts
         self.callAssist = callAssist
         self.scriptLoader = scriptLoader
+        self.guide = guide
         self.panel = panel
     }
 
@@ -34,7 +37,7 @@ final class AppCoordinator {
         let scripts = scripts
         let callAssist = callAssist
         // 5. One setting holds or releases every global shortcut: the
-        //    prompter's, script loading's and Call Assist's. Applied now, then on each change.
+        //    prompter's, script loading's, the shortcut list's and Call Assist's. Applied now, then on each change.
         applyShortcutsSetting()
         // 4. While Call Assist runs, the prompter is hidden from screen
         //    sharing whatever the setting says: the other side of the call
@@ -61,8 +64,10 @@ final class AppCoordinator {
             // 2. Starting Call Assist shows the prompter, so answers are never
             //    fetched with nothing on screen.
             // 3. While Call Assist runs, the scroll controls move the answer.
-            Task {
+            // 7. While Call Assist runs, no shortcut hints distract from it.
+            Task { [guide] in
                 for await active in Observations({ callAssist.isActive }) {
+                    guide.hintsAllowed = !active
                     if active { playback.isPrompterVisible = true }
                     playback.scrollRedirect = active ? { callAssist.nudgeScroll(by: $0) } : nil
                 }
@@ -85,5 +90,6 @@ final class AppCoordinator {
         playback.shortcutsEnabled = enabled
         callAssist.shortcutsEnabled = enabled
         scriptLoader.shortcutsEnabled = enabled
+        guide.shortcutsEnabled = enabled
     }
 }

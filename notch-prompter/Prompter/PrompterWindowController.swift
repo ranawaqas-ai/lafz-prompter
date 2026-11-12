@@ -16,19 +16,23 @@ final class PrompterWindowController: PrompterPanel {
     private let preferences: Preferences
     private let playback: Playback
     private let callAssist: CallAssistSession
+    private let guide: ShortcutGuide
     private var layoutTask: Task<Void, Never>?
     private var visibilityTask: Task<Void, Never>?
 
-    init(preferences: Preferences, playback: Playback, callAssist: CallAssistSession, scripts: ScriptLibrary) {
+    init(preferences: Preferences, playback: Playback, callAssist: CallAssistSession, scripts: ScriptLibrary,
+         guide: ShortcutGuide) {
         self.preferences = preferences
         self.playback = playback
         self.callAssist = callAssist
+        self.guide = guide
 
         let contentView = NotchPanel { PrompterRootView() }
             .environment(preferences)
             .environment(playback)
             .environment(scripts)
             .environment(callAssist)
+            .environment(guide)
             // Dropping a script file on the prompter loads it straight away.
             .dropDestination(for: URL.self) { urls, _ in
                 let files = urls.filter(ScriptImporter.canRead)
@@ -67,11 +71,11 @@ final class PrompterWindowController: PrompterPanel {
         window.contentView = hosting
 
         // Size and place the panel when any of its layout settings change.
-        layoutTask = Task { [weak self, preferences, playback, callAssist] in
+        layoutTask = Task { [weak self, preferences, playback, callAssist, guide] in
             for await _ in Observations({
                 _ = (preferences.prompterWidth, preferences.prompterHeight,
                      preferences.selectedScreenIndex, preferences.horizontalAlignment,
-                     playback.isFinished, callAssist.isActive, callAssist.notice)
+                     playback.isFinished, callAssist.isActive, callAssist.notice, guide.isOverlayShown)
             }) {
                 guard let self else { return }
                 self.resizeWindow(width: self.contentSize.width, height: self.contentSize.height)
@@ -104,12 +108,18 @@ final class PrompterWindowController: PrompterPanel {
         window.setFrame(frame, display: true, animate: !preferences.isResizing)
     }
     
-    /// The size the prompter's content needs: the "Done" pill once the
-    /// script has finished, unless Call Assist is showing, else the setting.
+    /// The size the prompter's content needs: room for the shortcut list
+    /// while it is open, the "Done" pill once the script has finished (unless
+    /// Call Assist is showing), else the size setting.
     private var contentSize: CGSize {
+        let size = CGSize(width: preferences.prompterWidth, height: preferences.prompterHeight)
+        if guide.isOverlayShown {
+            let minimum = ShortcutOverlay.minimumSize
+            return CGSize(width: max(size.width, minimum.width), height: max(size.height, minimum.height))
+        }
         let assistShowing = callAssist.isActive || callAssist.notice != nil
         if playback.isFinished, !assistShowing { return Self.pillSize }
-        return CGSize(width: preferences.prompterWidth, height: preferences.prompterHeight)
+        return size
     }
 
     static let pillSize = CGSize(width: 220, height: 84)
