@@ -16,6 +16,8 @@ struct AssistTabView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                AssistChecklist(controller: controller, providerName: settings.provider.displayName)
+
                 Divider()
 
                 SessionSection(settings: settings, controller: controller)
@@ -262,12 +264,18 @@ private struct KnowledgeSection: View {
 private struct SessionSection: View {
     @Bindable var settings: CallAssistSettings
     let controller: CallAssistSession
+    @State private var explainingMicrophone = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Button {
-                    controller.toggle()
+                    // Explain the microphone before macOS asks for it.
+                    if !controller.isActive, controller.microphoneUndecided {
+                        explainingMicrophone = true
+                    } else {
+                        controller.toggle()
+                    }
                 } label: {
                     HStack(spacing: 6) {
                         Text(controller.isActive ? "Stop Call Assist" : "Start Call Assist")
@@ -275,6 +283,9 @@ private struct SessionSection: View {
                     }
                 }
                 .keyboardShortcut("a", modifiers: [.control, .option])
+                .sheet(isPresented: $explainingMicrophone) {
+                    MicrophoneExplainer(purpose: .callAssist) { controller.toggle() }
+                }
                 .disabled(!settings.isAvailable || settings.knowledgeOverflowMessage != nil)
                 Text(status)
                     .font(.system(size: 11))

@@ -4,13 +4,26 @@ import SwiftUI
 struct VoiceTabView: View {
     @Environment(Preferences.self) private var preferences
     @Environment(Playback.self) private var playback
-    
+    @State private var explainingMicrophone = false
+
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .top, spacing: 10) {
-                    Toggle("", isOn: Bindable(preferences).voiceActivation)
+                    // Explain the microphone before macOS asks for it.
+                    Toggle("", isOn: Binding(
+                        get: { preferences.voiceActivation },
+                        set: { on in
+                            if on, playback.microphoneUndecided {
+                                explainingMicrophone = true
+                            } else {
+                                preferences.voiceActivation = on
+                            }
+                        }))
                         .labelsHidden()
+                        .sheet(isPresented: $explainingMicrophone) {
+                            MicrophoneExplainer(purpose: .voiceActivation) { preferences.voiceActivation = true }
+                        }
                         .toggleStyle(.switch)
                         .controlSize(.small)
                     

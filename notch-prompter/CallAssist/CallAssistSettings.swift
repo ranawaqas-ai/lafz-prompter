@@ -26,6 +26,11 @@ final class CallAssistSettings {
     var includeScreen: Bool {
         didSet { defaults.set(includeScreen, forKey: Keys.includeScreen) }
     }
+    /// Call Assist has heard the other side of a call at least once, so the
+    /// system-audio permission is known to work.
+    var heardSystemAudio: Bool {
+        didSet { if heardSystemAudio != oldValue { defaults.set(heardSystemAudio, forKey: Keys.heardSystemAudio) } }
+    }
     /// Providers that have a key in the Keychain. Mirrors the Keychain so views
     /// can react without reading it on every render.
     private(set) var providersWithKey: Set<AssistProvider>
@@ -50,6 +55,7 @@ final class CallAssistSettings {
         static let includeScreen = "AssistIncludeScreen"
         static let saveHistory = "AssistSaveHistory"
         static let knowledgeSources = "AssistKnowledgeSources"
+        static let heardSystemAudio = "AssistHeardSystemAudio"
         static func model(_ p: AssistProvider) -> String { "AssistModel.\(p.rawValue)" }
     }
 
@@ -61,6 +67,7 @@ final class CallAssistSettings {
         instructions = defaults.string(forKey: Keys.instructions) ?? Self.defaultInstructions
         includeScreen = defaults.object(forKey: Keys.includeScreen) as? Bool ?? true
         saveHistory = defaults.object(forKey: Keys.saveHistory) as? Bool ?? true
+        heardSystemAudio = defaults.bool(forKey: Keys.heardSystemAudio)
         providersWithKey = Set(AssistProvider.allCases.filter(keychain.hasKey))
         knowledgeSources = (defaults.stringArray(forKey: Keys.knowledgeSources) ?? []).map {
             URL(fileURLWithPath: $0)

@@ -381,3 +381,18 @@ extension PrompterCharacterisationTests {
         #expect(playback.offset == 500)
     }
 }
+
+extension PrompterCharacterisationTests {
+    @Test func voiceActivationKnowsWhenTheMicrophoneIsUndecided() {
+        let suite = Suite()
+        let preferences = makePreferences(suite)
+        let playback = withDependencies {
+            $0.frameClock = .stopped
+            $0.globalShortcuts = GlobalShortcuts(registersWithSystem: false)
+            $0.micPermission = MicPermissionClient(status: { .notDetermined }, request: { false })
+        } operation: {
+            Playback(preferences: preferences)
+        }
+        #expect(playback.microphoneUndecided)
+    }
+}

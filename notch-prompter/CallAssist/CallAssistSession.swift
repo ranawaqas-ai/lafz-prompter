@@ -49,10 +49,28 @@ final class CallAssistSession {
 
     var isActive: Bool { state != .idle }
 
+    // MARK: Setup
+
+    /// What is still missing before a session can run, read fresh each time
+    /// since permissions change outside the app.
+    var readiness: AssistReadiness {
+        AssistReadiness(hasKey: settings.isAvailable, microphone: micPermission.status(),
+                        heardSystemAudio: settings.heardSystemAudio, screenRecording: screenPermission.isAllowed())
+    }
+
+    /// The user has not answered the microphone question yet, so an
+    /// explanation should come before the system asks.
+    var microphoneUndecided: Bool { micPermission.status() == .notDetermined }
+
+    func requestMicrophone() async -> Bool { await micPermission.request() }
+
+    func requestScreenRecording() { screenPermission.request() }
+
     private let settings: CallAssistSettings
     @ObservationIgnored @Dependency(\.micPermission) private var micPermission
     @ObservationIgnored @Dependency(\.utteranceSource) private var utteranceSource
     @ObservationIgnored @Dependency(\.screenCapture) private var screenCapture
+    @ObservationIgnored @Dependency(\.screenPermission) private var screenPermission
     @ObservationIgnored @Dependency(\.globalShortcuts) private var shortcuts
     /// Every answer, kept when Save history is on. Settings reads it too.
     @ObservationIgnored @Dependency(\.answerHistory) var history
@@ -209,6 +227,7 @@ final class CallAssistSession {
             return
         }
         if utterance.speaker == .them {
+            if !settings.heardSystemAudio { settings.heardSystemAudio = true }
             // The mic copy of their words can land first.
             transcript.removeAll { QuestionDetector.isEcho($0, of: [utterance]) }
         }

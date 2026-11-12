@@ -1,5 +1,7 @@
+import AppKit
 import Dependencies
 import Foundation
+import SwiftUI
 import SnapshotTesting
 import Testing
 @testable import LafzPrompter
@@ -84,6 +86,7 @@ struct CallAssistSessionCharacterisationTests {
                                                    request: { micAllowed })
         values.utteranceSource = UtteranceSourceClient(make: { listener })
         values.screenCapture = ScreenCaptureClient(make: { screen ?? FakeScreen() })
+        values.screenPermission = ScreenPermissionClient(isAllowed: { false }, request: {})
         values.answerHistory = history
         values.globalShortcuts = shortcuts
     }
@@ -289,5 +292,51 @@ struct CallAssistSessionCharacterisationTests {
             lines.append("  Q: \(row.question) | A: \(row.answer) | cut short \(row.interrupted)")
         }
         return lines.joined(separator: "\n")
+    }
+}
+
+extension CallAssistSessionCharacterisationTests {
+    @Test func setupIsDoneOnceTheOtherSideHasBeenHeard() async {
+        let h = Harness()
+        #expect(h.controller.readiness == AssistReadiness(hasKey: true, microphone: .authorized,
+                                                          heardSystemAudio: false, screenRecording: false))
+        #expect(h.controller.readiness.requiredDone == 2)
+        await started(h)
+        h.listener.say("Thanks, I can hear you.", as: .me)
+        #expect(!h.controller.readiness.heardSystemAudio)
+        h.listener.say("Great, shall we begin?")
+        await until { h.controller.readiness.heardSystemAudio }
+        #expect(h.controller.readiness.isComplete)
+    }
+
+    @Test func withoutAKeyOrMicrophoneSetupIsNotDone() {
+        let h = Harness(hasKey: false, micAllowed: false)
+        let readiness = h.controller.readiness
+        #expect(!readiness.hasKey)
+        #expect(readiness.microphone == .denied)
+        #expect(readiness.requiredDone == 0)
+        #expect(!h.controller.microphoneUndecided)
+    }
+}
+
+extension CallAssistSessionCharacterisationTests {
+    @Test func approvedChecklistImage() {
+        let h = Harness()
+        let hosting = NSHostingView(rootView: AssistChecklist(controller: h.controller, providerName: "Anthropic")
+            .padding(16).frame(width: 520))
+        hosting.frame = NSRect(x: 0, y: 0, width: 520, height: 230)
+        hosting.appearance = NSAppearance(named: .aqua)
+        assertSnapshot(of: hosting, as: .image(precision: 0.98), named: "checklist")
+    }
+}
+
+struct AssistReadinessTests {
+    @Test func screenRecordingIsOptional() {
+        let ready = AssistReadiness(hasKey: true, microphone: .authorized, heardSystemAudio: true, screenRecording: false)
+        #expect(ready.isComplete)
+        let undecided = AssistReadiness(hasKey: true, microphone: .notDetermined, heardSystemAudio: true,
+                                        screenRecording: true)
+        #expect(undecided.requiredDone == 2)
+        #expect(!undecided.isComplete)
     }
 }

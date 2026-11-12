@@ -149,6 +149,10 @@ final class Playback {
         }
     }
 
+    /// The user has not answered the microphone question yet, so Settings
+    /// explains it before voice activation makes the system ask.
+    var microphoneUndecided: Bool { micPermission.status() == .notDetermined }
+
     func stopListening() {
         guard isListening else { return }
         audioLevelCancellable = nil
