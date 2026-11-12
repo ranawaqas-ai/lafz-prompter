@@ -264,3 +264,22 @@ struct PrompterCharacterisationTests {
         return values.map { "\($0.0) = \($0.1)" }.joined(separator: "\n")
     }
 }
+
+struct NotchShapeTests {
+    @Test func theWindowIsTheContentWidenedByAShoulderEachSide() {
+        let content = CGRect(x: 100, y: 50, width: 467, height: 260)
+        let window = NotchShape.windowFrame(forContent: content)
+        #expect(window == CGRect(x: 100 - NotchShape.shoulder, y: 50,
+                                 width: 467 + 2 * NotchShape.shoulder, height: 260))
+    }
+
+    @Test func theOutlineCoversTheContentAndCutsTheShoulders() {
+        let rect = CGRect(x: 0, y: 0, width: 200, height: 100)
+        let path = NotchShape().path(in: rect)
+        let s = NotchShape.shoulder
+        #expect(path.contains(CGPoint(x: 100, y: 50)))
+        #expect(path.contains(CGPoint(x: s - 1, y: 1)))
+        #expect(!path.contains(CGPoint(x: 2, y: s - 2)))
+        #expect(!path.contains(CGPoint(x: 1, y: 99)))
+    }
+}

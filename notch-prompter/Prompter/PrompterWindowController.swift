@@ -22,7 +22,7 @@ final class PrompterWindowController: PrompterPanel {
         self.preferences = preferences
         self.playback = playback
 
-        let contentView = PrompterRootView()
+        let contentView = NotchPanel { PrompterRootView() }
             .environment(preferences)
             .environment(playback)
             .environment(scripts)
@@ -34,12 +34,6 @@ final class PrompterWindowController: PrompterPanel {
                 scripts.importFiles(files)
                 return scripts.importError == nil
             }
-            .clipShape(UnevenRoundedRectangle(
-                topLeadingRadius: 0,
-                bottomLeadingRadius: 16,
-                bottomTrailingRadius: 16,
-                topTrailingRadius: 0
-            )).border(Color.black.opacity(0.0), width: 0)
 
         let hosting = FirstMouseHostingView(rootView: contentView)
         hosting.wantsLayer = true
@@ -128,7 +122,7 @@ final class PrompterWindowController: PrompterPanel {
         let heightOfBorderTopWithRadiusToHide: CGFloat = 4
         let y = screen.frame.maxY - height + heightOfBorderTopWithRadiusToHide
         // MARK: slight offset to hide border under notch, this probably causes the issue with moving the notch view to another display when another display is on bottom/top
-        return CGRect(x: x, y: y, width: width, height: height)
+        return NotchShape.windowFrame(forContent: CGRect(x: x, y: y, width: width, height: height))
     }
     
     // https://developer.apple.com/documentation/appkit/nswindow/sharingtype-swift.property
