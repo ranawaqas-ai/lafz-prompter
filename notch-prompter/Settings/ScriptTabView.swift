@@ -73,7 +73,7 @@ struct ScriptTabView: View {
                 Button { library.newScript() } label: { Image(systemName: "plus") }
                     .help("New script")
                 Button { library.showOpenPanel() } label: { Image(systemName: "folder") }
-                    .help("Open a text, Markdown, Word, RTF, HTML or PDF file")
+                    .help("Open a text, Markdown, Fountain, Word, RTF, HTML or PDF file")
                 Button { library.importClipboard() } label: { Image(systemName: "doc.on.clipboard") }
                     .help("New script from the clipboard")
                 Spacer()

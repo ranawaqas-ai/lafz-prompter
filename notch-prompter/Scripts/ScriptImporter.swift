@@ -21,7 +21,7 @@ enum ScriptImporter {
         }
     }
 
-    static let fileExtensions = ["txt", "text", "md", "markdown", "rtf", "rtfd", "docx", "doc", "odt", "html", "htm", "pdf"]
+    static let fileExtensions = ["txt", "text", "md", "markdown", "fountain", "rtf", "rtfd", "docx", "doc", "odt", "html", "htm", "pdf"]
 
     static var contentTypes: [UTType] {
         fileExtensions.compactMap { UTType(filenameExtension: $0) }
@@ -47,6 +47,8 @@ enum ScriptImporter {
             raw = try plainText(url)
         case "md", "markdown":
             raw = stripMarkdown(try plainText(url))
+        case "fountain":
+            raw = Fountain.script(from: try plainText(url))
         case "pdf":
             guard let document = PDFDocument(url: url) else { throw ImportError.unreadable(name) }
             raw = unwrapLines(document.string ?? "")

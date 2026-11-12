@@ -66,6 +66,67 @@ struct ScriptImporterTests {
         #expect(throws: ScriptImporter.ImportError.self) { try ScriptImporter.read(empty) }
     }
 
+    @Test func readsOnlyTheDialogueOfAFountainScreenplay() throws {
+        let fountain = """
+        Title: Launch Video
+        Author: Someone
+            Second author line
+
+        INT. HOME OFFICE - DAY
+
+        Waqas sits at the desk, laptop open.
+
+        WAQAS
+        Hi, I'm *Waqas*, and this is **Lafz Prompter**.
+
+        WAQAS (CONT'D)
+        (smiling)
+        It hides under your _notch_.
+
+        [[pause for the screen recording]]
+
+        @McCLANE ^
+        Nice. /* cut this joke */
+
+        # Act two
+        = The ending
+
+        CUT TO:
+
+        EXT. STREET - NIGHT
+
+        WAQAS
+        Bye.
+        """
+        let url = try write(Data(fountain.utf8), ext: "fountain")
+        defer { try? FileManager.default.removeItem(at: url) }
+        #expect(try ScriptImporter.read(url) == """
+        [WAQAS]
+        Hi, I'm Waqas, and this is Lafz Prompter.
+
+        [smiling]
+        It hides under your notch.
+
+        [pause for the screen recording]
+
+        [McCLANE]
+        Nice.
+
+        [WAQAS]
+        Bye.
+        """)
+    }
+
+    @Test func aSingleSpeakerFountainScriptHasNoNameCues() {
+        let fountain = "INT. STUDIO - DAY\n\nHOST\nWelcome back.\n\nHOST\n(beat)\nLet's begin."
+        #expect(Fountain.script(from: fountain) == "Welcome back.\n\n[beat]\nLet's begin.")
+    }
+
+    @Test func aFountainFileWithoutDialogueKeepsItsAction() {
+        let fountain = "Title: Notes\n\n.OPENING\n\nThis is narration.\n\n>Centred line<\n\nFADE OUT."
+        #expect(Fountain.script(from: fountain) == "This is narration.\n\nCentred line\n\nFADE OUT.")
+    }
+
     @Test func unwrapsPrintedLines() {
         let pdfText = "The first sentence runs\nacross two lines. Then a hyphen-\nated word.\n\nNew paragraph."
         #expect(ScriptImporter.unwrapLines(pdfText) ==

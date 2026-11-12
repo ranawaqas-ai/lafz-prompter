@@ -40,7 +40,7 @@ extension ScriptFilesClient: DependencyKey {
                 let panel = NSOpenPanel()
                 panel.allowedContentTypes = ScriptImporter.contentTypes
                 panel.allowsMultipleSelection = true
-                panel.message = "Choose a script: text, Markdown, Word, RTF, HTML or PDF."
+                panel.message = "Choose a script: text, Markdown, Fountain, Word, RTF, HTML or PDF."
                 panel.prompt = "Load"
                 // The app is usually in the background behind the menu bar.
                 NSApp.activate()
