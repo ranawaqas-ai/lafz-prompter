@@ -71,7 +71,7 @@
 
   <section>
     <h2 class="text-base font-semibold text-ink mb-2">Network access</h2>
-    <p>The app connects to the network only for Call Assist, and then only to the provider you chose (api.anthropic.com or api.openai.com). The first time Call Assist runs, macOS may download its speech recognition model from Apple.</p>
+    <p>The app connects to the network for two things. Once a day it checks for a new version by downloading a small file from lafz.waqasrana.space, and when you install an update it downloads that version from GitHub. The request carries the app's version and, like any web request, your IP address. It sends no other information, and the site is hosted on GitHub Pages, which gives the developer no record of who checked. You can turn the check off under Settings › Behavior. The second is Call Assist, which connects only to the provider you chose (api.anthropic.com or api.openai.com). The first time Call Assist runs, macOS may download its speech recognition model from Apple.</p>
   </section>
 
   <section>
