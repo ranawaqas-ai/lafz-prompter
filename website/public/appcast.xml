@@ -5,5 +5,14 @@
     <link>https://lafz.waqasrana.space/appcast.xml</link>
     <description>Lafz Prompter updates</description>
     <language>en</language>
+    <item>
+      <title>Version 1.2</title>
+      <pubDate>Thu, 12 Nov 2026 21:52:47 GMT</pubDate>
+      <sparkle:version>3</sparkle:version>
+      <sparkle:shortVersionString>1.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/ranawaqas-ai/lafz-prompter/releases/tag/v1.2</sparkle:fullReleaseNotesLink>
+      <enclosure url="https://github.com/ranawaqas-ai/lafz-prompter/releases/download/v1.2/LafzPrompter.zip" sparkle:edSignature="kN7A440528DVDSJJwX76NOA+yBrSIqYxbDfNc3CB49nh7eB+7Mru0RYaoF7PfSXqwmYYHxLFfOwf5hgAPU6xCQ==" length="3919538" type="application/octet-stream"/>
+    </item>
   </channel>
 </rss>
