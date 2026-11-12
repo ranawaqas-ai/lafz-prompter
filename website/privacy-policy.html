@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Privacy Policy: Lafz Prompter</title>
-  <meta name="description" content="Lafz Prompter does not collect data or make network requests, and it processes audio from the microphone only on your Mac.">
+  <meta name="description" content="Lafz Prompter collects no usage data. Scripts stay on your Mac. Call Assist, if you use it, sends transcripts to the AI provider you choose.">
   <link rel="canonical" href="https://lafz.waqasrana.space/privacy-policy.html">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/logo.svg" type="image/svg+xml">
@@ -27,17 +27,44 @@
 
   <section>
     <h2 class="text-base font-semibold text-ink mb-2">Data collection</h2>
-    <p>Lafz Prompter does not collect, store, send or process personal data or usage data. The app contains neither analytics nor telemetry, and it does not require an account.</p>
+    <p>Lafz Prompter does not collect usage data and does not send anything to its developer. The app contains neither analytics nor telemetry, and it does not require an account.</p>
+  </section>
+
+  <section>
+    <h2 class="text-base font-semibold text-ink mb-2">Scripts and settings</h2>
+    <p>Your settings are stored in the preferences of the app on your Mac. Your scripts are stored in a file on your Mac, <code class="text-ink">~/Library/Application Support/Lafz Prompter/scripts.json</code>.</p>
+  </section>
+
+  <section>
+    <h2 class="text-base font-semibold text-ink mb-2">Microphone for voice activation</h2>
+    <p>Voice activation needs access to the microphone. The app uses the microphone only while voice activation is listening, which starts after you press Play. Audio is measured for loudness on your Mac in real time and is not recorded, stored or sent anywhere.</p>
+  </section>
+
+  <section>
+    <h2 class="text-base font-semibold text-ink mb-2">Call Assist</h2>
+    <p class="mb-2">Call Assist is an experimental feature. It is off until you start it, and it needs an API key from Anthropic or OpenAI that you enter yourself.</p>
+    <ul class="list-disc pl-5 space-y-1">
+      <li>While it runs, it transcribes your microphone and your Mac's system audio on your Mac, using the speech recognition built into macOS. The audio is never saved.</li>
+      <li>When it detects a question, or when you ask it for an answer, it sends the recent transcript, your instructions and your knowledge base files to the provider you chose, using your API key. That provider's privacy policy applies to what it receives.</li>
+      <li>If you turn on "Include a screenshot with each answer", a screenshot of the display you are working on is sent with each answer. Solve the screen (⌃⌥S) sends a screenshot even when that setting is off. The app keeps only the newest screenshot, in memory.</li>
+      <li>Your API keys are stored in the macOS Keychain.</li>
+      <li>If History is on (it is by default), questions and answers are saved in a file on your Mac, in <code class="text-ink">~/Library/Application Support/Lafz Prompter/</code>. You can turn History off and delete it in Settings.</li>
+    </ul>
+    <p class="mt-2">Please check that the people on a call agree to being transcribed before you use Call Assist.</p>
   </section>
 
   <section>
     <h2 class="text-base font-semibold text-ink mb-2">Network access</h2>
-    <p>The app does not make network requests. Your scripts and settings are stored only in the preferences of the app on your Mac.</p>
+    <p>The app connects to the network only for Call Assist, and then only to the provider you chose (api.anthropic.com or api.openai.com). The first time Call Assist runs, macOS may download its speech recognition model from Apple.</p>
   </section>
 
   <section>
-    <h2 class="text-base font-semibold text-ink mb-2">Microphone</h2>
-    <p>Voice activation needs access to the microphone. The app uses the microphone only while voice activation is listening, which starts after you press Play. Audio is measured for loudness on your Mac in real time and is not recorded, stored or sent anywhere.</p>
+    <h2 class="text-base font-semibold text-ink mb-2">Permissions</h2>
+    <ul class="list-disc pl-5 space-y-1">
+      <li><span class="text-ink">Microphone</span>, for voice activation and for your side of a call in Call Assist.</li>
+      <li><span class="text-ink">System audio recording</span>, for the other side of a call in Call Assist.</li>
+      <li><span class="text-ink">Screen recording</span>, optional, only for Call Assist answers with a screenshot.</li>
+    </ul>
   </section>
 
   <section>
