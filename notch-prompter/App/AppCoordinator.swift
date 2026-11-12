@@ -8,15 +8,17 @@ final class AppCoordinator {
     private let playback: Playback
     private let scripts: ScriptLibrary
     private let callAssist: CallAssistSession
+    private let scriptLoader: ScriptLoader
     private let panel: PrompterPanel
     private var tasks: [Task<Void, Never>] = []
 
     init(preferences: Preferences, playback: Playback, scripts: ScriptLibrary,
-         callAssist: CallAssistSession, panel: PrompterPanel) {
+         callAssist: CallAssistSession, scriptLoader: ScriptLoader, panel: PrompterPanel) {
         self.preferences = preferences
         self.playback = playback
         self.scripts = scripts
         self.callAssist = callAssist
+        self.scriptLoader = scriptLoader
         self.panel = panel
     }
 
@@ -31,8 +33,8 @@ final class AppCoordinator {
         let playback = playback
         let scripts = scripts
         let callAssist = callAssist
-        // 5. One setting holds or releases every global shortcut, the
-        //    prompter's and Call Assist's. Applied now, then on each change.
+        // 5. One setting holds or releases every global shortcut: the
+        //    prompter's, script loading's and Call Assist's. Applied now, then on each change.
         applyShortcutsSetting()
         // 4. While Call Assist runs, the prompter is hidden from screen
         //    sharing whatever the setting says: the other side of the call
@@ -82,5 +84,6 @@ final class AppCoordinator {
         let enabled = preferences.enableGlobalKeyboardShortcuts
         playback.shortcutsEnabled = enabled
         callAssist.shortcutsEnabled = enabled
+        scriptLoader.shortcutsEnabled = enabled
     }
 }

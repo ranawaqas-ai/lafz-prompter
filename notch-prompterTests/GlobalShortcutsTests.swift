@@ -18,6 +18,8 @@ struct GlobalShortcutsTests {
         let settings: CallAssistSettings
         let controller: CallAssistSession
         let coordinator: AppCoordinator
+        let files = ScriptLibraryTests.MemoryFiles()
+        let scripts: ScriptLibrary
         private let suite = "lafz-shortcut-tests-\(UUID().uuidString)"
 
         @MainActor
@@ -43,11 +45,18 @@ struct GlobalShortcutsTests {
                 return (settings, CallAssistSession(settings: settings))
             }
             settings.includeScreen = false
-            let files = ScriptLibraryTests.MemoryFiles()
-            let scripts = withDependencies { $0.scriptFiles = files.client } operation: { ScriptLibrary() }
+            let files = files
+            scripts = withDependencies {
+                $0.scriptFiles = files.client
+                $0.settingsStorage = defaults
+            } operation: { ScriptLibrary() }
+            let (playback, scripts) = (playback, scripts)
+            let loader = withDependencies { $0.globalShortcuts = shortcuts } operation: {
+                ScriptLoader(library: scripts, playback: playback, showError: { _ in })
+            }
             coordinator = AppCoordinator(preferences: preferences, playback: playback,
                                          scripts: scripts, callAssist: controller,
-                                         panel: AppCoordinatorTests.FakePanel())
+                                         scriptLoader: loader, panel: AppCoordinatorTests.FakePanel())
             coordinator.start()
         }
 
@@ -107,6 +116,7 @@ struct GlobalShortcutsTests {
         #expect(app.shortcuts.registered == [
             "⌃⌥← Slower", "⌃⌥↑ Scroll up", "⌃⌥→ Faster", "⌃⌥↓ Scroll down",
             "⌃⌥H Show or hide the prompter", "⌃⌥P Play or pause",
+            "⌃⌥O Open a script file", "⌃⌥V Load a script from the clipboard",
         ].sorted())
     }
 
@@ -116,5 +126,14 @@ struct GlobalShortcutsTests {
         #expect(app.playback.isPlaying)
         app.shortcuts.press(.faster)
         #expect(app.preferences.speed == 14)
+    }
+
+    @Test func theClipboardShortcutLoadsTheCopiedScriptAndShowsIt() {
+        let app = App(keys: [])
+        app.playback.isPrompterVisible = false
+        app.files.clipboard = ([], "Copied script")
+        app.shortcuts.press(.loadClipboard)
+        #expect(app.scripts.text == "Copied script")
+        #expect(app.playback.isPrompterVisible)
     }
 }

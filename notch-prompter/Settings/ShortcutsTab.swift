@@ -66,6 +66,18 @@ struct KeyboardTabView: View {
                             title: "Scroll Down",
                             shortcut: "⌃ + ⌥ + ↓"
                         )
+
+                        ShortcutRow(
+                            icon: "folder",
+                            title: "Open Script File",
+                            shortcut: "⌃ + ⌥ + o"
+                        )
+
+                        ShortcutRow(
+                            icon: "doc.on.clipboard",
+                            title: "Load Script from Clipboard",
+                            shortcut: "⌃ + ⌥ + v"
+                        )
                     }
                     
                     Divider()

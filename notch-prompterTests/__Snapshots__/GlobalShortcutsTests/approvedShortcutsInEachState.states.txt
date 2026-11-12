@@ -1,14 +1,18 @@
 == launch, Anthropic key saved
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
+⌃⌥O Open a script file
 ⌃⌥P Play or pause
+⌃⌥V Load a script from the clipboard
 ⌃⌥← Slower
 ⌃⌥↑ Scroll up
 ⌃⌥→ Faster
 ⌃⌥↓ Scroll down
 == OpenAI selected, no key for it
 ⌃⌥H Show or hide the prompter
+⌃⌥O Open a script file
 ⌃⌥P Play or pause
+⌃⌥V Load a script from the clipboard
 ⌃⌥← Slower
 ⌃⌥↑ Scroll up
 ⌃⌥→ Faster
@@ -16,7 +20,9 @@
 == Anthropic selected again
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
+⌃⌥O Open a script file
 ⌃⌥P Play or pause
+⌃⌥V Load a script from the clipboard
 ⌃⌥← Slower
 ⌃⌥↑ Scroll up
 ⌃⌥→ Faster
@@ -24,9 +30,11 @@
 == session running, started with ⌃⌥A
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
+⌃⌥O Open a script file
 ⌃⌥P Play or pause
 ⌃⌥Return Answer now
 ⌃⌥S Solve the screen
+⌃⌥V Load a script from the clipboard
 ⌃⌥[ Previous answer
 ⌃⌥] Next answer
 ⌃⌥← Slower
@@ -38,9 +46,11 @@
 == switched back on
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
+⌃⌥O Open a script file
 ⌃⌥P Play or pause
 ⌃⌥Return Answer now
 ⌃⌥S Solve the screen
+⌃⌥V Load a script from the clipboard
 ⌃⌥[ Previous answer
 ⌃⌥] Next answer
 ⌃⌥← Slower
@@ -50,7 +60,9 @@
 == session stopped with ⌃⌥A
 ⌃⌥A Start or stop Call Assist
 ⌃⌥H Show or hide the prompter
+⌃⌥O Open a script file
 ⌃⌥P Play or pause
+⌃⌥V Load a script from the clipboard
 ⌃⌥← Slower
 ⌃⌥↑ Scroll up
 ⌃⌥→ Faster

@@ -22,7 +22,7 @@ struct LafzPrompterApp: App {
         }
 
         MenuBarExtra {
-            MenuContent()
+            MenuContent(loader: appDelegate.scriptLoader)
                 .environment(appDelegate.playback)
                 .environment(appDelegate.preferences)
                 .environment(appDelegate.scripts)
@@ -52,6 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let callAssist = CallAssistSettings()
     let scripts = ScriptLibrary()
     private(set) lazy var callAssistSession = CallAssistSession(settings: callAssist)
+    private(set) lazy var scriptLoader = ScriptLoader(library: scripts, playback: playback)
     private var prompterWindow: PrompterWindowController!
     private var coordinator: AppCoordinator!
 
@@ -61,7 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                   callAssist: callAssistSession, scripts: scripts)
         coordinator = AppCoordinator(preferences: preferences, playback: playback,
                                      scripts: scripts, callAssist: callAssistSession,
-                                     panel: prompterWindow)
+                                     scriptLoader: scriptLoader, panel: prompterWindow)
         coordinator.start()
         prompterWindow.show()
         NSApp.setActivationPolicy(.accessory)
@@ -79,6 +80,7 @@ struct MenuContent: View {
     @Environment(Playback.self) private var playback
     @Environment(Preferences.self) private var preferences
     @Environment(ScriptLibrary.self) private var library
+    let loader: ScriptLoader
 
     var body: some View {
         Button {
@@ -114,22 +116,24 @@ struct MenuContent: View {
         Divider()
 
         Button {
-            load { library.importClipboard() }
+            loader.loadClipboard()
         } label: {
             Label("Load Script from Clipboard", systemImage: "doc.on.clipboard")
         }
+        .keyboardShortcut("v", modifiers: [.control, .option])
 
         Button {
-            load { library.showOpenPanel() }
+            loader.openFile()
         } label: {
             Label("Open Script…", systemImage: "folder")
         }
+        .keyboardShortcut("o", modifiers: [.control, .option])
 
         Menu {
             ForEach(library.scripts.prefix(12)) { script in
                 Toggle(script.title, isOn: Binding(
                     get: { library.currentID == script.id },
-                    set: { if $0 { load { library.select(script.id) } } }))
+                    set: { if $0 { loader.select(script.id) } }))
             }
         } label: {
             Label("Scripts", systemImage: "doc.text")
@@ -151,22 +155,5 @@ struct MenuContent: View {
             Label("Exit", systemImage: "xmark.circle")
         }
         .keyboardShortcut("q", modifiers: [.command])
-    }
-
-    /// Loads a script from the menu bar and brings the prompter up with it.
-    /// A failed import has no Settings window to show in, so it is an alert.
-    private func load(_ action: () -> Void) {
-        let before = library.currentID
-        action()
-        if let error = library.importError {
-            library.importError = nil
-            NSApp.activate()
-            let alert = NSAlert()
-            alert.messageText = "Could not load the script"
-            alert.informativeText = error
-            alert.runModal()
-        } else if library.currentID != before {
-            playback.isPrompterVisible = true
-        }
     }
 }

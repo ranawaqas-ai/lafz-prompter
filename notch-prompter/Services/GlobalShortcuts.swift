@@ -18,6 +18,8 @@ final class GlobalShortcuts {
         static let slower = Shortcut(name: "Slower", key: .leftArrow, label: "⌃⌥←")
         static let scrollUp = Shortcut(name: "Scroll up", key: .upArrow, label: "⌃⌥↑")
         static let scrollDown = Shortcut(name: "Scroll down", key: .downArrow, label: "⌃⌥↓")
+        static let openScript = Shortcut(name: "Open a script file", key: .o, label: "⌃⌥O")
+        static let loadClipboard = Shortcut(name: "Load a script from the clipboard", key: .v, label: "⌃⌥V")
         static let assistToggle = Shortcut(name: "Start or stop Call Assist", key: .a, label: "⌃⌥A")
         static let answerNow = Shortcut(name: "Answer now", key: .return, label: "⌃⌥Return")
         static let solveScreen = Shortcut(name: "Solve the screen", key: .s, label: "⌃⌥S")

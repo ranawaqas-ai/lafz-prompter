@@ -48,8 +48,13 @@ struct AppCoordinatorTests {
                 return (preferences, Playback(preferences: preferences), ScriptLibrary(),
                         CallAssistSession(settings: settings))
             }
+            let (preferences, playback, scripts) = (preferences, playback, scripts)
+            let loader = withDependencies { $0.globalShortcuts = shortcuts } operation: {
+                ScriptLoader(library: scripts, playback: playback, showError: { _ in })
+            }
             coordinator = AppCoordinator(preferences: preferences, playback: playback,
-                                         scripts: scripts, callAssist: callAssist, panel: panel)
+                                         scripts: scripts, callAssist: callAssist,
+                                         scriptLoader: loader, panel: panel)
             coordinator.start()
         }
 
