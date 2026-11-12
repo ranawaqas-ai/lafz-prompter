@@ -283,3 +283,37 @@ struct NotchShapeTests {
         #expect(!path.contains(CGPoint(x: 1, y: 99)))
     }
 }
+
+extension PrompterCharacterisationTests {
+    @Test func reachingTheEndFinishesAndPlayStartsOverFromTheTop() {
+        let suite = Suite()
+        let (_, playback) = makeModels(suite)
+        playback.play()
+        playback.offset = 500
+        playback.finishScript()
+        #expect(playback.isFinished)
+        #expect(!playback.isPlaying)
+        playback.togglePlayback()
+        #expect(!playback.isFinished)
+        #expect(playback.offset == 0)
+        #expect(playback.isPlaying)
+    }
+
+    @Test func resetOrScrollingBackLeavesTheFinishedState() {
+        let suite = Suite()
+        let (preferences, playback) = makeModels(suite)
+        playback.offset = 500
+        playback.finishScript()
+        playback.reset()
+        #expect(!playback.isFinished)
+
+        preferences.manualScrollAmount = 30
+        playback.offset = 500
+        playback.finishScript()
+        playback.scrollDown()
+        #expect(playback.isFinished)
+        playback.scrollUp()
+        #expect(!playback.isFinished)
+        #expect(playback.offset == 500)
+    }
+}

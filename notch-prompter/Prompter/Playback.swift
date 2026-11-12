@@ -11,8 +11,14 @@ import SwiftUI
 final class Playback {
     /// How far the script has scrolled. Changes every frame while playing;
     /// Observation redraws only the views that read it.
-    var offset: CGFloat = 0
+    var offset: CGFloat = 0 {
+        // Moving back from the end, by any control, leaves the finished state.
+        didSet { if isFinished, offset < oldValue { isFinished = false } }
+    }
     var isPlaying = false
+    /// The script has scrolled to its end and stopped there. The prompter
+    /// shrinks to a "Done" pill; Play starts again from the top.
+    private(set) var isFinished = false
     /// With voice activation on, whether the mic is running. Play starts it,
     /// Pause, hiding the prompter, Reset, or reaching the end stops it.
     private(set) var isListening = false
@@ -57,6 +63,7 @@ final class Playback {
     /// Play/Pause from the menu, hotkey, Settings, or hover controls. With voice
     /// activation this starts or stops listening, and speech drives the scrolling.
     func togglePlayback() {
+        if isFinished { startOver() }
         if preferences.voiceActivation {
             isListening ? stopListening() : startListening()
         } else {
@@ -65,6 +72,7 @@ final class Playback {
     }
 
     func play() {
+        if isFinished { startOver() }
         lastTick = nil
         isPlaying = true
     }
@@ -78,12 +86,19 @@ final class Playback {
         isPlaying = false
         offset = 0
         lastTick = nil
+        isFinished = false
     }
 
     /// Called when the text has scrolled past its end.
     func finishScript() {
         stopListening()
         pause()
+        isFinished = true
+    }
+
+    private func startOver() {
+        isFinished = false
+        offset = 0
     }
 
     func tick(current: CFTimeInterval) {
