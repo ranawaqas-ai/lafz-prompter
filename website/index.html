@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lafz Prompter: free Mac teleprompter under the notch</title>
-  <meta name="description" content="A free open-source teleprompter for Mac that sits under the notch and stays hidden from screen recordings, Zoom and Google Meet. It is an MIT-licensed alternative to NotchPrompter.">
+  <meta name="description" content="A free open-source teleprompter for Mac that sits under the notch and can be hidden from screen recordings, Zoom and Google Meet. It is an MIT-licensed alternative to NotchPrompter.">
   <link rel="canonical" href="https://lafz.waqasrana.space/">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/logo.svg" type="image/svg+xml">
@@ -13,7 +13,7 @@
 
   <meta property="og:site_name" content="Lafz Prompter">
   <meta property="og:title" content="Lafz Prompter: free Mac teleprompter under the notch">
-  <meta property="og:description" content="A free open-source teleprompter for Mac that sits under the notch and stays hidden from screen recordings.">
+  <meta property="og:description" content="A free open-source teleprompter for Mac that sits under the notch and can be hidden from screen recordings.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://lafz.waqasrana.space/">
   <meta property="og:image" content="https://lafz.waqasrana.space/screenshot.png">
@@ -22,17 +22,17 @@
   <meta property="og:image:alt" content="Lafz Prompter showing a script with stage directions in brackets">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Lafz Prompter: free Mac teleprompter under the notch">
-  <meta name="twitter:description" content="A free open-source teleprompter for Mac that sits under the notch and stays hidden from screen recordings.">
+  <meta name="twitter:description" content="A free open-source teleprompter for Mac that sits under the notch and can be hidden from screen recordings.">
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Lafz Prompter",
-    "description": "A free open-source teleprompter for Mac that sits under the notch and stays hidden from screen recordings and screen sharing.",
+    "description": "A free open-source teleprompter for Mac that sits under the notch and can be hidden from screen recordings and screen sharing.",
     "applicationCategory": "MultimediaApplication",
-    "operatingSystem": "macOS 14 or newer",
-    "softwareVersion": "1.0",
+    "operatingSystem": "macOS 26 or newer",
+    "softwareVersion": "1.1",
     "url": "https://lafz.waqasrana.space/",
     "downloadUrl": "https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip",
     "screenshot": "https://lafz.waqasrana.space/screenshot.png",
@@ -50,9 +50,9 @@
       { "@type": "Question", "name": "Is Lafz Prompter free?",
         "acceptedAnswer": { "@type": "Answer", "text": "Lafz Prompter is free to download and use, and its source code is published on GitHub under the MIT License." } },
       { "@type": "Question", "name": "Is the teleprompter visible in Zoom or in screen recordings?",
-        "acceptedAnswer": { "@type": "Answer", "text": "The prompter can be hidden from screen recordings and from screen sharing in Zoom, Google Meet and other apps, so that only you see the script." } },
+        "acceptedAnswer": { "@type": "Answer", "text": "The prompter can be hidden from screen recordings and from screen sharing in Zoom, Google Meet and other apps, so that only you see the script. Turn it on under Settings › Behavior." } },
       { "@type": "Question", "name": "Which Macs does Lafz Prompter run on?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Lafz Prompter runs on macOS 14 or newer with Apple Silicon or Intel. It sits under the notch on a MacBook and at the top of the screen on other displays." } },
+        "acceptedAnswer": { "@type": "Answer", "text": "Lafz Prompter runs on macOS 26 or newer with Apple Silicon or Intel. It sits under the notch on a MacBook and at the top of the screen on other displays." } },
       { "@type": "Question", "name": "How does Lafz Prompter relate to NotchPrompter?",
         "acceptedAnswer": { "@type": "Answer", "text": "Lafz Prompter is a fork of NotchPrompter by Jakub Pomyka\u0142a, based on the last version released under the MIT License. It is not affiliated with or endorsed by NotchPrompter." } }
     ]
@@ -84,13 +84,13 @@
         Script under the notch
       </h1>
       <p class="text-base md:text-lg text-muted max-w-2xl leading-relaxed mb-6">
-        Invisible to recordings. Free.
+        Hide it from recordings. Free.
       </p>
       <a href="https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip" class="btn-press inline-flex items-center gap-2 px-8 py-4 bg-ink hover:bg-ink-soft transition text-paper rounded-full text-base font-semibold mb-2">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
         Download for Mac
       </a>
-      <p class="text-xs text-muted">macOS 14+ · Urdu support</p>
+      <p class="text-xs text-muted">macOS 26+ · Urdu support</p>
     </div>
 
     <div class="demo-fit">
@@ -148,7 +148,7 @@
       <p class="demo-anim">Press Play and your script drops down from the notch.</p>
       <p class="demo-anim">It scrolls while you speak and waits when you pause.</p>
       <p class="demo-anim">You read just below the lens, so you keep eye contact with your viewers.</p>
-      <p class="demo-anim">Screen recordings and screen shares do not show it.</p>
+      <p class="demo-anim">Turn on hiding, and recordings and screen shares leave it out.</p>
     </div>
     </div>
   </section>
@@ -188,7 +188,7 @@
     <ol class="max-w-3xl mx-auto list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed">
       <li>Download the zip and drag <strong>Lafz Prompter</strong> into your Applications folder.</li>
       <li>Open the app. It is signed with a Developer ID and notarized by Apple, so macOS opens it without a warning.</li>
-      <li>The app runs from the menu bar, where Settings lets you paste your script.</li>
+      <li>The app runs from the menu bar. A short tutorial plays first. Open your own script with ⌃⌥O, or paste one with ⌃⌥V.</li>
     </ol>
   </section>
 
@@ -223,11 +223,11 @@
       </details>
       <details class="faq bg-white rounded-xl border border-line">
         <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Is the teleprompter visible in Zoom or in screen recordings?<svg class="faq-chevron w-4 h-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
-        <p class="max-w-3xl text-sm text-muted leading-relaxed px-5 pb-5 -mt-2">The prompter can be hidden from screen recordings and from screen sharing in Zoom, Google Meet and other apps, so that only you see the script.</p>
+        <p class="max-w-3xl text-sm text-muted leading-relaxed px-5 pb-5 -mt-2">The prompter can be hidden from screen recordings and from screen sharing in Zoom, Google Meet and other apps, so that only you see the script. Turn it on under Settings › Behavior.</p>
       </details>
       <details class="faq bg-white rounded-xl border border-line">
         <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">Which Macs does Lafz Prompter run on?<svg class="faq-chevron w-4 h-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
-        <p class="max-w-3xl text-sm text-muted leading-relaxed px-5 pb-5 -mt-2">Lafz Prompter runs on macOS 14 or newer with Apple Silicon or Intel. It sits under the notch on a MacBook and at the top of the screen on other displays.</p>
+        <p class="max-w-3xl text-sm text-muted leading-relaxed px-5 pb-5 -mt-2">Lafz Prompter runs on macOS 26 or newer with Apple Silicon or Intel. It sits under the notch on a MacBook and at the top of the screen on other displays.</p>
       </details>
       <details class="faq bg-white rounded-xl border border-line">
         <summary class="flex items-center justify-between gap-4 p-5 text-sm font-semibold cursor-pointer">How does Lafz Prompter relate to NotchPrompter?<svg class="faq-chevron w-4 h-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
