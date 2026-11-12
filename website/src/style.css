@@ -362,7 +362,9 @@ kbd {
   top: 46px;
   left: 0;
   right: 0;
-  padding: 0 18px;
+  /* The text column keeps the 157px it had before the panel widened, so
+     the lines fall where the scroll steps expect them. */
+  padding: 0 42px;
   color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-size: 10px;
@@ -758,7 +760,7 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .demo,
   .demo-captions {
-    --t: 7.6s;
+    --t: 8.5s;
   }
 
   html:not(.demo-ready) .demo-anim,
