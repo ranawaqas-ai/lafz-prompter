@@ -167,7 +167,10 @@ struct MenuContent: View {
         }
         .keyboardShortcut("/", modifiers: [.control, .option])
 
-        SettingsLink {
+        // A plain button: SettingsLink leaves the window behind the app in front.
+        Button {
+            SettingsWindow.open()
+        } label: {
             Label("Settings…", systemImage: "gearshape")
         }
         .keyboardShortcut(",", modifiers: [.command])
