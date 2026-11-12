@@ -46,7 +46,7 @@ struct BehaviorTabView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Show progress bar")
                             .font(.system(size: 13))
-                        Text("Display a vertical progress indicator on the right side")
+                        Text("Show how far through the script you are, as a line along the bottom")
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     }
