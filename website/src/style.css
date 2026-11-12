@@ -305,36 +305,56 @@ kbd {
   background: #3f6b5c;
 }
 
+/* The prompter, drawn like the app's: wider than the notch, with concave
+   shoulders where it meets the top of the screen, rounder bottom corners, the
+   reading line brightest and a progress line along the bottom. Closed, it is
+   exactly the notch. The wrapper fades it out for the recording scene. */
 .demo-prompter {
   position: absolute;
-  left: 771.5px;
-  top: 0;
-  width: 185px;
-  height: 150px;
-  overflow: hidden;
-  background: #000;
-  clip-path: inset(0 0 118px 0 round 0 0 9px 9px);
+  inset: 0;
   animation-name: demo-prompter;
 }
 
-.demo-prompter::before,
-.demo-prompter::after {
-  content: "";
+.demo-prompter-body {
   position: absolute;
-  left: 0;
-  right: 0;
-  height: 40px;
-  z-index: 1;
-}
-
-.demo-prompter::before {
+  left: 743.5px;
   top: 0;
-  background: linear-gradient(#000, transparent);
+  width: 241px;
+  height: 150px;
+  overflow: hidden;
+  background: #000;
+  clip-path: inset(0 28px 118px 28px round 0 0 9px 9px);
+  animation-name: demo-prompter-body;
 }
 
-.demo-prompter::after {
-  bottom: 0;
-  background: linear-gradient(transparent, #000);
+.demo-shoulder {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  transform: scale(0);
+  animation-name: demo-shoulder;
+}
+
+.demo-shoulder:first-child {
+  left: 735.5px;
+  transform-origin: 100% 0;
+  background: radial-gradient(circle at 0 100%, transparent 7.5px, #000 8px);
+}
+
+.demo-shoulder:nth-child(2) {
+  left: 984.5px;
+  transform-origin: 0 0;
+  background: radial-gradient(circle at 100% 100%, transparent 7.5px, #000 8px);
+}
+
+/* Dimmer above the reading line than below it, and gone at both edges. */
+.demo-text {
+  position: absolute;
+  inset: 0;
+  --focus: linear-gradient(transparent 30px, rgb(0 0 0 / 0.22) 38px, rgb(0 0 0 / 0.22) 44px, #000 47px, #000 65px, rgb(0 0 0 / 0.55) 68px, rgb(0 0 0 / 0.55) 126px, transparent 142px);
+  -webkit-mask-image: var(--focus);
+  mask-image: var(--focus);
 }
 
 .demo-script {
@@ -342,7 +362,7 @@ kbd {
   top: 46px;
   left: 0;
   right: 0;
-  padding: 0 14px;
+  padding: 0 18px;
   color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-size: 10px;
@@ -357,20 +377,19 @@ kbd {
 
 .demo-progress {
   position: absolute;
-  top: 36px;
-  bottom: 12px;
-  right: 5px;
-  width: 4px;
-  border-radius: 2px;
+  left: 22px;
+  right: 22px;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 1px;
   background: rgb(255 255 255 / 0.15);
-  z-index: 2;
 }
 
 .demo-progress-fill {
   height: 100%;
-  border-radius: 2px;
+  border-radius: 1px;
   background: rgb(255 255 255 / 0.6);
-  transform-origin: top;
+  transform-origin: left;
   animation-name: demo-progress;
 }
 
@@ -623,13 +642,23 @@ kbd {
 }
 
 @keyframes demo-prompter {
-  0%, 22% { clip-path: inset(0 0 118px 0 round 0 0 9px 9px); opacity: 1; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
-  30% { clip-path: inset(0 0 0 0 round 0 0 16px 16px); }
-  74% { opacity: 1; }
+  0%, 74% { opacity: 1; }
   76%, 88% { opacity: 0; }
-  90% { opacity: 1; }
+  90%, 100% { opacity: 1; }
+}
+
+@keyframes demo-prompter-body {
+  0%, 22% { clip-path: inset(0 28px 118px 28px round 0 0 9px 9px); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  30% { clip-path: inset(0 0 0 0 round 0 0 16px 16px); }
   92% { clip-path: inset(0 0 0 0 round 0 0 16px 16px); animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
-  98%, 100% { clip-path: inset(0 0 118px 0 round 0 0 9px 9px); opacity: 1; }
+  98%, 100% { clip-path: inset(0 28px 118px 28px round 0 0 9px 9px); }
+}
+
+@keyframes demo-shoulder {
+  0%, 22% { transform: scale(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  30% { transform: scale(1); }
+  92% { transform: scale(1); animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  98%, 100% { transform: scale(0); }
 }
 
 @keyframes demo-script {
@@ -642,10 +671,10 @@ kbd {
 }
 
 @keyframes demo-progress {
-  0%, 30% { transform: scaleY(0); }
-  44%, 52% { transform: scaleY(0.23); }
-  64%, 95% { transform: scaleY(0.46); }
-  96%, 100% { transform: scaleY(0); }
+  0%, 30% { transform: scaleX(0); }
+  44%, 52% { transform: scaleX(0.23); }
+  64%, 95% { transform: scaleX(0.46); }
+  96%, 100% { transform: scaleX(0); }
 }
 
 @keyframes demo-led {
