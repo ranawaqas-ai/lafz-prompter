@@ -133,3 +133,17 @@ struct ScriptImporterTests {
                 "The first sentence runs across two lines. Then a hyphenated word.\n\nNew paragraph.")
     }
 }
+
+struct KeycapTests {
+    @Test func shortcutsInAScriptArePaddedAsKeys() {
+        let padded = PrompterTextView.paddingKeycaps(in: "Press ⌃⌥P, ⌃⌥← or ⌃⌥Return. Not ⌃ alone, nor ⌥x.")
+        #expect(padded == "Press \u{2009}⌃⌥P\u{2009}, \u{2009}⌃⌥←\u{2009} or \u{2009}⌃⌥Return\u{2009}. Not ⌃ alone, nor ⌥x.")
+    }
+
+    @Test func everyShortcutInTheTutorialIsRecognised() {
+        let tutorial = ScriptLibrary.tutorialText
+        let written = tutorial.components(separatedBy: "⌃⌥").count - 1
+        let matched = PrompterTextView.paddingKeycaps(in: tutorial).components(separatedBy: "\u{2009}⌃⌥").count - 1
+        #expect(written == matched)
+    }
+}

@@ -225,6 +225,17 @@ struct PrompterCharacterisationTests {
                     preferences: preferences, playback: playback, library: library, named: theme.rawValue)
     }
 
+    @Test func approvedKeycapImage() {
+        let suite = Suite()
+        let (preferences, playback) = makeModels(suite)
+        let library = makeLibrary(text: "Press ⌃⌥P to pause me. [try it now]\nPress it again and I'll carry on.")
+        preferences.fontSize = 16
+        preferences.showProgressBar = false
+        playback.play()
+        assertImage(of: NotchPanel { PrompterView() }, size: CGSize(width: 340, height: 130),
+                    preferences: preferences, playback: playback, library: library, named: "keycap")
+    }
+
     @Test func approvedFinishedPillImage() {
         let suite = Suite()
         let (preferences, playback) = makeModels(suite)

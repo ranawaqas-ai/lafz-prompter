@@ -30,7 +30,16 @@ struct PrompterTextView: View {
             .frame(maxWidth: .infinity, alignment: .center)
     }
     
-    private func attributedText(from text: String) -> AttributedString {
+    /// A shortcut written in a script, such as ⌃⌥P, ⌃⌥← or ⌃⌥Return.
+    static let keycapPattern = #"⌃⌥(?:Return|Esc|[A-Z0-9]|[←→↑↓\[\]/,.])"#
+
+    /// Pads each shortcut with thin spaces so its key background has room.
+    static func paddingKeycaps(in text: String) -> String {
+        text.replacingOccurrences(of: keycapPattern, with: "\u{2009}$0\u{2009}", options: .regularExpression)
+    }
+
+    private func attributedText(from source: String) -> AttributedString {
+        let text = Self.paddingKeycaps(in: source)
         var attributedString = AttributedString(text)
         
         // Default font and color
@@ -64,6 +73,15 @@ struct PrompterTextView: View {
             }
         }
         
+        // Shortcuts are drawn as keys: a soft box behind the padded token.
+        if let regex = try? NSRegularExpression(pattern: "\u{2009}" + Self.keycapPattern + "\u{2009}") {
+            for match in regex.matches(in: text, range: NSRange(location: 0, length: (text as NSString).length)) {
+                guard let stringRange = Range(match.range, in: text),
+                      let attributedRange = Range(stringRange, in: attributedString) else { continue }
+                attributedString[attributedRange].backgroundColor = defaultColor.opacity(0.16)
+            }
+        }
+
         if fontFamily != nil, preferences.fontChoice == .automatic {
             applySystemFontToLatinWords(in: &attributedString, source: text)
         }

@@ -23,6 +23,9 @@ final class ScriptLibrary {
     @ObservationIgnored @Dependency(\.scriptFiles) private var files
     @ObservationIgnored @Dependency(\.settingsStorage) private var settingsStorage
     @ObservationIgnored private var saveTask: Task<Void, Never>?
+    /// Whether a library file existed at launch; without one this is a
+    /// fresh install or an upgrade from before the library.
+    @ObservationIgnored private var foundSavedLibrary = false
 
     init() {
         load()
@@ -36,46 +39,67 @@ final class ScriptLibrary {
         set { updateCurrent(text: newValue) }
     }
 
-    /// Makes sure a script is current at launch. On the first launch with a
-    /// library, the script the app kept in its settings before the library
-    /// existed (or the sample script) becomes the first entry.
+    /// Makes sure a script is current at launch. A saved library is left as
+    /// it is. Without one, the script an older version kept in its settings
+    /// is imported; with neither, this is a fresh install and the tutorial
+    /// becomes the first script.
     func ensureCurrentScript() {
         guard current == nil else { return }
-        let legacy = settingsStorage.string(forKey: Self.legacyTextKey) ?? Self.sampleText
-        if let match = scripts.first(where: { $0.text == legacy }) {
-            select(match.id)
-        } else {
+        if foundSavedLibrary {
+            if let newest = scripts.first { select(newest.id) }
+        } else if let legacy = settingsStorage.string(forKey: Self.legacyTextKey) {
             add(text: legacy, title: nil)
+        } else {
+            restoreTutorial()
         }
     }
 
     /// Where the script was kept before the library, read once to import it.
     private static let legacyTextKey = "PrompterText"
 
-    static let sampleText = """
-    This is a scrolling text test for Lafz Prompter for macOS.
-    The purpose of this demo is to check speed, readability, and smoothness. [pause]
-    Adjust the font size, scroll speed, and window opacity to your preference.  
-    Keep your eyes on the notch and follow the moving line.
+    // MARK: Tutorial
 
-    Good morning everyone. [smile] Today I want to share a few key points about our upcoming product launch.
-    First, we focused on reducing complexity and delivering a clean, intuitive user experience.
-    Second, we significantly improved performance, ensuring that the application runs smoothly even under heavy load. [gesture to screen]
-    Finally, we are excited to begin our rollout strategy and gather feedback from early adopters.
-    Thank you for your time, and let's begin. [nod]
+    /// The tutorial's fixed id, so it can be found again after edits.
+    nonisolated static let tutorialID = UUID(uuidString: "7E1C0A5E-5C41-4B1E-9A2F-3C0D1E7A0001")!
+    nonisolated static let tutorialTitle = "Welcome to Lafz Prompter"
 
-    You are capable of more than you think.  
-    Every step forward, no matter how small, builds momentum.  
-    Stay focused, stay consistent, and trust the process. [pause]
-    Progress is progress, even if no one else sees it.  
-    Keep going — your future self will thank you.
-    
-    In the rapidly evolving world of technology, the ability to adapt and learn quickly has become more important than ever.
-    Teams and individuals who embrace experimentation, curiosity, and continuous improvement tend to outperform those who rely on rigid structures and outdated processes.
-    Innovation rarely comes from doing the same thing repeatedly. [emphasize] Instead, it thrives in environments where people feel safe to explore new ideas, challenge assumptions, and iterate rapidly.
-    As we move into the next phase of development, our focus should remain on collaboration, communication, and execution.
-    By aligning our goals and maintaining a clear vision, we can build products that not only solve real problems but also inspire and empower the people who use them.
-    Let’s continue pushing boundaries and striving for excellence.
+    /// Selects the tutorial, adding it back first if it was deleted.
+    func restoreTutorial() {
+        if !scripts.contains(where: { $0.id == Self.tutorialID }) {
+            let tutorial = Script(id: Self.tutorialID, title: Self.tutorialTitle,
+                                  text: Self.tutorialText, updatedAt: Date())
+            scripts.insert(tutorial, at: 0)
+        }
+        select(Self.tutorialID)
+    }
+
+    /// Teaches the app while it scrolls. Shortcuts written as ⌃⌥P are drawn
+    /// as keys in the prompter.
+    nonisolated static let tutorialText = """
+    Welcome to Lafz Prompter. [smile]
+    These words scroll under your notch, right by your camera, so your eyes stay near the lens.
+
+    Press ⌃⌥P to pause me. [try it now]
+    Press it again and I'll carry on.
+
+    Too fast or too slow? ⌃⌥→ speeds me up, ⌃⌥← slows me down.
+    ⌃⌥↑ and ⌃⌥↓ move back or ahead a few lines.
+
+    Words in brackets are notes for you, not lines to say. [like this one]
+
+    To read your own script, press ⌃⌥O and pick a file: text, Markdown, Word, PDF or a Fountain screenplay.
+    Or copy it from anywhere and press ⌃⌥V.
+
+    ⌃⌥H hides me. Press it again to bring me back.
+
+    Forget a shortcut? ⌃⌥/ shows them all.
+
+    Everything else is in the Lafz icon in your menu bar. [look up]
+    Can't see it? Open Lafz Prompter again from Applications.
+
+    Rather not press keys? Turn on voice activation and I'll scroll only while you speak.
+
+    That's it. Press ⌃⌥O and load your first script. [smile]
     """
 
     // MARK: Loading scripts
@@ -197,8 +221,9 @@ final class ScriptLibrary {
     }
 
     private func load() {
-        guard let data = files.load(),
-              let stored = try? JSONDecoder().decode(Stored.self, from: data) else { return }
+        guard let data = files.load() else { return }
+        foundSavedLibrary = true
+        guard let stored = try? JSONDecoder().decode(Stored.self, from: data) else { return }
         scripts = stored.scripts.sorted { $0.updatedAt > $1.updatedAt }
         currentID = stored.currentID
     }

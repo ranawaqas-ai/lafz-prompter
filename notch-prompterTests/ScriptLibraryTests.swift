@@ -84,20 +84,47 @@ struct ScriptLibraryTests {
         #expect(library.current?.title == "Copied opening")
     }
 
-    @Test func theFirstLaunchImportsTheScriptKeptInSettings() {
+    @Test func anUpgradeFromBeforeTheLibraryImportsTheScriptKeptInSettings() {
         settings.set("Old opening\nkept before the library", forKey: "PrompterText")
         let library = makeLibrary()
         library.ensureCurrentScript()
         #expect(library.text == "Old opening\nkept before the library")
         #expect(library.scripts.count == 1)
+        #expect(!library.scripts.contains { $0.id == ScriptLibrary.tutorialID })
         library.ensureCurrentScript()         // a later launch adds nothing
         #expect(library.scripts.count == 1)
     }
 
-    @Test func withNothingKeptTheFirstLaunchStartsWithTheSample() {
+    @Test func aFreshInstallStartsWithTheTutorial() {
         let library = makeLibrary()
         library.ensureCurrentScript()
-        #expect(library.text == ScriptLibrary.sampleText)
+        #expect(library.current?.id == ScriptLibrary.tutorialID)
+        #expect(library.current?.title == "Welcome to Lafz Prompter")
+        #expect(library.text == ScriptLibrary.tutorialText)
+    }
+
+    @Test func aSavedLibraryIsLeftAsItIs() {
+        let first = makeLibrary()
+        first.add(text: "My talk", title: nil)
+        first.flush()
+        settings.set("Old opening", forKey: "PrompterText")
+        let library = makeLibrary()
+        library.ensureCurrentScript()
+        #expect(library.scripts.map(\.text) == ["My talk"])
+        #expect(library.text == "My talk")
+    }
+
+    @Test func showTutorialAgainAddsItBackOnceAndSelectsIt() {
+        let library = makeLibrary()
+        library.ensureCurrentScript()
+        library.add(text: "My talk", title: nil)
+        library.restoreTutorial()
+        #expect(library.current?.id == ScriptLibrary.tutorialID)
+        #expect(library.scripts.count == 2)
+        library.delete(ScriptLibrary.tutorialID)
+        library.restoreTutorial()
+        #expect(library.current?.id == ScriptLibrary.tutorialID)
+        #expect(library.scripts.count == 2)
     }
 
     @Test func editingTheTextUpdatesTheCurrentScript() {
