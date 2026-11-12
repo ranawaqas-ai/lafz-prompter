@@ -1,6 +1,5 @@
 import SwiftUI
 
-// TODO: add option to change shortcuts
 // MARK: - Keyboard Tab
 struct KeyboardTabView: View {
     @Environment(Preferences.self) private var preferences
@@ -30,54 +29,16 @@ struct KeyboardTabView: View {
                     Text("Keyboard Shortcuts")
                         .font(.system(size: 13, weight: .medium))
                     
-                    VStack(alignment: .leading, spacing: 12) {
-                        ShortcutRow(
-                            icon: "play.fill",
-                            title: "Play / Pause",
-                            shortcut: "⌃ + ⌥ + p"
-                        )
-                        
-                        ShortcutRow(
-                            icon: "eye.fill",
-                            title: "Show / Hide Prompter",
-                            shortcut: "⌃ + ⌥ + h"
-                        )
-                        
-                        ShortcutRow(
-                            icon: "arrow.left",
-                            title: "Decrease Speed",
-                            shortcut: "⌃ + ⌥ + ←"
-                        )
-                        
-                        ShortcutRow(
-                            icon: "arrow.right",
-                            title: "Increase Speed",
-                            shortcut: "⌃ + ⌥ + →"
-                        )
-                        
-                        ShortcutRow(
-                            icon: "arrow.up",
-                            title: "Scroll Up",
-                            shortcut: "⌃ + ⌥ + ↑"
-                        )
-                        
-                        ShortcutRow(
-                            icon: "arrow.down",
-                            title: "Scroll Down",
-                            shortcut: "⌃ + ⌥ + ↓"
-                        )
-
-                        ShortcutRow(
-                            icon: "folder",
-                            title: "Open Script File",
-                            shortcut: "⌃ + ⌥ + o"
-                        )
-
-                        ShortcutRow(
-                            icon: "doc.on.clipboard",
-                            title: "Load Script from Clipboard",
-                            shortcut: "⌃ + ⌥ + v"
-                        )
+                    // The same list as ⌃⌥/ shows in the prompter.
+                    ForEach(GlobalShortcuts.Shortcut.Group.allCases, id: \.self) { group in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(group.rawValue)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                            ForEach(GlobalShortcuts.Shortcut.all.filter { $0.group == group }, id: \.label) {
+                                ShortcutRow(title: $0.name, shortcut: $0.label)
+                            }
+                        }
                     }
                     
                     Divider()
@@ -124,29 +85,36 @@ struct KeyboardTabView: View {
 
 // MARK: Shortcut row
 struct ShortcutRow: View {
-    let icon: String
-    let title: LocalizedStringKey
+    let title: String
     let shortcut: String
-    
+
     var body: some View {
         HStack {
-            Image(systemName: icon)
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-                .frame(width: 20)
-            
             Text(title)
                 .font(.system(size: 13))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            
-            Text(shortcut)
-                .font(.system(size: 11, weight: .medium, design: .monospaced))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.primary.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 4))
+            KeycapLabel(shortcut)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
+    }
+}
+
+/// A shortcut drawn as a key in Settings: its label in a thin outline.
+struct KeycapLabel: View {
+    let label: String
+
+    init(_ label: String) {
+        self.label = label
+    }
+
+    var body: some View {
+        Text(label)
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
+            .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.secondary.opacity(0.5), lineWidth: 1))
+            .fixedSize()
+            .accessibilityLabel("Shortcut \(label)")
     }
 }

@@ -73,9 +73,9 @@ struct ScriptTabView: View {
                 Button { library.newScript() } label: { Image(systemName: "plus") }
                     .help("New script")
                 Button { library.showOpenPanel() } label: { Image(systemName: "folder") }
-                    .help("Open a text, Markdown, Fountain, Word, RTF, HTML or PDF file")
+                    .help("Open a text, Markdown, Fountain, Word, RTF, HTML or PDF file (⌃⌥O)")
                 Button { library.importClipboard() } label: { Image(systemName: "doc.on.clipboard") }
-                    .help("New script from the clipboard")
+                    .help("New script from the clipboard (⌃⌥V)")
                 Spacer()
                 if let current = library.current {
                     Button { library.delete(current.id) } label: { Image(systemName: "trash") }

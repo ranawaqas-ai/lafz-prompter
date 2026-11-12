@@ -266,8 +266,13 @@ private struct SessionSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Button(controller.isActive ? "Stop Call Assist" : "Start Call Assist") {
+                Button {
                     controller.toggle()
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(controller.isActive ? "Stop Call Assist" : "Start Call Assist")
+                        KeycapLabel(GlobalShortcuts.Shortcut.assistToggle.label)
+                    }
                 }
                 .keyboardShortcut("a", modifiers: [.control, .option])
                 .disabled(!settings.isAvailable || settings.knowledgeOverflowMessage != nil)
