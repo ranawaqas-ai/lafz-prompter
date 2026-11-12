@@ -70,16 +70,38 @@ summary {
   transform: scale(0.97);
 }
 
-.feature {
-  @apply bg-white rounded-xl border border-line p-6;
+/* Features page: one card per group, the related shortcuts as keycaps. */
+.feature-group {
+  @apply bg-white rounded-xl border border-line p-6 sm:p-8;
 }
 
-.feature h3 {
-  @apply text-sm font-semibold text-ink mb-1;
+.feature-group h2 {
+  @apply text-lg font-semibold text-ink mb-3 flex items-center gap-3 flex-wrap;
 }
 
-.feature p {
-  @apply text-sm text-muted leading-relaxed;
+.feature-group p {
+  @apply text-sm text-muted leading-relaxed mb-3 max-w-3xl;
+}
+
+.feature-group dl {
+  @apply mt-5 pt-5 border-t border-line grid sm:grid-cols-2 gap-x-8 gap-y-2.5 text-sm;
+}
+
+.feature-group dl div {
+  @apply flex items-center justify-between gap-4;
+}
+
+.feature-group dt {
+  @apply text-muted;
+}
+
+.feature-tag {
+  @apply text-xs font-medium text-accent border border-accent/40 rounded-full px-2.5 py-0.5;
+}
+
+kbd {
+  @apply inline-block whitespace-nowrap rounded-md border border-line bg-paper px-1.5 py-px text-xs font-medium text-ink;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 /* The hero text and the animation share the first screen. Stacked on narrow
