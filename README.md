@@ -22,8 +22,14 @@ source for everyone, including for commercial use.
 
 ## Install
 Download the zip from [Releases](https://github.com/ranawaqas-ai/lafz-prompter/releases/latest)
-or [lafz.waqasrana.space](https://lafz.waqasrana.space) and drag the app into Applications.
-The app is signed with a Developer ID and notarized by Apple.
+or [lafz.waqasrana.space](https://lafz.waqasrana.space) and drag the app into Applications,
+or install it with Homebrew:
+
+```sh
+brew install --cask ranawaqas-ai/tap/lafz-prompter
+```
+
+The app is signed with a Developer ID and notarized by Apple, and it updates itself.
 
 ## Build
 Building requires Xcode or the Xcode command line tools.
@@ -43,8 +49,14 @@ Lafz Prompter is based on [NotchPrompter](https://github.com/jpomykala/NotchProm
 by Jakub Pomykala, from the version released under the MIT License. It is not
 affiliated with or endorsed by NotchPrompter.
 
-Global shortcuts use [HotKey](https://github.com/soffes/HotKey) by Sam Soffes
-(MIT License).
+Global shortcuts use [HotKey](https://github.com/soffes/HotKey) by Sam Soffes,
+and updates use [Sparkle](https://sparkle-project.org) (both MIT License).
+
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md). Pull requests need the
+[Contributor License Agreement](CLA.md), which a check asks you to sign once.
 
 ## License
-MIT. See [LICENSE](LICENSE).
+GNU General Public License version 3 or later. See [LICENSE](LICENSE) and
+[NOTICE](NOTICE). Versions 1.0 to 1.2 were released under the MIT License, and
+code that comes from NotchPrompter keeps its MIT notice in NOTICE.
