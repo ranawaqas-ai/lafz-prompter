@@ -5,6 +5,9 @@ export default {
     "./privacy-policy.html",
     "./terms.html",
     "./features.html",
+    "./teleprompter-for-zoom.html",
+    "./read-script-looking-at-camera.html",
+    "./hidden-teleprompter-screen-share.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {

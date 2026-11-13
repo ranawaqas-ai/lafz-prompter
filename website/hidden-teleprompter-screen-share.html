@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A teleprompter that's hidden from screen sharing on Mac</title>
+  <meta name="description" content="Read your notes while you share your screen. Lafz Prompter stays visible to you and is left out of Zoom, Meet and Teams screen shares and recordings.">
+  <link rel="canonical" href="https://lafz.waqasrana.space/hidden-teleprompter-screen-share.html">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta property="og:site_name" content="Lafz Prompter">
+  <meta property="og:title" content="A teleprompter that's hidden from screen sharing on Mac">
+  <meta property="og:description" content="Read your notes while you share your screen. Lafz Prompter stays visible to you and is left out of Zoom, Meet and Teams screen shares and recordings.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://lafz.waqasrana.space/hidden-teleprompter-screen-share.html">
+  <meta property="og:image" content="https://lafz.waqasrana.space/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Lafz Prompter showing a script under the notch of a MacBook, with the reading line highlighted">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="A teleprompter that's hidden from screen sharing on Mac">
+  <meta name="twitter:description" content="Read your notes while you share your screen. Lafz Prompter stays visible to you and is left out of Zoom, Meet and Teams screen shares and recordings.">
+  <meta name="twitter:image" content="https://lafz.waqasrana.space/og.png">
+  <meta name="twitter:image:alt" content="Lafz Prompter showing a script under the notch of a MacBook, with the reading line highlighted">
+  <meta name="theme-color" content="#faf7f0">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Lafz Prompter",
+      "item": "https://lafz.waqasrana.space/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Teleprompter hidden from screen sharing",
+      "item": "https://lafz.waqasrana.space/hidden-teleprompter-screen-share.html"
+    }
+  ]
+}
+  </script>
+  <script data-goatcounter="https://lafz.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body class="bg-paper text-ink antialiased overflow-x-hidden">
+
+<nav class="fixed top-0 left-0 right-0 z-50 bg-paper/80 backdrop-blur-xl">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2.5 h-11 rounded-lg">
+      <img src="/logo.svg" alt="" class="w-7 h-7" width="28" height="28">
+      <span class="text-sm font-semibold">Lafz Prompter</span>
+    </a>
+    <div class="flex items-center gap-2">
+      <a href="/features.html" class="hidden sm:inline-flex items-center h-11 px-3 rounded-full text-sm font-medium text-muted hover:text-ink transition-colors">Features</a>
+      <a href="https://github.com/ranawaqas-ai/lafz-prompter" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center w-11 h-11 rounded-full text-muted hover:text-ink hover:bg-ink/5 transition-colors" aria-label="Source code on GitHub">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+
+      </a>
+      <a href="https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip" data-goatcounter-click="download-guide-nav" data-goatcounter-title="Download" class="btn-press inline-flex items-center h-11 rounded-full bg-ink hover:bg-ink-soft transition px-5 text-sm font-semibold text-paper">Download</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-16 md:pb-24">
+  <header class="mb-10 max-w-3xl">
+    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">A teleprompter your audience can't see</h1>
+    <p class="text-base text-muted leading-relaxed">When you share your whole screen, anything on it goes to everyone watching, including your notes. Lafz Prompter can keep your notes on your screen and out of the share.</p>
+  </header>
+
+  <img src="/og.png" alt="Lafz Prompter showing a script under the notch of a MacBook, with the reading line highlighted" width="1200" height="630" class="w-full h-auto rounded-xl border border-line mb-5" loading="lazy">
+
+  <div class="space-y-5">
+    <section class="feature-group">
+      <h2>How it works</h2>
+      <p>macOS lets an app mark a window as private, so that screen capture leaves it out. Zoom, Google Meet, Teams and screen recorders capture the screen through macOS, so they get the picture without that window. Lafz Prompter marks its window this way when you turn the setting on, and always while Call Assist is running.</p><p>You see the prompter as usual. The people watching your share see what is underneath it.</p>
+    </section>
+    <section class="feature-group">
+      <h2>Turn it on</h2>
+      <ol>
+<li><a class="underline text-accent hover:text-ink" href="https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip" data-goatcounter-click="download-guide-hidden" data-goatcounter-title="Download">Download Lafz Prompter</a> (free) and open it.</li>
+<li>Open Settings from the menu bar icon, go to Behavior and turn on Hide from screen recordings.</li>
+<li>Load your notes with <kbd>⌃⌥V</kbd> or <kbd>⌃⌥O</kbd>, and press <kbd>⌃⌥P</kbd> to scroll.</li>
+</ol>
+    </section>
+    <section class="feature-group">
+      <h2>Check it yourself</h2>
+      <p>Before it matters, make a 10 second screen recording with <kbd>⇧⌘5</kbd> while the prompter is showing, then play it back. The prompter should be missing from the video. In Zoom or Meet you can also start a share in a test meeting and look at the preview.</p>
+    </section>
+    <section class="feature-group">
+      <h2>What it can't hide</h2>
+      <p>It hides the window from screen capture, nothing more. A phone or second camera pointed at your screen will still see it, and so would a capture app that doesn't use the macOS capture system. Your face is on camera too, so reading still shows if you look far from the lens. Keeping the prompter under the notch, next to the camera, takes care of that.</p>
+    </section>
+    <section class="feature-group">
+      <h2>More guides</h2>
+      <ul>
+        <li><a class="underline text-accent hover:text-ink" href="/teleprompter-for-zoom.html">A teleprompter for Zoom calls on your Mac</a></li>
+        <li><a class="underline text-accent hover:text-ink" href="/read-script-looking-at-camera.html">How to read a script and still look at the camera</a></li>
+        <li><a class="underline text-accent hover:text-ink" href="/features.html">Everything Lafz Prompter does</a></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="text-center mt-12">
+    <a href="https://github.com/ranawaqas-ai/lafz-prompter/releases/latest/download/LafzPrompter.zip" data-goatcounter-click="download-guide-bottom" data-goatcounter-title="Download" class="btn-press inline-flex items-center gap-2 px-8 py-4 bg-ink hover:bg-ink-soft transition text-paper rounded-full text-base font-semibold mb-2">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
+      Download for Mac
+    </a>
+    <p class="text-xs text-muted">Free and open source · macOS 26+</p>
+  </div>
+</main>
+
+<footer class="border-t border-line bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+    <p class="text-xs text-muted">&copy; 2026 Rana Muhammad Waqas · GPLv3</p>
+    <div class="flex items-center gap-3">
+      <a href="/privacy-policy.html" class="inline-flex items-center min-h-11 px-1 text-xs text-muted hover:text-ink transition-colors">Privacy</a>
+      <a href="/terms.html" class="inline-flex items-center min-h-11 px-1 text-xs text-muted hover:text-ink transition-colors">Terms</a>
+      <a href="https://github.com/ranawaqas-ai/lafz-prompter" class="inline-flex items-center min-h-11 px-1 text-xs text-muted hover:text-ink transition-colors">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -83,6 +83,23 @@ summary {
   @apply text-sm text-muted leading-relaxed mb-3 max-w-3xl;
 }
 
+.feature-group ol,
+.feature-group ul {
+  @apply text-sm text-muted leading-relaxed mb-3 max-w-3xl pl-5 space-y-2;
+}
+
+.feature-group ol {
+  @apply list-decimal;
+}
+
+.feature-group ul {
+  @apply list-disc;
+}
+
+.feature-group code {
+  @apply font-mono text-xs text-ink bg-paper border border-line rounded px-1.5 py-0.5;
+}
+
 .feature-group dl {
   @apply mt-5 pt-5 border-t border-line grid sm:grid-cols-2 gap-x-8 gap-y-2.5 text-sm;
 }
